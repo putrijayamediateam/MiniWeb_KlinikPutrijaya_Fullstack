@@ -611,93 +611,253 @@ function openDoctorModal(doctor) {
 // ------------------------------------------------------------
 // SERVICES
 // ------------------------------------------------------------
+
 async function loadServices() {
   const tbody = document.getElementById('servicesTableBody');
-  tbody.innerHTML = '<tr><td colspan="5" class="loading-row">Loading…</td></tr>';
+
+  tbody.innerHTML =
+    '<tr><td colspan="5" class="loading-row">Loading…</td></tr>';
 
   try {
-    const services = await KPApi.getServices();
+    const services = await authedApi.getAdminServices();
+
     if (!services.length) {
-      tbody.innerHTML = '<tr><td colspan="5" class="empty-row">No services found.</td></tr>';
+      tbody.innerHTML =
+        '<tr><td colspan="5" class="empty-row">No service categories found.</td></tr>';
+
       return;
     }
-    tbody.innerHTML = services.map((s) => `
-      <tr data-id="${s.id}">
-        <td>${escapeHtml(s.category_key)}</td>
-        <td>${escapeHtml(s.title)}</td>
-        <td class="wrap-text">${escapeHtml(s.description || '—')}</td>
-        <td>${s.is_active ? 'Yes' : 'No'}</td>
-        <td>
-          <button class="btn-small" data-action="edit-service" data-id="${s.id}">Edit</button>
-          <button class="btn-small danger" data-action="delete-service" data-id="${s.id}">Delete</button>
-        </td>
-      </tr>
-    `).join('');
 
-    tbody.querySelectorAll('[data-action="edit-service"]').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const s = services.find((x) => x.id == btn.dataset.id);
-        openServiceModal(s);
+    tbody.innerHTML = services.map((service) => {
+      const detailCount = service.details
+        ? String(service.details)
+            .split(/\r?\n/)
+            .map((item) => item.trim())
+            .filter(Boolean)
+            .length
+        : 0;
+
+      return `
+        <tr data-id="${service.id}">
+          <td>
+            ${escapeHtml(service.category_key)}
+            <div class="field-note">
+              Order: ${Number(service.sort_order) || 0}
+            </div>
+          </td>
+
+          <td>
+            <strong>${escapeHtml(service.title)}</strong>
+            <div class="field-note">
+              ${escapeHtml(service.kicker || 'No kicker')}
+            </div>
+          </td>
+
+          <td class="wrap-text">
+            ${escapeHtml(service.description || '—')}
+            <div class="field-note">
+              ${detailCount} detailed service${detailCount === 1 ? '' : 's'}
+            </div>
+          </td>
+
+          <td>
+            ${Number(service.is_active) === 1 ? 'Yes' : 'No'}
+          </td>
+
+          <td>
+            <button
+              class="btn-small"
+              data-action="edit-service"
+              data-id="${service.id}"
+            >
+              Edit
+            </button>
+
+            <button
+              class="btn-small danger"
+              data-action="delete-service"
+              data-id="${service.id}"
+            >
+              Delete
+            </button>
+          </td>
+        </tr>
+      `;
+    }).join('');
+
+    tbody
+      .querySelectorAll('[data-action="edit-service"]')
+      .forEach((button) => {
+        button.addEventListener('click', () => {
+          const service = services.find(
+            (item) => String(item.id) === String(button.dataset.id)
+          );
+
+          openServiceModal(service);
+        });
       });
-    });
-    tbody.querySelectorAll('[data-action="delete-service"]').forEach((btn) => {
-      btn.addEventListener('click', async () => {
-        if (!confirm('Delete this service?')) return;
-        try {
-          await authedApi.deleteService(btn.dataset.id);
-          loadServices();
-        } catch (err) {
-          if (!handleAuthError(err)) alert('Failed to delete: ' + err.message);
-        }
+
+    tbody
+      .querySelectorAll('[data-action="delete-service"]')
+      .forEach((button) => {
+        button.addEventListener('click', async () => {
+          if (!confirm('Delete this service category?')) {
+            return;
+          }
+
+          try {
+            await authedApi.deleteService(button.dataset.id);
+            loadServices();
+          } catch (error) {
+            if (!handleAuthError(error)) {
+              alert(`Failed to delete service: ${error.message}`);
+            }
+          }
+        });
       });
-    });
-  } catch (err) {
-    tbody.innerHTML = `<tr><td colspan="5" class="empty-row">Error: ${escapeHtml(err.message)}</td></tr>`;
+  } catch (error) {
+    if (!handleAuthError(error)) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="5" class="empty-row">
+            Error: ${escapeHtml(error.message)}
+          </td>
+        </tr>
+      `;
+    }
   }
 }
 
-function openServiceModal(service) {
-  const isEdit = !!service;
-  showModal(isEdit ? 'Edit service' : 'Add service', `
-    <label for="m-cat">Category key</label>
-    <input type="text" id="m-cat" value="${service ? escapeHtml(service.category_key) : ''}" placeholder="e.g. women, general, treatment, special" required>
-    <label for="m-title">Title</label>
-    <input type="text" id="m-title" value="${service ? escapeHtml(service.title) : ''}" required>
-    <label for="m-kicker">Kicker (short label)</label>
-    <input type="text" id="m-kicker" value="${service ? escapeHtml(service.kicker || '') : ''}">
-    <label for="m-desc">Description</label>
-    <textarea id="m-desc">${service ? escapeHtml(service.description || '') : ''}</textarea>
-    ${isEdit ? `
+function openServiceModal(service = null) {
+  const isEdit = Boolean(service);
+
+  showModal(
+    isEdit ? 'Edit service category' : 'Add service category',
+    `
+      <label for="m-cat">Category key</label>
+      <input
+        type="text"
+        id="m-cat"
+        value="${service ? escapeHtml(service.category_key) : ''}"
+        placeholder="women, general, treatment or special"
+        required
+      >
+
+      <div class="field-note">
+        Use a short unique key without spaces.
+      </div>
+
+      <label for="m-kicker">Kicker</label>
+      <input
+        type="text"
+        id="m-kicker"
+        value="${service ? escapeHtml(service.kicker || '') : ''}"
+        placeholder="Women’s Health"
+      >
+
+      <label for="m-title">Card title</label>
+      <input
+        type="text"
+        id="m-title"
+        value="${service ? escapeHtml(service.title || '') : ''}"
+        placeholder="Women’s & Maternity Care"
+        required
+      >
+
+      <label for="m-desc">Card description</label>
+      <textarea
+        id="m-desc"
+        placeholder="Short description displayed on the service card."
+      >${service ? escapeHtml(service.description || '') : ''}</textarea>
+
+      <label for="m-details">Available services</label>
+      <textarea
+        id="m-details"
+        rows="10"
+        placeholder="Enter one service per line&#10;Antenatal check-up&#10;Ultrasound scan&#10;Pap smear"
+      >${service ? escapeHtml(service.details || '') : ''}</textarea>
+
+      <div class="field-note">
+        Enter one service per line. These items will appear inside the popup.
+      </div>
+
+      <label for="m-sort">Display order</label>
+      <input
+        type="number"
+        id="m-sort"
+        min="0"
+        value="${service ? Number(service.sort_order) || 0 : 0}"
+      >
+
       <label for="m-active">Active</label>
       <select id="m-active">
-        <option value="1" ${service.is_active ? 'selected' : ''}>Yes</option>
-        <option value="0" ${!service.is_active ? 'selected' : ''}>No</option>
-      </select>` : ''}
-    <div class="form-message" id="modalFormMessage"></div>
-    <div class="modal-actions"><button type="submit" class="btn-primary">${isEdit ? 'Save changes' : 'Add service'}</button></div>
-  `, async (e) => {
-    e.preventDefault();
-    const payload = {
-      category_key: document.getElementById('m-cat').value.trim(),
-      title: document.getElementById('m-title').value.trim(),
-      kicker: document.getElementById('m-kicker').value.trim() || null,
-      description: document.getElementById('m-desc').value.trim() || null,
-    };
-    if (isEdit) payload.is_active = Number(document.getElementById('m-active').value);
+        <option
+          value="1"
+          ${!service || Number(service.is_active) === 1 ? 'selected' : ''}
+        >
+          Yes
+        </option>
 
-    try {
-      if (isEdit) {
-        await authedApi.updateService(service.id, payload);
-      } else {
-        await authedApi.createService(payload);
+        <option
+          value="0"
+          ${service && Number(service.is_active) === 0 ? 'selected' : ''}
+        >
+          No
+        </option>
+      </select>
+
+      <div class="form-message" id="modalFormMessage"></div>
+
+      <div class="modal-actions">
+        <button type="submit" class="btn-primary">
+          ${isEdit ? 'Save changes' : 'Add service category'}
+        </button>
+      </div>
+    `,
+    async (event) => {
+      event.preventDefault();
+
+      const payload = {
+        category_key:
+          document.getElementById('m-cat').value.trim(),
+
+        kicker:
+          document.getElementById('m-kicker').value.trim() || null,
+
+        title:
+          document.getElementById('m-title').value.trim(),
+
+        description:
+          document.getElementById('m-desc').value.trim() || null,
+
+        details:
+          document.getElementById('m-details').value.trim() || null,
+
+        sort_order:
+          Number(document.getElementById('m-sort').value || 0),
+
+        is_active:
+          Number(document.getElementById('m-active').value),
+      };
+
+      const messageBox =
+        document.getElementById('modalFormMessage');
+
+      try {
+        if (isEdit) {
+          await authedApi.updateService(service.id, payload);
+        } else {
+          await authedApi.createService(payload);
+        }
+
+        closeModal();
+        loadServices();
+      } catch (error) {
+        messageBox.textContent = error.message;
+        messageBox.className = 'form-message error';
       }
-      closeModal();
-      loadServices();
-    } catch (err) {
-      document.getElementById('modalFormMessage').textContent = err.message;
-      document.getElementById('modalFormMessage').className = 'form-message error';
     }
-  });
+  );
 }
 
 // ------------------------------------------------------------

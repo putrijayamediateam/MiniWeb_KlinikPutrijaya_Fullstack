@@ -143,6 +143,21 @@
   gap: 10px;
 }
 
+.services-empty {
+  grid-column: 1 / -1;
+  padding: 50px 24px;
+  border: 1px dashed rgba(147, 20, 81, 0.18);
+  border-radius: 24px;
+  background: #fffafd;
+  color: var(--ink-soft);
+  text-align: center;
+  font-weight: 600;
+}
+
+.service-modal-item {
+  line-height: 1.5;
+}
+
 @media (max-width: 1040px) {
   .services-grid {
     grid-template-columns: repeat(2, 1fr);

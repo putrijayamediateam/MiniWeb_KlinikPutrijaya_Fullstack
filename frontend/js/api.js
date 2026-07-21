@@ -242,6 +242,10 @@ const KPApi = {
       // Services
       // ------------------------------------------------------
 
+      getAdminServices: () => apiRequest('/services/admin/all', {
+  headers: authHeaders,
+}),
+
       createService: (payload) =>
         apiRequest('/services', {
           method: 'POST',

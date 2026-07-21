@@ -1,123 +1,206 @@
-const DEFAULT_SERVICE_META = {
-  women: {
-    kicker: 'Women’s Health',
-    title: 'Women’s & Maternity Care',
-    description: 'Dedicated services for women, pregnancy care and reproductive health support.',
-  },
-  general: {
-    kicker: 'General Care',
-    title: 'Family & General Medicine',
-    description: 'Everyday healthcare services for children, adults and families.',
-  },
-  treatment: {
-    kicker: 'Treatments',
-    title: 'Procedures & Minor Care',
-    description: 'Clinic-based treatment and minor procedures delivered by the medical team.',
-  },
-  special: {
-    kicker: 'Special Services',
-    title: 'Wellness & Certification',
-    description: 'Special healthcare support for wellness, travel, certification and selected programmes.',
-  },
-};
-
-const CATEGORY_ORDER = ['women', 'general', 'treatment', 'special'];
+// ============================================================
+// Klinik Putrijaya - Public Services Page
+// ============================================================
 
 document.addEventListener('DOMContentLoaded', async () => {
   const modal = document.getElementById('serviceModal');
-  if (!modal) return;
-
-  const kicker = document.getElementById('serviceModalKicker');
-  const title = document.getElementById('serviceModalTitle');
-  const description = document.getElementById('serviceModalDesc');
-  const list = document.getElementById('serviceModalList');
   const servicesGrid = document.querySelector('.services-grid');
-  let lastTrigger = null;
-  let serviceCatalog = [];
 
-  function renderServiceCards(services) {
-    const grouped = services.reduce((acc, service) => {
-      const category = service.category_key || 'general';
-      if (!acc[category]) acc[category] = [];
-      acc[category].push(service);
-      return acc;
-    }, {});
-
-    const categories = [
-      ...CATEGORY_ORDER.filter((category) => grouped[category] || DEFAULT_SERVICE_META[category]),
-      ...Object.keys(grouped).filter((category) => !CATEGORY_ORDER.includes(category)),
-    ];
-
-    if (!servicesGrid) return;
-
-    servicesGrid.innerHTML = categories.map((category) => {
-      const entries = grouped[category] || [];
-      const primary = entries[0] || null;
-      const meta = DEFAULT_SERVICE_META[category] || {};
-      const cardKicker = primary?.kicker || meta.kicker || 'Service';
-      const cardTitle = primary?.title || meta.title || 'Service';
-      const cardDesc = primary?.description || meta.description || 'Service details coming soon.';
-
-      return `
-        <button class="service-card" type="button" data-service="${category}">
-          <span class="service-kicker">${KPUtils.escapeHtml(cardKicker)}</span>
-          <h2>${KPUtils.escapeHtml(cardTitle)}</h2>
-          <p>${KPUtils.escapeHtml(cardDesc)}</p>
-          <span class="service-more">View services →</span>
-        </button>
-      `;
-    }).join('');
-
-    servicesGrid.querySelectorAll('[data-service]').forEach((card) => {
-      card.addEventListener('click', () => openModal(card.dataset.service, card));
-    });
+  if (!modal || !servicesGrid) {
+    return;
   }
 
-  function openModal(type, trigger) {
-    const data = serviceCatalog.filter((service) => (service.category_key || 'general') === type);
-    if (!data.length) return;
+  const modalKicker =
+    document.getElementById('serviceModalKicker');
 
-    const meta = DEFAULT_SERVICE_META[type] || {};
-    const primary = data[0] || {};
+  const modalTitle =
+    document.getElementById('serviceModalTitle');
+
+  const modalDescription =
+    document.getElementById('serviceModalDesc');
+
+  const modalList =
+    document.getElementById('serviceModalList');
+
+  let serviceCatalog = [];
+  let lastTrigger = null;
+
+  function escapeHtml(value) {
+    if (window.KPUtils?.escapeHtml) {
+      return window.KPUtils.escapeHtml(value);
+    }
+
+    const element = document.createElement('div');
+    element.textContent = value == null ? '' : String(value);
+
+    return element.innerHTML;
+  }
+
+  function getServiceDetails(service) {
+    if (!service?.details) {
+      return [];
+    }
+
+    return String(service.details)
+      .split(/\r?\n/)
+      .map((item) => item.trim())
+      .filter(Boolean);
+  }
+
+  function renderServiceCards(services) {
+    servicesGrid.innerHTML = '';
+
+    if (!services.length) {
+      servicesGrid.innerHTML = `
+        <div class="services-empty">
+          No services are available right now.
+        </div>
+      `;
+
+      return;
+    }
+
+    servicesGrid.innerHTML = services.map((service) => `
+      <button
+        class="service-card"
+        type="button"
+        data-service-id="${service.id}"
+      >
+        <span class="service-kicker">
+          ${escapeHtml(service.kicker || 'Service')}
+        </span>
+
+        <h2>
+          ${escapeHtml(service.title || 'Service')}
+        </h2>
+
+        <p>
+          ${escapeHtml(
+            service.description ||
+            'View the available healthcare services.'
+          )}
+        </p>
+
+        <span class="service-more">
+          View services →
+        </span>
+      </button>
+    `).join('');
+
+    servicesGrid
+      .querySelectorAll('[data-service-id]')
+      .forEach((card) => {
+        card.addEventListener('click', () => {
+          openModal(card.dataset.serviceId, card);
+        });
+      });
+  }
+
+  function openModal(serviceId, trigger) {
+    const service = serviceCatalog.find(
+      (item) => String(item.id) === String(serviceId)
+    );
+
+    if (!service) {
+      return;
+    }
+
+    const details = getServiceDetails(service);
 
     lastTrigger = trigger;
-    kicker.textContent = primary.kicker || meta.kicker || 'Service';
-    title.textContent = primary.title || meta.title || 'Service';
-    description.textContent = primary.description || meta.description || '';
-    list.innerHTML = data.map((service) => `
-      <div class="service-modal-item">
-        <strong>${KPUtils.escapeHtml(service.title || 'Service')}</strong>
-        ${service.description ? `<p>${KPUtils.escapeHtml(service.description)}</p>` : ''}
-      </div>
-    `).join('');
+
+    modalKicker.textContent =
+      service.kicker || 'Service';
+
+    modalTitle.textContent =
+      service.title || 'Service';
+
+    modalDescription.textContent =
+      service.description || '';
+
+    if (details.length) {
+      modalList.innerHTML = details.map((item) => `
+        <div class="service-modal-item">
+          ${escapeHtml(item)}
+        </div>
+      `).join('');
+    } else {
+      modalList.innerHTML = `
+        <div class="service-modal-item">
+          Service details will be updated soon.
+        </div>
+      `;
+    }
 
     modal.classList.add('is-open');
     modal.setAttribute('aria-hidden', 'false');
-    document.body.classList.add('service-modal-open');
-    modal.querySelector('.modal-close')?.focus();
+
+    document.body.classList.add(
+      'service-modal-open'
+    );
+
+    modal
+      .querySelector('.modal-close')
+      ?.focus();
   }
 
   function closeModal() {
     modal.classList.remove('is-open');
     modal.setAttribute('aria-hidden', 'true');
-    document.body.classList.remove('service-modal-open');
+
+    document.body.classList.remove(
+      'service-modal-open'
+    );
+
     lastTrigger?.focus();
   }
 
-  document.querySelectorAll('[data-close-service-modal]').forEach((button) => {
-    button.addEventListener('click', closeModal);
-  });
+  document
+    .querySelectorAll('[data-close-service-modal]')
+    .forEach((button) => {
+      button.addEventListener(
+        'click',
+        closeModal
+      );
+    });
 
   document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape' && modal.classList.contains('is-open')) closeModal();
+    if (
+      event.key === 'Escape' &&
+      modal.classList.contains('is-open')
+    ) {
+      closeModal();
+    }
   });
 
+  servicesGrid.innerHTML = `
+    <div class="services-empty">
+      Loading services…
+    </div>
+  `;
+
   try {
-    const services = await KPApi.getServices();
-    serviceCatalog = (services || []).filter((service) => service.is_active !== false);
+    const services =
+      await KPApi.getServices();
+
+    serviceCatalog =
+      Array.isArray(services)
+        ? services
+        : [];
+
     renderServiceCards(serviceCatalog);
-  } catch (err) {
-    console.error('Failed to load services:', err);
-    renderServiceCards([]);
+  } catch (error) {
+    console.error(
+      'Failed to load services:',
+      error
+    );
+
+    serviceCatalog = [];
+
+    servicesGrid.innerHTML = `
+      <div class="services-empty">
+        Unable to load services right now.
+      </div>
+    `;
   }
 });
