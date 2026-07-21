@@ -1,0 +1,742 @@
+/* ============================================================
+   HOME PAGE — restored from the user's original index design
+   ============================================================ */
+
+/* HERO */
+.hero {
+  position: relative;
+  padding: 0;
+  overflow: hidden;
+}
+
+.hero-img {
+  width: 100%;
+  height: 56vh;
+  min-height: 380px;
+  object-fit: cover;
+  filter: saturate(1.05);
+}
+
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(36, 20, 28, 0.15) 0%, rgba(36, 20, 28, 0.78) 100%);
+}
+
+.hero-content {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  padding: 40px 0 44px;
+}
+
+.hero-content .wrap {
+  color: #fff;
+}
+
+.hero-content .eyebrow {
+  color: #ffc9e2;
+}
+
+.hero-content h1 {
+  max-width: 20ch;
+  margin: 10px 0 12px;
+  color: #fff;
+  font-size: clamp(1.9rem, 4vw, 3rem);
+}
+
+.hero-content p {
+  max-width: 52ch;
+  margin-bottom: 22px;
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 1.02rem;
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+/* STATISTICS */
+.stat-bar {
+  padding: 34px 0;
+  border-bottom: 1px solid rgba(224, 13, 146, 0.08);
+  background: #6e113e;
+}
+
+.stat-bar .wrap {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+}
+
+.stat {
+  padding: 24px 18px;
+  border: 1px solid rgba(224, 13, 146, 0.12);
+  border-radius: 24px;
+  background: #e31c79;
+  text-align: center;
+  box-shadow: 0 14px 40px rgba(224, 13, 146, 0.08);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.stat:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 20px 50px rgba(255, 255, 255, 0.342);
+}
+
+.stat b {
+  display: block;
+  color: #fff;
+  font-family: "Manrope", sans-serif;
+  font-size: clamp(50px, 5vw, 56px);
+  font-feature-settings: "tnum";
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+  letter-spacing: -1.8px;
+  line-height: 0.8;
+  transition: transform 0.35s ease, filter 0.35s ease;
+}
+
+.stat b.is-final {
+  transform: scale(1.08);
+  filter: drop-shadow(0 8px 18px rgba(224, 13, 146, 0.18));
+}
+
+.stat span {
+  display: block;
+  margin-top: 10px;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
+
+/* PANEL */
+.panel-band {
+  padding: 72px 0;
+  overflow: hidden;
+  background: linear-gradient(180deg, #fff 0%, #fff7fb 100%);
+}
+
+.panel-heading {
+  margin: 0 auto 36px;
+  text-align: center;
+}
+
+.panel-scroller {
+  position: relative;
+  overflow-x: auto;
+  overflow-y: hidden;
+  cursor: grab;
+  -webkit-overflow-scrolling: touch;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 8%, #000 92%, transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0%, #000 8%, #000 92%, transparent 100%);
+}
+
+.panel-scroller::-webkit-scrollbar {
+  display: none;
+}
+
+.panel-scroller.is-dragging {
+  cursor: grabbing;
+}
+
+.panel-track {
+  width: max-content;
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  padding: 10px 0;
+}
+
+.panel-card {
+  width: 170px;
+  height: 96px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  padding: 20px;
+  border: 1px solid rgba(224, 13, 146, 0.12);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 10px 28px rgba(224, 13, 146, 0.08);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.panel-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 36px rgba(224, 13, 146, 0.14);
+}
+
+.panel-card img {
+  width: auto;
+  height: auto;
+  max-width: 128px;
+  max-height: 62px;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+/* ============================================================
+   LITTLE SHIELD FEATURED PROGRAMME
+   ============================================================ */
+
+.featured-programme {
+  width: calc(100% - 56px);
+  max-width: 1140px;
+  margin-right: auto;
+  margin-left: auto;
+}
+
+.little-shield-campaign {
+  position: relative;
+  display: grid;
+
+  /*
+   * Smaller left column and larger right column.
+   * This creates more room for the poster.
+   */
+  grid-template-columns:
+    minmax(0, 0.82fr)
+    minmax(430px, 1.18fr);
+
+  align-items: center;
+  gap: clamp(28px, 4vw, 60px);
+
+  width: 100vw;
+  max-width: none;
+
+  margin-top: 46px;
+  margin-right: calc(50% - 50vw);
+  margin-left: calc(50% - 50vw);
+
+  /*
+   * Uses a wider 1220px inner area.
+   * This moves the wording slightly further left
+   * and gives the poster more horizontal space.
+   */
+  padding-top: 58px;
+  padding-right: max(
+    28px,
+    calc((100vw - 1220px) / 2 + 28px)
+  );
+  padding-bottom: 58px;
+  padding-left: max(
+    28px,
+    calc((100vw - 1220px) / 2 + 28px)
+  );
+
+  overflow: hidden;
+  border-radius: 0;
+  background:
+    radial-gradient(
+      circle at 90% 10%,
+      rgba(255, 255, 255, 0.26),
+      transparent 28%
+    ),
+    linear-gradient(
+      135deg,
+      var(--primary) 0%,
+      var(--primary-deep) 100%
+    );
+
+  color: #fff;
+  box-shadow: 0 24px 70px rgba(147, 20, 81, 0.24);
+}
+
+.little-shield-campaign::before {
+  content: "";
+  position: absolute;
+  right: -120px;
+  bottom: -120px;
+  width: 320px;
+  height: 320px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+/* Keep content above the decorative background */
+.campaign-content,
+.campaign-side {
+  position: relative;
+  z-index: 1;
+}
+
+/* ============================================================
+   LEFT CONTENT
+   ============================================================ */
+
+.campaign-content {
+  width: 100%;
+  max-width: 610px;
+  justify-self: start;
+  margin: 0;
+  text-align: left;
+}
+
+.programme-badge {
+  display: inline-flex;
+  width: fit-content;
+  margin-bottom: 16px;
+  padding: 7px 13px;
+
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.16);
+
+  color: #fff;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.67rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.little-shield-campaign h3 {
+  max-width: 9ch;
+  margin: 0 0 12px;
+
+  color: #fff;
+  font-size: clamp(2.45rem, 4.5vw, 3.9rem);
+  letter-spacing: -2px;
+  line-height: 0.96;
+  text-align: left;
+}
+
+.little-shield-campaign .tagline {
+  margin-bottom: 15px;
+  color: #ffe1ef;
+  font-size: 1.03rem;
+  font-weight: 800;
+  text-align: left;
+}
+
+.programme-desc {
+  max-width: 58ch;
+  margin-bottom: 22px;
+
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.9rem;
+  line-height: 1.65;
+  text-align: left;
+}
+
+/* ============================================================
+   SMALLER 1, 2, 3 CARDS
+   ============================================================ */
+
+.campaign-flow {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 9px;
+
+  width: 100%;
+  max-width: 590px;
+  margin-bottom: 22px;
+}
+
+.flow-card {
+  position: relative;
+  min-height: 128px;
+  padding: 13px 12px 12px;
+
+  border: 1px solid rgba(255, 255, 255, 0.17);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.13);
+
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+
+.flow-number {
+  width: 27px;
+  height: 27px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin-bottom: 8px;
+  border-radius: 999px;
+  background: #fff;
+
+  color: var(--primary-deep);
+  font-family: "Manrope", sans-serif;
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.flow-card h4 {
+  margin-bottom: 5px;
+  color: #fff;
+
+  /*
+   * Smaller heading requested for:
+   * Health Awareness
+   * Interactive Learning
+   * Optional Vaccination
+   */
+  font-size: 0.79rem;
+  line-height: 1.25;
+}
+
+.flow-card p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.81);
+
+  /*
+   * Smaller description wording.
+   */
+  font-size: 0.67rem;
+  line-height: 1.42;
+}
+
+/* ============================================================
+   ACTION BUTTONS
+   ============================================================ */
+
+.campaign-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 11px;
+}
+
+.programme-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  width: fit-content;
+  padding: 12px 18px;
+
+  border-radius: 999px;
+  background: #fff;
+  color: var(--primary-deep);
+
+  font-size: 0.82rem;
+  font-weight: 800;
+  text-decoration: none;
+
+  box-shadow: 0 14px 32px rgba(36, 20, 28, 0.18);
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.programme-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 20px 42px rgba(36, 20, 28, 0.24);
+}
+
+/* ============================================================
+   RIGHT POSTER SIDE
+   ============================================================ */
+
+.campaign-side {
+  width: 100%;
+
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-self: end;
+  gap: 14px;
+}
+
+.poster-slider {
+  position: relative;
+
+  /*
+   * Larger poster.
+   */
+  width: min(100%, 520px);
+  max-width: 520px;
+
+  overflow: hidden;
+  padding: 10px;
+
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.18);
+
+  box-shadow: 0 18px 48px rgba(36, 20, 28, 0.16);
+}
+
+.poster-track {
+  display: flex;
+  overflow-x: auto;
+
+  scroll-behavior: smooth;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+
+.poster-track::-webkit-scrollbar {
+  display: none;
+}
+
+.poster-track img {
+  width: 100%;
+  flex: 0 0 100%;
+
+  /*
+   * Show the complete poster without cropping.
+   */
+  aspect-ratio: 4 / 5;
+  object-fit: contain;
+
+  background: #fff;
+  scroll-snap-align: start;
+}
+
+/* ============================================================
+   POSTER ARROWS
+   ============================================================ */
+
+.poster-btn {
+  position: absolute;
+  top: 50%;
+
+  width: 36px;
+  height: 36px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--primary-deep);
+
+  box-shadow: 0 8px 22px rgba(36, 20, 28, 0.18);
+
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+
+  transform: translateY(-50%) scale(0.92);
+
+  transition:
+    opacity 0.25s ease,
+    visibility 0.25s ease,
+    transform 0.25s ease,
+    background 0.25s ease;
+}
+
+.poster-slider:hover .poster-btn,
+.poster-slider:focus-within .poster-btn {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(-50%) scale(1);
+}
+
+.poster-btn.prev {
+  left: 16px;
+}
+
+.poster-btn.next {
+  right: 16px;
+}
+
+.poster-btn:hover {
+  background: #fff;
+}
+
+/* ============================================================
+   OPEN FOR TASKA / TADIKA CARD
+   ============================================================ */
+
+.mini-highlight {
+  width: min(100%, 520px);
+  max-width: 520px;
+  padding: 17px 20px;
+
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 15px;
+  background: rgba(255, 255, 255, 0.14);
+
+  text-align: left;
+}
+
+.mini-highlight b {
+  display: block;
+  margin-bottom: 3px;
+
+  color: #fff;
+  font-family: "Manrope", sans-serif;
+  font-size: 1.08rem;
+}
+
+.mini-highlight span {
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 0.82rem;
+}
+
+/* ============================================================
+   RESPONSIVE — TABLET
+   ============================================================ */
+
+@media (max-width: 1100px) {
+  .little-shield-campaign {
+    grid-template-columns:
+      minmax(0, 0.95fr)
+      minmax(390px, 1.05fr);
+
+    gap: 28px;
+  }
+
+  .poster-slider,
+  .mini-highlight {
+    width: min(100%, 460px);
+    max-width: 460px;
+  }
+
+  .campaign-flow {
+    gap: 8px;
+  }
+
+  .flow-card {
+    padding: 12px 10px;
+  }
+}
+
+@media (max-width: 980px) {
+  .little-shield-campaign {
+    grid-template-columns: 1fr;
+    padding: 44px 28px;
+  }
+
+  .campaign-content {
+    max-width: none;
+  }
+
+  .little-shield-campaign h3 {
+    max-width: none;
+  }
+
+  .campaign-flow {
+    max-width: none;
+  }
+
+  .campaign-side {
+    align-items: center;
+    justify-self: center;
+  }
+
+  .poster-slider,
+  .mini-highlight {
+    width: min(100%, 500px);
+    max-width: 500px;
+  }
+}
+
+/* ============================================================
+   EXISTING STATISTICS AND PANEL MOBILE RULES
+   ============================================================ */
+
+@media (max-width: 768px) {
+  .stat-bar .wrap {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .stat {
+    padding: 20px 14px;
+  }
+
+  .panel-band {
+    padding: 56px 0;
+  }
+
+  .panel-card {
+    width: 140px;
+    height: 84px;
+    padding: 16px;
+    border-radius: 18px;
+  }
+
+  .panel-card img {
+    max-width: 108px;
+    max-height: 54px;
+  }
+
+  .poster-btn {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateY(-50%) scale(1);
+  }
+}
+
+/* ============================================================
+   RESPONSIVE — MOBILE
+   ============================================================ */
+
+@media (max-width: 680px) {
+  .campaign-flow {
+    grid-template-columns: 1fr;
+  }
+
+  .flow-card {
+    min-height: auto;
+    padding: 14px;
+  }
+
+  .flow-card h4 {
+    font-size: 0.84rem;
+  }
+
+  .flow-card p {
+    font-size: 0.72rem;
+  }
+
+  .campaign-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .programme-btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 560px) {
+  .hero-actions {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .featured-programme {
+    width: calc(100% - 40px);
+  }
+
+  .little-shield-campaign {
+    padding: 38px 20px;
+  }
+
+  .little-shield-campaign h3 {
+    font-size: clamp(2.1rem, 12vw, 3rem);
+  }
+
+  .poster-slider,
+  .mini-highlight {
+    width: 100%;
+    max-width: 100%;
+  }
+}
+
+/* Prevent the full-width programme from creating horizontal scroll */
+html,
+body {
+  overflow-x: hidden;
+}

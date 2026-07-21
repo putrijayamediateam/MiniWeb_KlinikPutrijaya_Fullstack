@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Request an appointment with Klinik Putrijaya.">
+  <title>Book Appointment | Klinik Putrijaya</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/global.css">
+  <link rel="stylesheet" href="css/forms.css">
+  <script src="js/api.js" defer></script>
+  <script src="js/utils.js" defer></script>
+  <script src="js/main.js" defer></script>
+  <script src="js/appointment.js" defer></script>
+</head>
+<body data-page="appointment">
+  <div id="site-header"></div>
+  <main>
+    <section class="page-hero">
+      <img src="images/backg.jpg" alt="Background Purple" class="page-hero-img">
+      <div class="page-hero-content"><div class="wrap">
+        <div class="eyebrow">Book with us</div>
+        <h1>Request your preferred appointment slot.</h1>
+        <p>Submit the form and the selected clinic will contact you to confirm availability.</p>
+      </div></div>
+    </section>
+    <section id="booking" class="form-section">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="eyebrow">Book with us</div>
+        <h2>Request an appointment online.</h2>
+        <p>Fill in your details and our clinic will contact you to confirm your slot.</p>
+      </div>
+
+      <form class="kp-form" id="bookingForm" novalidate>
+        <div>
+          <label for="bk-branch">Branch *</label>
+          <select id="bk-branch" name="branch_id" required>
+            <option value="">Loading branches…</option>
+          </select>
+        </div>
+        <div>
+          <label for="bk-doctor">Preferred doctor</label>
+          <select id="bk-doctor" name="doctor_id" disabled>
+            <option value="">Please select branch first</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="bk-service">Service</label>
+          <select id="bk-service" name="service_id">
+            <option value="">Not sure / general consultation</option>
+          </select>
+        </div>
+        <div>
+          <label for="bk-name">Full name *</label>
+          <input type="text" id="bk-name" name="patient_name" required>
+        </div>
+
+        <div>
+          <label for="bk-phone">Phone number *</label>
+          <input type="tel" id="bk-phone" name="phone" placeholder="012-3456789" required>
+        </div>
+        <div>
+          <label for="bk-ic">IC number</label>
+          <input type="text" id="bk-ic" name="ic_number" placeholder="Optional">
+        </div>
+
+        <div>
+          <label for="bk-date">Preferred date *</label>
+          <input type="date" id="bk-date" name="preferred_date" required>
+        </div>
+        <div>
+          <label for="bk-time">Preferred time *</label>
+          <input type="time" id="bk-time" name="preferred_time" required>
+        </div>
+
+        <div class="full">
+          <label for="bk-reason">Reason for visit</label>
+          <textarea id="bk-reason" name="reason" placeholder="Briefly describe your symptoms or purpose of visit"></textarea>
+        </div>
+
+        <div class="kp-form-message" id="bookingMessage"></div>
+        <button type="submit" class="kp-submit-btn" id="bookingSubmitBtn">Request appointment</button>
+      </form>
+    </div>
+  </section>
+  </main>
+  <div id="site-footer"></div>
+</body>
+</html>

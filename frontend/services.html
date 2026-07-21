@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Explore Klinik Putrijaya healthcare services.">
+  <title>Services | Klinik Putrijaya</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/global.css">
+  <link rel="stylesheet" href="css/services.css">
+  <script src="js/utils.js" defer></script>
+  <script src="js/api.js" defer></script>
+  <script src="js/main.js" defer></script>
+  <script src="js/services.js" defer></script>
+</head>
+<body data-page="services">
+  <div id="site-header"></div>
+  <main>
+    <section class="page-hero">
+      <img src="images/backg.jpg" alt="Background Purple" class="page-hero-img">
+      <div class="page-hero-content">
+        <div class="wrap">
+          <div class="eyebrow">What we offer</div>
+          <h1>Healthcare for every stage of life.</h1>
+          <p>Explore women’s health, family medicine, vaccination, screening, minor procedures and wellness services.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="services-section">
+      <div class="wrap">
+        <div class="section-head">
+          <div class="eyebrow">Service categories</div>
+          <h2>Select a category to view available services</h2>
+        </div>
+
+        <div class="services-grid">
+          <button class="service-card" type="button" data-service="women">
+            <span class="service-kicker">Women’s Health</span>
+            <h2>Women’s & Maternity Care</h2>
+            <p>Antenatal, ultrasound scans, pap smear and reproductive health support.</p>
+            <span class="service-more">View services →</span>
+          </button>
+
+          <button class="service-card" type="button" data-service="general">
+            <span class="service-kicker">General Care</span>
+            <h2>Family & General Medicine</h2>
+            <p>Daily healthcare, consultation, vaccination, check-ups and basic screening.</p>
+            <span class="service-more">View services →</span>
+          </button>
+
+          <button class="service-card" type="button" data-service="treatment">
+            <span class="service-kicker">Treatments</span>
+            <h2>Procedures & Minor Care</h2>
+            <p>Wound care, asthma treatment, suction and selected minor procedures.</p>
+            <span class="service-more">View services →</span>
+          </button>
+
+          <button class="service-card" type="button" data-service="special">
+            <span class="service-kicker">Special Services</span>
+            <h2>Wellness & Certification</h2>
+            <p>Weight management, travel check-up, licence renewal and special health needs.</p>
+            <span class="service-more">View services →</span>
+          </button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="service-modal" id="serviceModal" aria-hidden="true">
+    <div class="service-modal-backdrop" data-close-service-modal></div>
+    <div class="service-modal-panel" role="dialog" aria-modal="true" aria-labelledby="serviceModalTitle">
+      <button class="modal-close" type="button" aria-label="Close service window" data-close-service-modal>×</button>
+      <span class="service-modal-kicker" id="serviceModalKicker"></span>
+      <h2 id="serviceModalTitle"></h2>
+      <p id="serviceModalDesc"></p>
+      <div class="service-modal-list" id="serviceModalList"></div>
+      <div class="service-modal-actions">
+        <a class="btn-primary" href="appointment.html">Request appointment</a>
+        <button class="btn-secondary" type="button" data-close-service-modal>Close</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="site-footer"></div>
+</body>
+</html>

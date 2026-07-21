@@ -1,0 +1,919 @@
+:root {
+  --bg: #fffbfc;
+  --surface: #ffffff;
+  --ink: #24141c;
+  --ink-soft: #5c4a52;
+  --primary: #e31c79;
+  --primary-deep: #931451;
+  --accent: #2a2a2a;
+  --pink-tint: #fef0f6;
+  --muted: #8a7580;
+  --line: #f3dce7;
+  --radius: 16px;
+  --header-height: 68px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: "Inter", sans-serif;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+body.menu-open,
+body.branch-modal-open,
+body.service-modal-open,
+body.modal-open {
+  overflow: hidden;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5 {
+  color: var(--ink);
+  font-family: "Poppins", sans-serif;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+a {
+  color: inherit;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button {
+  border: 0;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+main {
+  min-height: 55vh;
+}
+
+.wrap {
+  width: 100%;
+  max-width: 1140px;
+  margin: 0 auto;
+  padding: 0 28px;
+}
+
+section {
+  padding: 84px 0;
+}
+
+section[id],
+#little-shield,
+#statistics {
+  scroll-margin-top: calc(var(--header-height) + 18px);
+}
+
+.eyebrow {
+  color: var(--primary);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.section-head {
+  max-width: 680px;
+  margin-bottom: 40px;
+}
+
+.section-head h1,
+.section-head h2 {
+  margin-top: 8px;
+  font-size: clamp(1.6rem, 3vw, 2.15rem);
+}
+
+.section-head p {
+  margin-top: 12px;
+  color: var(--ink-soft);
+  font-size: 1.02rem;
+}
+
+.section-head.center {
+  margin-right: auto;
+  margin-left: auto;
+  text-align: center;
+}
+
+/* ============================================================
+   SHARED BUTTONS
+   ============================================================ */
+
+.btn-primary,
+.btn-secondary,
+.btn-ghost,
+.nav-cta,
+.programme-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.btn-primary {
+  padding: 13px 24px;
+  background: var(--primary);
+  color: #fff;
+  font-size: 0.95rem;
+}
+
+.btn-primary:hover,
+.btn-primary:focus-visible {
+  background: var(--primary-deep);
+}
+
+.btn-secondary {
+  padding: 12px 22px;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.btn-secondary:hover,
+.btn-secondary:focus-visible {
+  border-color: rgba(227, 28, 121, 0.35);
+  color: var(--primary-deep);
+}
+
+.btn-ghost {
+  padding: 13px 24px;
+  border: 1.5px solid #fff;
+  color: #fff;
+  font-size: 0.95rem;
+}
+
+.btn-ghost:hover,
+.btn-ghost:focus-visible {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* ============================================================
+   SITE HEADER
+   Actual menu markup is injected by js/main.js.
+   ============================================================ */
+
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  min-height: var(--header-height);
+  background: rgba(255, 255, 255, 0.98);
+  border-bottom: 1px solid var(--line);
+  box-shadow: 0 1px 0 rgba(36, 20, 28, 0.02), 0 10px 30px rgba(36, 20, 28, 0.045);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+
+.site-nav {
+  min-height: var(--header-height);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 28px;
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
+.site-nav .brand {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  text-decoration: none;
+}
+
+.site-nav .brand img {
+  width: auto;
+  height: 30px;
+}
+
+.nav-menu {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 28px;
+  margin-left: auto;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.nav-links > li {
+  position: relative;
+}
+
+.nav-links > li > a,
+.nav-dropdown-toggle {
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 15px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ink-soft);
+  font-family: "Inter", sans-serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1;
+  text-decoration: none;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+/* Light rectangular box shown on hover (links only — dropdown open state is click-driven, see below) */
+.nav-links > li > a:hover,
+.nav-links > li > a:focus-visible,
+.nav-dropdown-toggle:hover,
+.nav-dropdown-toggle:focus-visible {
+  border-color: rgba(227, 28, 121, 0.2);
+  background: var(--pink-tint);
+  color: var(--primary);
+}
+
+/* Toggle only looks "engaged" once the menu is actually open (click).
+   Same soft tint as the :hover state, but lifted with a gentle shadow
+   so "open" reads as distinct from a plain hover. */
+.nav-dropdown.is-open > .nav-dropdown-toggle {
+  border-color: rgba(227, 28, 121, 0.2);
+  background: var(--pink-tint);
+  color: var(--primary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(227, 28, 121, 0.18);
+}
+
+/* Solid rectangular box for the current selected page */
+.nav-links > li > a.is-active,
+.nav-links > li > a[aria-current="page"],
+.nav-dropdown.has-active-child > .nav-dropdown-toggle {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: #fff;
+}
+
+/* Darker selected box when hovered */
+.nav-links > li > a.is-active:hover,
+.nav-links > li > a[aria-current="page"]:hover,
+.nav-dropdown.has-active-child > .nav-dropdown-toggle:hover,
+.nav-dropdown.has-active-child.is-open > .nav-dropdown-toggle {
+  border-color: var(--primary-deep);
+  background: var(--primary-deep);
+  color: #fff;
+}
+
+.nav-links > li > a:focus-visible,
+.nav-dropdown-toggle:focus-visible,
+.nav-dropdown-menu a:focus-visible,
+.site-nav .nav-cta:focus-visible,
+.nav-toggle:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.nav-chevron {
+  display: inline-block;
+  font-size: 0.54rem;
+  line-height: 1;
+  transform: translateY(1px);
+  transition: transform 0.2s ease;
+}
+
+/* ============================================================
+   HEADER DROPDOWNS
+   Opens ONLY when a JS click toggles the `.is-open` class on
+   `.nav-dropdown` (see JS snippet). Hover no longer opens it.
+   ============================================================ */
+
+.nav-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  z-index: 50;
+  width: 220px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 18px 50px rgba(36, 20, 28, 0.13);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translate(-50%, 8px);
+  transition:
+    opacity 0.18s ease,
+    visibility 0.18s ease,
+    transform 0.18s ease;
+}
+
+.nav-dropdown-menu a {
+  display: block;
+  padding: 10px 12px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  color: var(--ink-soft);
+  font-size: 0.86rem;
+  line-height: 1.35;
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.nav-dropdown-menu a:hover,
+.nav-dropdown-menu a:focus-visible {
+  border-color: rgba(227, 28, 121, 0.16);
+  background: var(--pink-tint);
+  color: var(--primary-deep);
+}
+
+.nav-dropdown-menu a.is-active,
+.nav-dropdown-menu a[aria-current="page"] {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: #fff;
+}
+
+@media (min-width: 881px) {
+  /* Only .is-open (set by a click handler in JS) reveals the menu now.
+     :hover / :focus-within triggers have been removed on purpose. */
+  .nav-dropdown.is-open .nav-dropdown-menu {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translate(-50%, 0);
+  }
+
+  .nav-dropdown.is-open .nav-chevron {
+    transform: translateY(1px) rotate(180deg);
+  }
+}
+
+/* ============================================================
+   BOOK A VISIT BUTTON
+   ============================================================ */
+
+.site-nav .nav-cta {
+  flex-shrink: 0;
+  padding: 11px 22px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--primary);
+  color: #fff;
+  font-family: "Inter", sans-serif;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(227, 28, 121, 0.28);
+  -webkit-appearance: none;
+  appearance: none;
+  transition:
+    background-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.site-nav .nav-cta:hover,
+.site-nav .nav-cta:focus-visible {
+  background: var(--primary-deep);
+  color: #fff;
+  box-shadow: 0 10px 24px rgba(147, 20, 81, 0.32);
+  transform: translateY(-1px);
+}
+
+/* ============================================================
+   MOBILE MENU BUTTON
+   ============================================================ */
+
+.nav-toggle {
+  display: none;
+  width: 42px;
+  height: 42px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--ink);
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.nav-toggle span {
+  display: block;
+  width: 20px;
+  height: 2px;
+  margin: 4px auto;
+  border-radius: 99px;
+  background: currentColor;
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
+}
+
+.nav-toggle[aria-expanded="true"] span:nth-child(1) {
+  transform: translateY(6px) rotate(45deg);
+}
+
+.nav-toggle[aria-expanded="true"] span:nth-child(2) {
+  opacity: 0;
+}
+
+.nav-toggle[aria-expanded="true"] span:nth-child(3) {
+  transform: translateY(-6px) rotate(-45deg);
+}
+
+/* ============================================================
+   INNER-PAGE HERO
+   Same gradient as Little Shield Community
+   ============================================================ */
+
+.page-hero {
+  position: relative;
+  isolation: isolate;
+  min-height: 330px;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+  padding: 0;
+  color: #fff;
+
+  background:
+    radial-gradient(
+      circle at 90% 10%,
+      rgba(255, 255, 255, 0.26),
+      transparent 28%
+    ),
+    linear-gradient(
+      135deg,
+      var(--primary) 0%,
+      var(--primary-deep) 100%
+    );
+
+  box-shadow: 0 24px 70px rgba(147, 20, 81, 0.18);
+}
+
+/* Hide existing hero images */
+.page-hero > img,
+.page-hero .page-hero-image {
+  display: none;
+}
+
+/* Decorative circle like Little Shield */
+.page-hero::before {
+  content: "";
+  position: absolute;
+  right: -120px;
+  bottom: -170px;
+  z-index: 0;
+  width: 360px;
+  height: 360px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  pointer-events: none;
+}
+
+/* Additional soft highlight */
+.page-hero::after {
+  content: "";
+  position: absolute;
+  top: -160px;
+  left: -130px;
+  z-index: 0;
+  width: 340px;
+  height: 340px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.07);
+  pointer-events: none;
+}
+
+.page-hero-content {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  padding: 78px 0 48px;
+  color: #fff;
+}
+
+.page-hero .eyebrow {
+  color: #ffe1ef;
+}
+
+.page-hero h1 {
+  max-width: 18ch;
+  margin-top: 10px;
+  color: #fff;
+  font-size: clamp(2rem, 5vw, 3.5rem);
+}
+
+.page-hero p {
+  max-width: 62ch;
+  margin-top: 12px;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .page-hero {
+    min-height: 280px;
+  }
+
+  .page-hero-content {
+    padding: 64px 0 38px;
+  }
+
+  .page-hero::before {
+    right: -150px;
+    bottom: -190px;
+  }
+}
+
+
+
+/* ============================================================
+   BRANCH WHATSAPP MODAL
+   ============================================================ */
+
+.branch-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: none;
+}
+
+.branch-modal.is-open {
+  display: block;
+}
+
+.branch-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(20, 14, 18, 0.45);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+
+.branch-modal-panel {
+  position: relative;
+  width: min(520px, calc(100% - 32px));
+  margin: 80px auto 0;
+  padding: 34px;
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 36px 100px rgba(20, 14, 18, 0.28);
+  animation: branchModalIn 0.25s ease;
+}
+
+@keyframes branchModalIn {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.branch-modal-close {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+  background: #f4f4f4;
+  color: var(--ink);
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.branch-modal-close:hover,
+.branch-modal-close:focus-visible {
+  background: #eaeaea;
+}
+
+.branch-modal-kicker {
+  display: inline-flex;
+  width: fit-content;
+  margin-bottom: 14px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: var(--pink-tint);
+  color: var(--primary-deep);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.branch-modal-head h2 {
+  margin-bottom: 10px;
+  font-size: clamp(1.6rem, 4vw, 2.25rem);
+}
+
+.branch-modal-head p {
+  margin-bottom: 24px;
+  color: var(--ink-soft);
+  font-size: 0.95rem;
+}
+
+.branch-whatsapp-list {
+  display: grid;
+  gap: 12px;
+}
+
+.branch-whatsapp-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: #fff;
+  color: var(--ink);
+  text-decoration: none;
+  transition:
+    transform 0.25s ease,
+    border-color 0.25s ease,
+    background-color 0.25s ease;
+}
+
+.branch-whatsapp-card:hover,
+.branch-whatsapp-card:focus-visible {
+  transform: translateY(-3px);
+  border-color: rgba(255, 0, 106, 0.35);
+  background: #f8fffb;
+}
+
+.wa-icon {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border-radius: 999px;
+  background: #25d366;
+  color: #fff;
+}
+
+.wa-icon svg {
+  width: 24px;
+  height: 24px;
+  fill: currentColor;
+}
+
+.branch-whatsapp-card b {
+  display: block;
+  margin-bottom: 3px;
+  font-family: "Manrope", sans-serif;
+  font-size: 0.98rem;
+}
+
+.branch-whatsapp-card small {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+
+footer {
+  margin-top: 0;
+  padding: 48px 0 28px;
+  background: var(--ink);
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.footer-grid {
+  display: grid;
+  grid-template-columns: 1.4fr repeat(3, 1fr);
+  gap: 32px;
+  margin-bottom: 32px;
+}
+
+.footer-logo {
+  width: auto;
+  height: 30px;
+  margin-bottom: 12px;
+  filter: brightness(0) invert(1);
+}
+
+.footer-intro,
+.footer-summary {
+  max-width: 32ch;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.86rem;
+}
+
+footer h4 {
+  margin-bottom: 12px;
+  color: #fff;
+  font-size: 0.9rem;
+}
+
+footer a {
+  display: block;
+  margin-bottom: 8px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.86rem;
+  text-decoration: none;
+}
+
+footer a:hover,
+footer a:focus-visible {
+  color: #fff;
+}
+
+.footer-bottom {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.8rem;
+}
+
+.admin-footer-link {
+  color: rgba(255, 255, 255, 0.5);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.7rem;
+  opacity: 0.7;
+}
+
+/* ============================================================
+   RESPONSIVE HEADER AND LAYOUT
+   ============================================================ */
+
+@media (max-width: 880px) {
+  .site-nav {
+    position: relative;
+    flex-wrap: wrap;
+  }
+
+  .nav-toggle {
+    display: block;
+    margin-left: auto;
+  }
+
+  .nav-menu {
+    position: absolute;
+    top: calc(100% + 1px);
+    right: 0;
+    left: 0;
+    display: none;
+    align-items: stretch;
+    flex-direction: column;
+    gap: 14px;
+    padding: 18px 28px 22px;
+    border-bottom: 1px solid var(--line);
+    background: #fff;
+    box-shadow: 0 18px 40px rgba(36, 20, 28, 0.1);
+  }
+
+  .nav-menu.is-open {
+    display: flex;
+  }
+
+  .nav-links {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .nav-links > li > a,
+  .nav-dropdown-toggle {
+    width: 100%;
+    min-height: 44px;
+    justify-content: space-between;
+    padding: 10px 12px;
+  }
+
+  .nav-dropdown-menu {
+    position: static;
+    width: 100%;
+    display: none;
+    padding: 5px 0 5px 12px;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: none;
+  }
+
+  .nav-dropdown.is-open .nav-dropdown-menu {
+    display: block;
+  }
+
+  .nav-dropdown.is-open .nav-chevron {
+    transform: translateY(1px) rotate(180deg);
+  }
+
+  .nav-dropdown-menu a {
+    padding: 10px 12px;
+  }
+
+  .site-nav .nav-cta {
+    width: 100%;
+    align-self: stretch;
+  }
+
+  section {
+    padding: 56px 0;
+  }
+
+  .footer-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .wrap {
+    padding: 0 20px;
+  }
+
+  .nav-menu {
+    padding-right: 20px;
+    padding-left: 20px;
+  }
+
+  .branch-modal-panel {
+    margin-top: 54px;
+    padding: 28px 20px;
+    border-radius: 22px;
+  }
+}
+
+/* ============================================================
+   REDUCED MOTION
+   ============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

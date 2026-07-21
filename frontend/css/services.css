@@ -1,0 +1,170 @@
+.services-section {
+  background: #fff;
+}
+
+.services-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+}
+
+.service-card {
+  position: relative;
+  min-height: 290px;
+  padding: 30px;
+  overflow: hidden;
+  border: 1px solid rgba(147, 20, 81, 0.08);
+  border-radius: 26px;
+  background: #fff;
+  color: var(--ink);
+  text-align: left;
+  box-shadow: 0 18px 46px rgba(147, 20, 81, 0.055);
+  cursor: pointer;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+}
+
+.service-card:hover {
+  transform: translateY(-5px);
+  background: #fffafd;
+  box-shadow: 0 28px 70px rgba(147, 20, 81, 0.1);
+}
+
+.service-kicker {
+  display: block;
+  margin-bottom: 72px;
+  color: var(--primary);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.service-card h2 {
+  margin-bottom: 12px;
+  font-size: 1.28rem;
+}
+
+.service-card p {
+  margin-bottom: 30px;
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+}
+
+.service-more {
+  position: absolute;
+  bottom: 28px;
+  left: 30px;
+  color: var(--primary);
+  font-family: "Manrope", sans-serif;
+  font-size: 0.86rem;
+  font-weight: 800;
+}
+
+.service-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: none;
+}
+
+.service-modal.is-open {
+  display: block;
+}
+
+.service-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(20, 14, 18, 0.48);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+
+.service-modal-panel {
+  position: relative;
+  width: min(680px, calc(100% - 32px));
+  max-height: calc(100vh - 48px);
+  margin: 24px auto;
+  padding: 38px;
+  overflow-y: auto;
+  border-radius: 28px;
+  background: #fff;
+  box-shadow: 0 40px 100px rgba(20, 14, 18, 0.26);
+  animation: modal-in 0.22s ease;
+}
+
+.service-modal-kicker {
+  display: inline-flex;
+  width: fit-content;
+  margin-bottom: 16px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: var(--pink-tint);
+  color: var(--primary-deep);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.service-modal-panel h2 {
+  max-width: 14ch;
+  margin-bottom: 14px;
+  font-size: clamp(1.8rem, 4vw, 2.8rem);
+  letter-spacing: -1.2px;
+}
+
+.service-modal-panel > p {
+  margin-bottom: 26px;
+  color: var(--ink-soft);
+}
+
+.service-modal-list {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-bottom: 30px;
+}
+
+.service-modal-item {
+  padding: 14px 16px;
+  border: 1px solid #eee;
+  border-radius: 16px;
+  background: #fafafa;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.service-modal-actions {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+@media (max-width: 1040px) {
+  .services-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 680px) {
+  .services-grid,
+  .service-modal-list {
+    grid-template-columns: 1fr;
+  }
+
+  .service-card {
+    min-height: 250px;
+  }
+
+  .service-kicker {
+    margin-bottom: 50px;
+  }
+
+  .service-modal-panel {
+    padding: 30px 22px;
+    border-radius: 24px;
+  }
+}

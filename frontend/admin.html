@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Klinik Putrijaya — Staff Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+
+  <!-- LOGIN SCREEN -->
+  <div id="loginScreen" class="login-screen">
+    <div class="login-card">
+      <img src="images/logoklinik.png" alt="Klinik Putrijaya" class="login-logo">
+      <h1>Staff Login</h1>
+      <p class="login-sub">Sign in to manage bookings, feedback, doctors and services.</p>
+      <form id="loginForm" novalidate>
+        <label for="loginUsername">Username</label>
+        <input type="text" id="loginUsername" required autocomplete="username">
+
+        <label for="loginPassword">Password</label>
+        <input type="password" id="loginPassword" required autocomplete="current-password">
+
+        <div class="form-message" id="loginMessage"></div>
+        <button type="submit" class="btn-primary" id="loginBtn">Log in</button>
+      </form>
+      <a href="index.html" class="back-link">&larr; Back to website</a>
+    </div>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div id="dashboard" class="dashboard hidden">
+    <header class="admin-header">
+      <div class="admin-header-inner">
+        <img src="images/logoklinik.png" alt="Klinik Putrijaya" class="admin-logo">
+        <span class="admin-title">Staff Dashboard</span>
+        <div class="admin-header-right">
+          <span id="adminUsername" class="admin-username"></span>
+          <button id="logoutBtn" class="btn-ghost">Log out</button>
+        </div>
+      </div>
+    </header>
+
+    <nav class="admin-tabs">
+      <button class="tab-btn active" data-tab="bookings">Bookings</button>
+      <button class="tab-btn" data-tab="feedback">Feedback</button>
+      <button class="tab-btn" data-tab="doctors">Doctors</button>
+      <button class="tab-btn" data-tab="services">Services</button>
+      <button class="tab-btn" data-tab="promotions">Promotions</button>
+    </nav>
+
+    <main class="admin-main">
+
+      <!-- BOOKINGS TAB -->
+<section class="tab-panel active" id="tab-bookings">
+  <div class="panel-head">
+    <div>
+      <h2>Appointment requests</h2>
+      <p class="panel-subtitle">Manage patient bookings, follow-up status and export appointment data.</p>
+    </div>
+
+    <button type="button" class="btn-primary" id="exportBookingsBtn">
+      Export CSV
+    </button>
+  </div>
+
+  <!-- SUMMARY CARDS -->
+  <div class="summary-grid" id="bookingSummaryCards">
+    <div class="summary-card">
+      <span class="summary-label">Total Bookings</span>
+      <strong id="summaryTotal">0</strong>
+    </div>
+
+    <div class="summary-card pending">
+      <span class="summary-label">Pending</span>
+      <strong id="summaryPending">0</strong>
+    </div>
+
+    <div class="summary-card confirmed">
+      <span class="summary-label">Confirmed</span>
+      <strong id="summaryConfirmed">0</strong>
+    </div>
+
+    <div class="summary-card completed">
+      <span class="summary-label">Completed</span>
+      <strong id="summaryCompleted">0</strong>
+    </div>
+
+    <div class="summary-card cancelled">
+      <span class="summary-label">Cancelled</span>
+      <strong id="summaryCancelled">0</strong>
+    </div>
+  </div>
+
+  <!-- FILTER BAR -->
+  <div class="booking-toolbar">
+    <div class="booking-search-wrap">
+      <input
+        type="search"
+        id="bookingSearchInput"
+        placeholder="Search by name, phone, reason or reference..."
+      >
+    </div>
+
+    <select id="bookingBranchFilter" aria-label="Filter bookings by branch">
+  <option value="">All branches</option>
+</select>
+
+<select id="bookingStatusFilter" aria-label="Filter bookings by status">
+  <option value="">All statuses</option>
+  <option value="pending">Pending Review</option>
+  <option value="confirmed">Confirmed</option>
+  <option value="completed">Completed</option>
+  <option value="cancelled">Cancelled</option>
+</select>
+  </div>
+
+  <div class="table-wrap">
+    <table class="bookings-table">
+      <thead>
+        <tr>
+          <th>Ref</th>
+          <th>Patient</th>
+          <th>Phone</th>
+          <th>Branch</th>
+          <th>Doctor</th>
+          <th>Service</th>
+          <th>Date</th>
+          <th>Time</th>
+          <th class="reason-col">Reason</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+
+      <tbody id="bookingsTableBody">
+        <tr>
+          <td colspan="11" class="loading-row">Loading…</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+      <!-- FEEDBACK TAB -->
+      <section class="tab-panel" id="tab-feedback">
+        <div class="panel-head">
+          <h2>Patient feedback</h2>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Name</th><th>Branch</th><th>Rating</th><th>Message</th><th>Status</th><th></th></tr>
+            </thead>
+            <tbody id="feedbackTableBody">
+              <tr><td colspan="6" class="loading-row">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- DOCTORS TAB -->
+      <section class="tab-panel" id="tab-doctors">
+        <div class="panel-head">
+          <h2>Doctors</h2>
+          <button class="btn-primary" id="addDoctorBtn">+ Add doctor</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Name</th><th>Branch</th><th>Qualification</th><th>Reg. No.</th><th>Active</th><th></th></tr>
+            </thead>
+            <tbody id="doctorsTableBody">
+              <tr><td colspan="6" class="loading-row">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- SERVICES TAB -->
+      <section class="tab-panel" id="tab-services">
+        <div class="panel-head">
+          <h2>Services</h2>
+          <button class="btn-primary" id="addServiceBtn">+ Add service</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Category</th><th>Title</th><th>Description</th><th>Active</th><th></th></tr>
+            </thead>
+            <tbody id="servicesTableBody">
+              <tr><td colspan="5" class="loading-row">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- PROMOTIONS TAB -->
+      <section class="tab-panel" id="tab-promotions">
+        <div class="panel-head">
+          <h2>Promotions</h2>
+          <button class="btn-primary" id="addPromotionBtn">+ Add promotion</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Badge</th><th>Title</th><th>CTA</th><th>Order</th><th>Active</th><th></th></tr>
+            </thead>
+            <tbody id="promotionsTableBody">
+              <tr><td colspan="6" class="loading-row">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Generic modal used for add/edit forms -->
+  <div class="modal-backdrop hidden" id="modalBackdrop">
+    <div class="modal-card">
+      <button class="modal-close" id="modalCloseBtn" aria-label="Close">&times;</button>
+      <h3 id="modalTitle">Edit</h3>
+      <form id="modalForm"></form>
+    </div>
+  </div>
+
+<script src="js/api.js"></script>
+<script src="js/admin.js"></script>
+</body>
+</html>

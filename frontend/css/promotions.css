@@ -1,0 +1,341 @@
+:root {
+  --promo-card-bg: #fff;
+  --promo-border: #f3dce7;
+}
+
+.page-hero {
+  position: relative;
+  min-height: 420px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  background: linear-gradient(120deg, rgba(147, 20, 81, 0.95), rgba(227, 28, 121, 0.82));
+}
+
+.page-hero-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.25;
+}
+
+.page-hero-content {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+}
+
+.page-hero-content h1 {
+  color: #fff;
+  font-size: clamp(2rem, 4vw, 2.8rem);
+  margin-top: 10px;
+  max-width: 780px;
+}
+
+.page-hero-content p {
+  color: rgba(255, 255, 255, 0.95);
+  margin-top: 12px;
+  max-width: 720px;
+  font-size: 1.04rem;
+}
+
+.promotions-section {
+  padding: 72px 0 96px;
+}
+
+.promo-carousel {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.promo-track {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  scroll-behavior: smooth;
+  min-height: 360px;
+}
+
+.promo-track::-webkit-scrollbar {
+  display: none;
+}
+
+.promo-slide {
+  min-width: 100%;
+  scroll-snap-align: start;
+  border-radius: 30px;
+  box-shadow: 0 24px 60px rgba(36, 20, 28, 0.08);
+  padding: 28px;
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 24px;
+  align-items: stretch;
+  overflow: hidden;
+  min-height: 360px;
+}
+
+.promo-slide-hiring {
+  background: linear-gradient(135deg, #fff 0%, #fff6fb 100%);
+}
+
+.promo-slide-promo {
+  background: linear-gradient(135deg, #fef8fb 0%, #fff 100%);
+}
+
+.promo-slide-event {
+  background: linear-gradient(135deg, #fff 0%, #f7fbff 100%);
+}
+
+.promo-visual {
+  border-radius: 22px;
+  min-height: 220px;
+  background-color: #f3f0f7;
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  padding: 24px;
+  background-size: cover;
+  background-position: center;
+}
+
+.promo-visual::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: transparent;
+}
+
+.promo-pill {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  margin-bottom: 16px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(147, 20, 81, 0.12);
+  background: rgba(255, 255, 255, 0.95);
+  color: var(--primary-deep);
+  font-weight: 700;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.promo-slide-content {
+  min-width: 640px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.promo-slide h3 {
+  margin-bottom: 10px;
+  font-size: clamp(1.3rem, 2.2vw, 1.7rem);
+}
+
+.promo-slide p,
+.promo-slide li {
+  color: var(--ink-soft);
+}
+
+.promo-slide ul {
+  margin: 14px 0 18px 18px;
+}
+
+.promo-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+}
+
+.promo-btn {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: 0;
+  background: linear-gradient(135deg, #ffffff 0%, #ffeaf4 100%);
+  color: var(--primary-deep);
+  cursor: pointer;
+  box-shadow: 0 10px 24px rgba(147, 20, 81, 0.12);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.promo-btn svg {
+  width: 22px;
+  height: 22px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2.3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.promo-empty {
+  width: 100%;
+  min-height: 280px;
+  display: grid;
+  place-items: center;
+  border: 1px dashed rgba(147, 20, 81, 0.2);
+  border-radius: 24px;
+  color: var(--ink-soft);
+  background: #fff;
+}
+
+.promo-dots {
+  display: flex;
+  gap: 8px;
+}
+
+.promo-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 0;
+  background: #d8c4cf;
+  cursor: pointer;
+}
+
+.promo-dot.is-active {
+  background: var(--primary);
+}
+
+@media (max-width: 900px) {
+  .promo-slide {
+    padding: 20px;
+    grid-template-columns: 1fr;
+    min-height: auto;
+  }
+
+  .promo-visual {
+    min-height: 180px;
+  }
+
+  /* ============================================================
+   FIXED PROMOTION POSTER SIZE
+   Poster tidak lagi berubah ikut panjang description
+   ============================================================ */
+
+.promo-slide {
+  display: grid;
+  grid-template-columns: 420px minmax(0, 1fr);
+  align-items: center;
+  gap: 40px;
+
+  width: 100%;
+  min-width: 100%;
+  padding: 36px;
+  box-sizing: border-box;
+}
+
+/* Tetapkan satu saiz poster untuk semua promotion */
+.promo-visual {
+  width: 420px;
+  height: 525px;
+  min-width: 420px;
+  min-height: 525px;
+  max-width: 420px;
+  max-height: 525px;
+
+  align-self: center;
+  justify-self: center;
+
+  background-position: center;
+  background-repeat: no-repeat;
+
+  /* Guna contain supaya keseluruhan poster boleh dilihat */
+  background-size: contain;
+
+  background-color: #fff5f9;
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+/* Description tidak lagi mengawal saiz poster */
+.promo-slide-content {
+  width: 100%;
+  min-width: 0;
+  align-self: center;
+}
+
+/* Elakkan perkataan terlalu panjang rosakkan layout */
+.promo-slide-content h3,
+.promo-slide-content p,
+.promo-slide-content li {
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+/* Hadkan description supaya card tidak terlalu panjang */
+.promo-slide-content p {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 5;
+  line-clamp: 5;
+  overflow: hidden;
+}
+
+/* Hadkan ruang bullet list */
+.promo-slide-content ul {
+  max-height: 180px;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+/* Tablet */
+@media (max-width: 1000px) {
+  .promo-slide {
+    grid-template-columns: 340px minmax(0, 1fr);
+    gap: 28px;
+    padding: 28px;
+  }
+
+  .promo-visual {
+    width: 340px;
+    height: 425px;
+    min-width: 340px;
+    min-height: 425px;
+    max-width: 340px;
+    max-height: 425px;
+  }
+}
+
+/* Mobile */
+@media (max-width: 760px) {
+  .promo-slide {
+    grid-template-columns: 1fr;
+    align-items: start;
+    gap: 24px;
+    padding: 20px;
+  }
+
+  .promo-visual {
+    width: 100%;
+    height: auto;
+    min-width: 0;
+    min-height: 0;
+    max-width: 420px;
+    max-height: none;
+
+    /* Semua poster kekal pada nisbah saiz yang sama */
+    aspect-ratio: 4 / 5;
+  }
+
+  .promo-slide-content {
+    width: 100%;
+  }
+
+  .promo-slide-content ul {
+    max-height: none;
+    overflow: visible;
+  }
+}
+}

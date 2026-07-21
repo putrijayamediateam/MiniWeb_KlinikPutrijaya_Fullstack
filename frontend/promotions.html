@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Current events, monthly promotions and hiring updates from Klinik Putrijaya.">
+  <title>Events & Promotions | Klinik Putrijaya</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/global.css">
+  <link rel="stylesheet" href="css/promotions.css">
+  <script src="js/main.js" defer></script>
+  <script src="js/promotions.js" defer></script>
+</head>
+<body data-page="promotions">
+  <div id="site-header"></div>
+
+  <main>
+    <section class="page-hero">
+      <img src="images/cheras-front-6.png" alt="Klinik Putrijaya branch exterior" class="page-hero-img">
+      <div class="page-hero-content">
+        <div class="wrap">
+          <div class="eyebrow">Community updates</div>
+          <h1>Monthly promotions, upcoming events and hiring notices</h1>
+          <p>Stay informed with current clinic activities, wellness offers and career opportunities from Klinik Putrijaya.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="promotions-section">
+      <div class="wrap">
+        <div class="section-head">
+          <div class="eyebrow">What’s happening</div>
+          <h2>Fresh updates for patients and potential team members</h2>
+          <p>Swipe or wait for the next poster to see the latest promotions, events and hiring notices.</p>
+        </div>
+
+        <div class="promo-carousel" aria-label="Promotions and events carousel">
+          <div class="promo-track" id="promoTrack"></div>
+
+          <div class="promo-controls">
+            <button class="promo-btn prev" type="button" aria-label="Previous promotion">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M14.8 6.2 8.6 12l6.2 5.8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+            <div class="promo-dots" aria-label="Carousel navigation">
+              <button class="promo-dot is-active" type="button" aria-label="Go to slide 1"></button>
+              <button class="promo-dot" type="button" aria-label="Go to slide 2"></button>
+              <button class="promo-dot" type="button" aria-label="Go to slide 3"></button>
+            </div>
+            <button class="promo-btn next" type="button" aria-label="Next promotion">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="m9.2 6.2 6.2 5.8-6.2 5.8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="site-footer"></div>
+</body>
+</html>

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Meet Klinik Putrijaya's resident doctors.">
+  <title>Resident Doctors | Klinik Putrijaya</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/global.css">
+  <link rel="stylesheet" href="css/doctors.css">
+  <script src="js/api.js" defer></script>
+  <script src="js/utils.js" defer></script>
+  <script src="js/main.js" defer></script>
+  <script src="js/doctors.js" defer></script>
+</head>
+<body data-page="doctors">
+  <div id="site-header"></div>
+  <main>
+    <section class="page-hero">
+      <img src="images/backg.jpg" alt="Background Purple" class="page-hero-img">
+      <div class="page-hero-content">
+        <div class="wrap">
+          <div class="eyebrow">Meet the team</div>
+          <h1>Qualified doctors, compassionate care.</h1>
+          <p>Search our resident doctors or filter the list by clinic branch.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="doctors-section">
+      <div class="wrap">
+        <div class="section-head">
+          <div class="eyebrow">Resident doctors</div>
+          <h2>Find a doctor</h2>
+          <p>The doctor list below is loaded from your existing backend database.</p>
+        </div>
+
+        <div class="doctor-search-bar">
+          <input type="search" id="doctorSearchInput" placeholder="Search doctor by name…" aria-label="Search doctors by name">
+          <select id="doctorBranchFilter" aria-label="Filter doctors by branch">
+            <option value="">All branches</option>
+            <option value="cheras">Cheras</option>
+            <option value="sungai-besi">Sungai Besi</option>
+            <option value="puchong">Puchong</option>
+          </select>
+        </div>
+
+        <div id="doctorsContainer" aria-live="polite">
+          <p class="doctor-loading">Loading doctors…</p>
+        </div>
+      </div>
+    </section>
+  </main>
+  <div id="site-footer"></div>
+</body>
+</html>

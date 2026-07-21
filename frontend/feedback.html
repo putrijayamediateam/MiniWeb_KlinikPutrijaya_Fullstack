@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Read and submit patient feedback for Klinik Putrijaya.">
+  <title>Patient Feedback | Klinik Putrijaya</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/global.css">
+  <link rel="stylesheet" href="css/forms.css">
+  <script src="js/api.js" defer></script>
+  <script src="js/utils.js" defer></script>
+  <script src="js/main.js" defer></script>
+  <script src="js/feedback.js" defer></script>
+</head>
+<body data-page="feedback">
+  <div id="site-header"></div>
+  <main>
+    <section class="page-hero">
+      <img src="images/backg.jpg" alt="Background Purple" class="page-hero-img">
+      <div class="page-hero-content"><div class="wrap">
+        <div class="eyebrow">Patient voices</div>
+        <h1>Your experience helps us improve.</h1>
+        <p>Read approved patient reviews and submit feedback about your clinic visit.</p>
+      </div></div>
+    </section>
+    <section id="feedback-section" class="form-section">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">Patient voices</div>
+      <h2>What our patients say.</h2>
+      <p>Real feedback from patients across our branches.</p>
+    </div>
+
+    <div class="feedback-grid" id="feedbackGrid">
+      <p class="doctor-loading">Loading feedback…</p>
+    </div>
+
+    <form class="kp-form feedback-form" id="feedbackForm" novalidate>
+      <div class="full">
+        <label for="fb-name">Your name *</label>
+        <input type="text" id="fb-name" name="patient_name" required>
+      </div>
+
+      <div class="full">
+        <label for="fb-branch">Branch visited *</label>
+        <select id="fb-branch" name="branch_id" required>
+          <option value="">Select branch</option>
+        </select>
+      </div>
+
+      <div class="full">
+        <label for="fb-rating">Rating *</label>
+        <select id="fb-rating" name="rating" required>
+          <option value="5">★★★★★ Excellent</option>
+          <option value="4">★★★★☆ Good</option>
+          <option value="3">★★★☆☆ Average</option>
+          <option value="2">★★☆☆☆ Poor</option>
+          <option value="1">★☆☆☆☆ Very poor</option>
+        </select>
+      </div>
+
+      <div class="full">
+        <label for="fb-message">Your feedback *</label>
+        <textarea id="fb-message" name="message" required placeholder="Tell us about your visit"></textarea>
+      </div>
+
+      <div class="kp-form-message" id="feedbackFormMessage"></div>
+      <button type="submit" class="kp-submit-btn" id="feedbackSubmitBtn">Submit feedback</button>
+    </form>
+  </div>
+</section>
+  </main>
+  <div id="site-footer"></div>
+</body>
+</html>
