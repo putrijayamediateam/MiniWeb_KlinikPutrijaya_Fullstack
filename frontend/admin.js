@@ -5,6 +5,7 @@
 
 const TOKEN_KEY = 'kp_admin_token';
 const USERNAME_KEY = 'kp_admin_username';
+const ROLE_KEY = 'kp_admin_role';
 
 let authedApi = null;
 let branchesCache = [];
@@ -26,7 +27,14 @@ document.addEventListener('DOMContentLoaded', () => {
   bindCoreEvents();
   const token = sessionStorage.getItem(TOKEN_KEY);
   if (token) {
-    enterDashboard(token, sessionStorage.getItem(USERNAME_KEY) || 'admin');
+    const storedRole = sessionStorage.getItem(ROLE_KEY);
+    const tokenRole = getRoleFromToken(token);
+
+    enterDashboard(
+      token,
+      sessionStorage.getItem(USERNAME_KEY) || 'admin',
+      storedRole || tokenRole || 'admin'
+    );
   }
 });
 
@@ -92,9 +100,14 @@ async function handleLogin(event) {
 
   try {
     const response = await KPApi.login(username, password);
+    const resolvedUsername = response.username || username;
+    const resolvedRole = response.role || getRoleFromToken(response.token) || 'admin';
+
     sessionStorage.setItem(TOKEN_KEY, response.token);
-    sessionStorage.setItem(USERNAME_KEY, response.username);
-    enterDashboard(response.token, response.username);
+    sessionStorage.setItem(USERNAME_KEY, resolvedUsername);
+    sessionStorage.setItem(ROLE_KEY, resolvedRole);
+
+    enterDashboard(response.token, resolvedUsername, resolvedRole);
   } catch (error) {
     setMessage(messageBox, error.message || 'Login failed.', 'error');
   } finally {
@@ -105,27 +118,25 @@ async function handleLogin(event) {
 function handleLogout() {
   sessionStorage.removeItem(TOKEN_KEY);
   sessionStorage.removeItem(USERNAME_KEY);
+  sessionStorage.removeItem(ROLE_KEY);
   authedApi = null;
-  setApprovalsAccess(false);
+  updateAdminApprovalsVisibility('admin');
   document.getElementById('dashboard')?.classList.add('hidden');
   document.getElementById('loginScreen')?.classList.remove('hidden');
 }
 
-async function enterDashboard(token, username) {
+async function enterDashboard(token, username, role = 'admin') {
   authedApi = KPApi.withAuth(token);
+
+  const resolvedRole = role || getRoleFromToken(token) || 'admin';
+  sessionStorage.setItem(ROLE_KEY, resolvedRole);
+  updateAdminApprovalsVisibility(resolvedRole);
+
   const usernameTarget = document.getElementById('adminUsername');
   if (usernameTarget) usernameTarget.textContent = username;
 
   document.getElementById('loginScreen')?.classList.add('hidden');
   document.getElementById('dashboard')?.classList.remove('hidden');
-
-  try {
-    const profile = await authedApi.getMyAdminProfile();
-    setApprovalsAccess(String(profile.role || '').toLowerCase() === 'superadmin');
-  } catch (error) {
-    console.warn('Could not load admin profile:', error);
-    setApprovalsAccess(false);
-  }
 
   try {
     branchesCache = await KPApi.getBranches();
@@ -143,11 +154,37 @@ async function enterDashboard(token, username) {
   ]);
 }
 
-function setApprovalsAccess(isSuperadmin) {
-  const approvalsLink = document.getElementById('approvalsLink');
-  if (!approvalsLink) return;
-  approvalsLink.classList.toggle('hidden', !isSuperadmin);
-  approvalsLink.hidden = !isSuperadmin;
+
+function updateAdminApprovalsVisibility(role) {
+  const approvalsButton = document.getElementById('adminApprovalsBtn');
+  if (!approvalsButton) return;
+
+  const isSuperadmin = String(role || '').toLowerCase() === 'superadmin';
+  approvalsButton.classList.toggle('hidden', !isSuperadmin);
+  approvalsButton.setAttribute('aria-hidden', String(!isSuperadmin));
+  approvalsButton.tabIndex = isSuperadmin ? 0 : -1;
+}
+
+function getRoleFromToken(token) {
+  try {
+    const payloadPart = String(token || '').split('.')[1];
+    if (!payloadPart) return '';
+
+    const base64 = payloadPart
+      .replace(/-/g, '+')
+      .replace(/_/g, '/');
+
+    const padded = base64.padEnd(
+      Math.ceil(base64.length / 4) * 4,
+      '='
+    );
+
+    const payload = JSON.parse(atob(padded));
+    return String(payload.role || '').toLowerCase();
+  } catch (error) {
+    console.warn('Could not read admin role from token:', error);
+    return '';
+  }
 }
 
 function switchTab(tab) {

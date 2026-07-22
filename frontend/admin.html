@@ -10,6 +10,7 @@
   href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <link rel="stylesheet" href="css/admin.css">
 <link rel="stylesheet" href="css/admin-upgrades.css">
+<link rel="stylesheet" href="css/signup.css">
 </head>
 <body>
 
@@ -26,12 +27,20 @@
         <label for="loginPassword">Password</label>
         <input type="password" id="loginPassword" required autocomplete="current-password">
 
+        <div class="admin-login-options">
+          <a href="forgot-password.html" class="forgot-password-link">
+            Forgot password?
+          </a>
+        </div>
+
         <div class="form-message" id="loginMessage"></div>
         <button type="submit" class="btn-primary" id="loginBtn">Log in</button>
       </form>
-      <p class="login-switch">
-        New management account? <a href="signup.html">Create one</a>
+
+      <p class="auth-switch admin-login-signup-link">
+        New user? <a href="signup.html">Create an account</a>
       </p>
+
       <a href="index.html" class="back-link">&larr; Back to website</a>
     </div>
   </div>
@@ -44,8 +53,24 @@
         <span class="admin-title">Staff Dashboard</span>
         <div class="admin-header-right">
           <span id="adminUsername" class="admin-username"></span>
-          <a id="approvalsLink" href="admin-approvals.html" class="btn-ghost hidden">Approvals</a>
-          <button id="logoutBtn" class="btn-ghost">Log out</button>
+
+          <div class="admin-action-buttons">
+            <a
+              href="admin-approvals.html"
+              id="adminApprovalsBtn"
+              class="logout-btn admin-approvals-btn hidden"
+            >
+              Admin Approvals
+            </a>
+
+            <button
+              id="logoutBtn"
+              class="btn-ghost logout-btn"
+              type="button"
+            >
+              Logout
+            </button>
+          </div>
         </div>
       </div>
     </header>

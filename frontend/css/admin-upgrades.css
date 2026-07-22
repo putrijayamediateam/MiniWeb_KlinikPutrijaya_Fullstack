@@ -773,3 +773,13 @@ body.admin-modal-open {
     justify-content: center;
   }
 }
+
+
+/* AUTH LINKS RESTORED */
+.admin-login-signup-link {
+  margin-top: 18px;
+}
+
+.admin-approvals-btn.hidden {
+  display: none !important;
+}
