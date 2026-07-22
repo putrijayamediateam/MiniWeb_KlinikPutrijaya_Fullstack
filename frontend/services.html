@@ -3,63 +3,52 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Explore Klinik Putrijaya healthcare services.">
+  <meta name="description" content="Explore Klinik Putrijaya services, treatment information, prices and galleries.">
   <title>Services | Klinik Putrijaya</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/global.css">
   <link rel="stylesheet" href="css/services.css">
-  <script src="js/utils.js" defer></script>
-  <script src="js/api.js" defer></script>
   <script src="js/main.js" defer></script>
+  <script src="js/api.js" defer></script>
   <script src="js/services.js" defer></script>
 </head>
-<body data-page="services">
-  <div id="site-header"></div>
+<body>
+  <div id="siteHeader"></div>
+
   <main>
-    <section class="page-hero">
-      <img src="images/backg.jpg" alt="Background Purple" class="page-hero-img">
-      <div class="page-hero-content">
-        <div class="wrap">
-          <div class="eyebrow">What we offer</div>
-          <h1>Healthcare for every stage of life.</h1>
-          <p>Explore women’s health, family medicine, vaccination, screening, minor procedures and wellness services.</p>
-        </div>
+    <section class="page-hero services-hero">
+      <div class="wrap">
+        <div class="eyebrow">Care for every stage</div>
+        <h1>Our Services</h1>
+        <p>Browse service information, preparation guidance, available packages and clinic galleries.</p>
       </div>
     </section>
 
     <section class="services-section">
       <div class="wrap">
-        <div class="section-head">
-          <div class="eyebrow">Service categories</div>
-          <h2>Select a category to view available services</h2>
+        <div class="services-toolbar">
+          <div>
+            <span class="eyebrow">Explore care</span>
+            <h2>Find the right service</h2>
+          </div>
+
+          <div class="services-controls">
+            <label class="sr-only" for="serviceSearch">Search services</label>
+            <input id="serviceSearch" type="search" placeholder="Search service…" autocomplete="off">
+
+            <label class="sr-only" for="serviceCategory">Filter by category</label>
+            <select id="serviceCategory">
+              <option value="">All categories</option>
+            </select>
+          </div>
         </div>
 
-        <div class="services-grid" id="servicesGrid">
-  <div class="services-empty">
-    Loading services…
-  </div>
-</div>
+        <div id="servicesGrid" class="services-grid" aria-live="polite">
+          <div class="services-empty">Loading services…</div>
+        </div>
       </div>
     </section>
   </main>
 
-  <div class="service-modal" id="serviceModal" aria-hidden="true">
-    <div class="service-modal-backdrop" data-close-service-modal></div>
-    <div class="service-modal-panel" role="dialog" aria-modal="true" aria-labelledby="serviceModalTitle">
-      <button class="modal-close" type="button" aria-label="Close service window" data-close-service-modal>×</button>
-      <span class="service-modal-kicker" id="serviceModalKicker"></span>
-      <h2 id="serviceModalTitle"></h2>
-      <p id="serviceModalDesc"></p>
-      <div class="service-modal-list" id="serviceModalList"></div>
-      <div class="service-modal-actions">
-        <a class="btn-primary" href="appointment.html">Request appointment</a>
-        <button class="btn-secondary" type="button" data-close-service-modal>Close</button>
-      </div>
-    </div>
-  </div>
-
-  <div id="site-footer"></div>
+  <div id="siteFooter"></div>
 </body>
 </html>

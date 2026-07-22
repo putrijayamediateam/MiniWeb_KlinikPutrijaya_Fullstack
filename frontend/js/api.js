@@ -1,340 +1,302 @@
-// ============================================================
-// Klinik Putrijaya - Shared API Helper
-// ============================================================
+'use strict';
 
-const API_BASE = (
-  window.KP_API_BASE ||
-  'http://localhost:4000/api'
-).replace(/\/+$/, '');
+(function exposeKPApi() {
+  const API_BASE = String(window.KP_API_BASE || 'http://localhost:4000/api').replace(/\/$/, '');
 
-async function apiRequest(path, options = {}) {
-  const requestPath = path.startsWith('/')
-    ? path
-    : `/${path}`;
+  function buildQuery(params = {}) {
+    const search = new URLSearchParams();
 
-  const isFormData =
-    options.body instanceof FormData;
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== '') {
+        search.set(key, String(value));
+      }
+    });
 
-  const requestOptions = {
-    ...options,
+    const query = search.toString();
+    return query ? `?${query}` : '';
+  }
 
-    headers: {
-      ...(
-        !isFormData && options.body
-          ? {
-              'Content-Type':
-                'application/json',
-            }
-          : {}
-      ),
+  async function apiRequest(path, options = {}) {
+    const response = await fetch(`${API_BASE}${path}`, {
+      ...options,
+      headers: {
+        ...(options.body instanceof FormData ? {} : { 'Content-Type': 'application/json' }),
+        ...(options.headers || {}),
+      },
+    });
 
-      ...(options.headers || {}),
+    const contentType = response.headers.get('content-type') || '';
+    const data = contentType.includes('application/json')
+      ? await response.json()
+      : await response.text();
+
+    if (!response.ok) {
+      const message = typeof data === 'object' && data?.message
+        ? data.message
+        : `Request failed with status ${response.status}.`;
+      const error = new Error(message);
+      error.status = response.status;
+      error.payload = data;
+      throw error;
+    }
+
+    return data;
+  }
+
+  function jsonBody(payload) {
+    return JSON.stringify(payload || {});
+  }
+
+  function authHeaders(token) {
+    return { Authorization: `Bearer ${token}` };
+  }
+
+  const KPApi = {
+    baseUrl: API_BASE,
+
+    login(username, password) {
+      return apiRequest('/auth/login', {
+        method: 'POST',
+        body: jsonBody({ username, password }),
+      });
+    },
+
+    forgotPassword(email) {
+      return apiRequest('/auth/forgot-password', {
+        method: 'POST',
+        body: jsonBody({ email }),
+      });
+    },
+
+    resetPassword(token, newPassword) {
+      return apiRequest('/auth/reset-password', {
+        method: 'POST',
+        body: jsonBody({ token, newPassword }),
+      });
+    },
+
+    getBranches() {
+      return apiRequest('/branches');
+    },
+
+    getDoctors(params = {}) {
+      return apiRequest(`/doctors${buildQuery(params)}`);
+    },
+
+    getServices(params = {}) {
+      return apiRequest(`/services${buildQuery(params)}`);
+    },
+
+    getServiceBySlug(slug) {
+      return apiRequest(`/services/slug/${encodeURIComponent(slug)}`);
+    },
+
+    createBooking(payload) {
+      return apiRequest('/bookings', {
+        method: 'POST',
+        body: jsonBody(payload),
+      });
+    },
+
+    getApprovedFeedback() {
+      return apiRequest('/feedback');
+    },
+
+    createFeedback(payload) {
+      return apiRequest('/feedback', {
+        method: 'POST',
+        body: jsonBody(payload),
+      });
+    },
+
+    getPromotions() {
+      return apiRequest('/promotions');
+    },
+
+    withAuth(token) {
+      const headers = authHeaders(token);
+
+      return {
+        getBookings(params = {}) {
+          return apiRequest(`/bookings${buildQuery(params)}`, { headers });
+        },
+
+        updateBookingStatus(id, status) {
+          return apiRequest(`/bookings/${id}/status`, {
+            method: 'PUT',
+            headers,
+            body: jsonBody({ status }),
+          });
+        },
+
+        deleteBooking(id) {
+          return apiRequest(`/bookings/${id}`, {
+            method: 'DELETE',
+            headers,
+          });
+        },
+
+        getAllFeedback(params = {}) {
+          return apiRequest(`/feedback/admin/all${buildQuery(params)}`, { headers });
+        },
+
+        approveFeedback(id) {
+          return apiRequest(`/feedback/${id}/approve`, {
+            method: 'PUT',
+            headers,
+          });
+        },
+
+        deleteFeedback(id) {
+          return apiRequest(`/feedback/${id}`, {
+            method: 'DELETE',
+            headers,
+          });
+        },
+
+        getAdminDoctors() {
+          return apiRequest('/doctors/admin/all', { headers });
+        },
+
+        createDoctor(payload) {
+          return apiRequest('/doctors', {
+            method: 'POST',
+            headers,
+            body: jsonBody(payload),
+          });
+        },
+
+        updateDoctor(id, payload) {
+          return apiRequest(`/doctors/${id}`, {
+            method: 'PUT',
+            headers,
+            body: jsonBody(payload),
+          });
+        },
+
+        deleteDoctor(id) {
+          return apiRequest(`/doctors/${id}`, {
+            method: 'DELETE',
+            headers,
+          });
+        },
+
+        getAdminServices() {
+          return apiRequest('/services/admin/all', { headers });
+        },
+
+        getAdminService(id) {
+          return apiRequest(`/services/admin/${id}`, { headers });
+        },
+
+        createService(payload) {
+          return apiRequest('/services', {
+            method: 'POST',
+            headers,
+            body: jsonBody(payload),
+          });
+        },
+
+        updateService(id, payload) {
+          return apiRequest(`/services/${id}`, {
+            method: 'PUT',
+            headers,
+            body: jsonBody(payload),
+          });
+        },
+
+        deleteService(id) {
+          return apiRequest(`/services/${id}`, {
+            method: 'DELETE',
+            headers,
+          });
+        },
+
+        createServicePrice(serviceId, payload) {
+          return apiRequest(`/services/${serviceId}/prices`, {
+            method: 'POST',
+            headers,
+            body: jsonBody(payload),
+          });
+        },
+
+        updateServicePrice(priceId, payload) {
+          return apiRequest(`/services/prices/${priceId}`, {
+            method: 'PUT',
+            headers,
+            body: jsonBody(payload),
+          });
+        },
+
+        deleteServicePrice(priceId) {
+          return apiRequest(`/services/prices/${priceId}`, {
+            method: 'DELETE',
+            headers,
+          });
+        },
+
+        createGalleryItem(serviceId, payload) {
+          return apiRequest(`/services/${serviceId}/gallery`, {
+            method: 'POST',
+            headers,
+            body: jsonBody(payload),
+          });
+        },
+
+        updateGalleryItem(galleryId, payload) {
+          return apiRequest(`/services/gallery/${galleryId}`, {
+            method: 'PUT',
+            headers,
+            body: jsonBody(payload),
+          });
+        },
+
+        deleteGalleryItem(galleryId) {
+          return apiRequest(`/services/gallery/${galleryId}`, {
+            method: 'DELETE',
+            headers,
+          });
+        },
+
+        uploadImage(file, folder = 'general') {
+          const formData = new FormData();
+          formData.append('file', file);
+          return apiRequest(`/uploads?folder=${encodeURIComponent(folder)}`, {
+            method: 'POST',
+            headers,
+            body: formData,
+          });
+        },
+
+        getAdminPromotions() {
+          return apiRequest('/promotions/admin/all', { headers });
+        },
+
+        createPromotion(payload) {
+          return apiRequest('/promotions', {
+            method: 'POST',
+            headers,
+            body: jsonBody(payload),
+          });
+        },
+
+        updatePromotion(id, payload) {
+          return apiRequest(`/promotions/${id}`, {
+            method: 'PUT',
+            headers,
+            body: jsonBody(payload),
+          });
+        },
+
+        deletePromotion(id) {
+          return apiRequest(`/promotions/${id}`, {
+            method: 'DELETE',
+            headers,
+          });
+        },
+      };
     },
   };
 
-  let response;
-
-  try {
-    response = await fetch(
-      `${API_BASE}${requestPath}`,
-      requestOptions
-    );
-  } catch (error) {
-    console.error(
-      'API connection error:',
-      error
-    );
-
-    throw new Error(
-      'Unable to connect to the server. Make sure the backend is running on port 4000.'
-    );
-  }
-
-  let data = null;
-
-  const contentType =
-    response.headers.get('content-type') || '';
-
-  if (
-    contentType.includes(
-      'application/json'
-    )
-  ) {
-    try {
-      data = await response.json();
-    } catch (error) {
-      data = null;
-    }
-  }
-
-  if (!response.ok) {
-    throw new Error(
-      data?.error ||
-      data?.message ||
-      `Request failed (${response.status}).`
-    );
-  }
-
-  return data;
-}
-
-const KPApi = {
-  // ----------------------------------------------------------
-  // Public API
-  // ----------------------------------------------------------
-
-  getBranches: () =>
-    apiRequest('/branches'),
-
-  getDoctors(params = {}) {
-    const query =
-      new URLSearchParams(params).toString();
-
-    return apiRequest(
-      `/doctors${query ? `?${query}` : ''}`
-    );
-  },
-
-  getServices: () =>
-    apiRequest('/services'),
-
-  getPromotions: () =>
-    apiRequest('/promotions'),
-
-  createBooking: (payload) =>
-    apiRequest('/bookings', {
-      method: 'POST',
-      body: JSON.stringify(payload),
-    }),
-
-  createFeedback: (payload) =>
-    apiRequest('/feedback', {
-      method: 'POST',
-      body: JSON.stringify(payload),
-    }),
-
-  getApprovedFeedback: () =>
-    apiRequest('/feedback'),
-
-  login: (username, password) =>
-    apiRequest('/auth/login', {
-      method: 'POST',
-
-      body: JSON.stringify({
-        username,
-        password,
-      }),
-    }),
-
-  // ----------------------------------------------------------
-  // Authenticated admin API
-  // ----------------------------------------------------------
-
-  withAuth(token) {
-    if (!token) {
-      throw new Error(
-        'Authentication token is required.'
-      );
-    }
-
-    const authHeaders = {
-      Authorization: `Bearer ${token}`,
-    };
-
-    return {
-      // ------------------------------------------------------
-      // Bookings
-      // ------------------------------------------------------
-
-      getBookings: (status = '') =>
-        apiRequest(
-          `/bookings${
-            status
-              ? `?status=${encodeURIComponent(
-                  status
-                )}`
-              : ''
-          }`,
-          {
-            headers: authHeaders,
-          }
-        ),
-
-      updateBookingStatus: (
-        id,
-        status
-      ) =>
-        apiRequest(
-          `/bookings/${id}/status`,
-          {
-            method: 'PUT',
-            headers: authHeaders,
-
-            body: JSON.stringify({
-              status,
-            }),
-          }
-        ),
-
-      deleteBooking: (id) =>
-        apiRequest(`/bookings/${id}`, {
-          method: 'DELETE',
-          headers: authHeaders,
-        }),
-
-      // ------------------------------------------------------
-      // Feedback
-      // ------------------------------------------------------
-
-      getAllFeedback: () =>
-        apiRequest('/feedback/all', {
-          headers: authHeaders,
-        }),
-
-      approveFeedback: (id) =>
-        apiRequest(
-          `/feedback/${id}/approve`,
-          {
-            method: 'PUT',
-            headers: authHeaders,
-          }
-        ),
-
-      deleteFeedback: (id) =>
-        apiRequest(`/feedback/${id}`, {
-          method: 'DELETE',
-          headers: authHeaders,
-        }),
-
-      // ------------------------------------------------------
-      // Doctors
-      // ------------------------------------------------------
-
-      getAdminDoctors: () =>
-        apiRequest(
-          '/doctors/admin/all',
-          {
-            headers: authHeaders,
-          }
-        ),
-
-      createDoctor: (payload) =>
-        apiRequest('/doctors', {
-          method: 'POST',
-          headers: authHeaders,
-          body: JSON.stringify(payload),
-        }),
-
-      updateDoctor: (id, payload) =>
-        apiRequest(`/doctors/${id}`, {
-          method: 'PUT',
-          headers: authHeaders,
-          body: JSON.stringify(payload),
-        }),
-
-      deleteDoctor: (id) =>
-        apiRequest(`/doctors/${id}`, {
-          method: 'DELETE',
-          headers: authHeaders,
-        }),
-
-      // ------------------------------------------------------
-      // Services
-      // ------------------------------------------------------
-
-      getAdminServices: () => apiRequest('/services/admin/all', {
-  headers: authHeaders,
-}),
-
-      createService: (payload) =>
-        apiRequest('/services', {
-          method: 'POST',
-          headers: authHeaders,
-          body: JSON.stringify(payload),
-        }),
-
-      updateService: (id, payload) =>
-        apiRequest(`/services/${id}`, {
-          method: 'PUT',
-          headers: authHeaders,
-          body: JSON.stringify(payload),
-        }),
-
-      deleteService: (id) =>
-        apiRequest(`/services/${id}`, {
-          method: 'DELETE',
-          headers: authHeaders,
-        }),
-
-      // ------------------------------------------------------
-      // Image upload
-      // ------------------------------------------------------
-
-      uploadImage: (file) => {
-        if (!file) {
-          return Promise.reject(
-            new Error(
-              'Please select an image.'
-            )
-          );
-        }
-
-        const formData =
-          new FormData();
-
-        // Must match upload.single('file')
-        // inside backend/routes/uploads.js
-        formData.append('file', file);
-
-        return apiRequest('/uploads', {
-          method: 'POST',
-          headers: authHeaders,
-          body: formData,
-        });
-      },
-
-      // ------------------------------------------------------
-      // Promotions
-      // ------------------------------------------------------
-
-      getAdminPromotions: () =>
-        apiRequest(
-          '/promotions/admin/all',
-          {
-            headers: authHeaders,
-          }
-        ),
-
-      createPromotion: (payload) =>
-        apiRequest('/promotions', {
-          method: 'POST',
-          headers: authHeaders,
-          body: JSON.stringify(payload),
-        }),
-
-      updatePromotion: (
-        id,
-        payload
-      ) =>
-        apiRequest(
-          `/promotions/${id}`,
-          {
-            method: 'PUT',
-            headers: authHeaders,
-            body: JSON.stringify(payload),
-          }
-        ),
-
-      deletePromotion: (id) =>
-        apiRequest(
-          `/promotions/${id}`,
-          {
-            method: 'DELETE',
-            headers: authHeaders,
-          }
-        ),
-    };
-  },
-};
-
-window.KPApi = KPApi;
+  window.KPApi = KPApi;
+})();

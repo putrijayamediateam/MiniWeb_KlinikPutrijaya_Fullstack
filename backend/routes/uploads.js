@@ -1,145 +1,94 @@
-// ============================================================
-// Klinik Putrijaya - Image Upload Route
-// Saves uploaded images into frontend/images
-// Endpoint: POST /api/uploads
-// ============================================================
+'use strict';
 
 const express = require('express');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const crypto = require('crypto');
+const { requireAdmin } = require('../middleware/auth');
 
 const router = express.Router();
+const allowedFolders = new Set(['general', 'doctors', 'services', 'promotions']);
+const allowedMimeTypes = new Set(['image/jpeg', 'image/png', 'image/webp']);
 
-// Final destination:
-// MiniWeb_KlinikPutrijaya_Fullstack/frontend/images
-const uploadDir = path.resolve(
-  __dirname,
-  '../../frontend/images'
-);
-
-// Create the folder automatically if it does not exist
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, {
-    recursive: true,
-  });
+function resolveFolder(req) {
+  const requested = String(req.query.folder || 'general').toLowerCase();
+  return allowedFolders.has(requested) ? requested : 'general';
 }
 
-const allowedExtensions = [
-  '.png',
-  '.jpg',
-  '.jpeg',
-  '.gif',
-  '.webp',
-];
-
-const allowedMimeTypes = [
-  'image/png',
-  'image/jpeg',
-  'image/gif',
-  'image/webp',
-];
-
 const storage = multer.diskStorage({
-  destination: (req, file, callback) => {
-    callback(null, uploadDir);
+  destination(req, file, callback) {
+    const folder = resolveFolder(req);
+    const destination = path.join(
+      __dirname,
+      '..',
+      '..',
+      'frontend',
+      'images',
+      'uploads',
+      folder
+    );
+
+    fs.mkdirSync(destination, { recursive: true });
+    callback(null, destination);
   },
+  filename(req, file, callback) {
+    const extensionByMime = {
+      'image/jpeg': '.jpg',
+      'image/png': '.png',
+      'image/webp': '.webp',
+    };
 
-  filename: (req, file, callback) => {
-    const extension = path
-      .extname(file.originalname)
-      .toLowerCase();
+    const extension = extensionByMime[file.mimetype] || path.extname(file.originalname).toLowerCase();
+    const baseName = path
+      .basename(file.originalname, path.extname(file.originalname))
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 60) || 'image';
 
-    const originalBaseName = path.basename(
-      file.originalname,
-      extension
-    );
-
-    const safeBaseName =
-      originalBaseName
-        .toLowerCase()
-        .trim()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-+|-+$/g, '') || 'image';
-
-    const timestamp = Date.now();
-
-    const randomNumber = Math.round(
-      Math.random() * 1e9
-    );
-
-    const finalFilename =
-      `${safeBaseName}-${timestamp}-${randomNumber}${extension}`;
-
-    callback(null, finalFilename);
+    const unique = `${Date.now()}-${crypto.randomBytes(4).toString('hex')}`;
+    callback(null, `${baseName}-${unique}${extension}`);
   },
 });
 
 const upload = multer({
   storage,
-
   limits: {
     fileSize: 5 * 1024 * 1024,
+    files: 1,
   },
-
-  fileFilter: (req, file, callback) => {
-    const extension = path
-      .extname(file.originalname)
-      .toLowerCase();
-
-    const extensionAllowed =
-      allowedExtensions.includes(extension);
-
-    const mimeTypeAllowed =
-      allowedMimeTypes.includes(file.mimetype);
-
-    if (!extensionAllowed || !mimeTypeAllowed) {
-      return callback(
-        new Error(
-          'Invalid image type. Please upload PNG, JPG, JPEG, GIF or WEBP.'
-        )
-      );
+  fileFilter(req, file, callback) {
+    if (!allowedMimeTypes.has(file.mimetype)) {
+      return callback(new multer.MulterError('LIMIT_UNEXPECTED_FILE', 'file'));
     }
-
-    callback(null, true);
+    return callback(null, true);
   },
 });
 
-router.post('/', (req, res) => {
-  upload.single('file')(req, res, (error) => {
-    if (error instanceof multer.MulterError) {
-      if (error.code === 'LIMIT_FILE_SIZE') {
-        return res.status(400).json({
-          error: 'Image size must not exceed 5MB.',
-        });
-      }
+router.post('/', requireAdmin, upload.single('file'), (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ message: 'Please select an image file.' });
+  }
 
-      return res.status(400).json({
-        error: error.message,
-      });
-    }
+  const folder = resolveFolder(req);
+  return res.status(201).json({
+    message: 'Image uploaded successfully.',
+    url: `/images/uploads/${folder}/${req.file.filename}`,
+    filename: req.file.filename,
+    size: req.file.size,
+  });
+});
 
-    if (error) {
-      return res.status(400).json({
-        error: error.message,
-      });
-    }
+router.use((error, req, res, next) => {
+  if (!(error instanceof multer.MulterError)) return next(error);
 
-    if (!req.file) {
-      return res.status(400).json({
-        error: 'No image was uploaded.',
-      });
-    }
+  if (error.code === 'LIMIT_FILE_SIZE') {
+    return res.status(400).json({ message: 'Image must be 5 MB or smaller.' });
+  }
 
-    // This URL is stored in promotions.image_url
-    const publicImageUrl =
-      `/images/${req.file.filename}`;
-
-    return res.status(201).json({
-      message: 'Image uploaded successfully.',
-      filename: req.file.filename,
-      url: publicImageUrl,
-    });
+  return res.status(400).json({
+    message: 'Only JPEG, PNG and WebP images are allowed.',
   });
 });
 

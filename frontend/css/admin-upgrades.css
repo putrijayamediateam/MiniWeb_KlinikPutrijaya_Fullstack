@@ -1,0 +1,326 @@
+/* Load this file after your existing admin CSS. */
+
+.admin-upgrade-toolbar {
+  display: flex;
+  align-items: end;
+  gap: 14px;
+  margin: 18px 0;
+  padding: 16px;
+  border: 1px solid rgba(147, 20, 81, .12);
+  border-radius: 16px;
+  background: #fffafd;
+}
+
+.admin-upgrade-toolbar label {
+  display: grid;
+  gap: 6px;
+  min-width: 170px;
+}
+
+.admin-upgrade-toolbar label.grow {
+  flex: 1;
+}
+
+.admin-upgrade-toolbar span {
+  color: #6f5663;
+  font-size: .78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.admin-upgrade-toolbar input,
+.admin-upgrade-toolbar select {
+  width: 100%;
+  min-height: 42px;
+  padding: 0 12px;
+  border: 1px solid rgba(147,20,81,.16);
+  border-radius: 11px;
+  background: #fff;
+  font: inherit;
+}
+
+.admin-pager {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-top: 16px;
+  padding: 13px 15px;
+  border: 1px solid rgba(147,20,81,.12);
+  border-radius: 14px;
+  background: #fffafd;
+}
+
+.pager-info {
+  color: #765c69;
+  font-size: .88rem;
+}
+
+.pager-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pager-actions button {
+  min-height: 36px;
+  padding: 0 13px;
+  border: 1px solid rgba(147,20,81,.18);
+  border-radius: 10px;
+  background: #fff;
+  color: #931451;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.pager-actions button:disabled {
+  opacity: .42;
+  cursor: default;
+}
+
+.cell-subtext,
+.notification-mini {
+  margin-top: 4px;
+  color: #8a7280;
+  font-size: .76rem;
+  line-height: 1.35;
+}
+
+.notification-mini {
+  max-width: 220px;
+}
+
+.doctor-admin-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.doctor-admin-cell img,
+.doctor-admin-placeholder {
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.doctor-admin-placeholder {
+  display: grid;
+  place-items: center;
+  background: #ffe3ef;
+  color: #e00d92;
+  font-size: .72rem;
+  font-weight: 900;
+}
+
+.table-action-stack,
+.booking-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.admin-form-grid {
+  display: grid;
+  gap: 14px;
+}
+
+.admin-form-grid.two-column {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.admin-form-grid.three-column {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+#modalForm label,
+.admin-upload-field {
+  display: grid;
+  gap: 7px;
+  margin-bottom: 14px;
+}
+
+#modalForm label > span,
+.admin-upload-field > label {
+  color: #503a45;
+  font-size: .86rem;
+  font-weight: 800;
+}
+
+#modalForm input,
+#modalForm select,
+#modalForm textarea {
+  width: 100%;
+  padding: 11px 12px;
+  border: 1px solid rgba(147,20,81,.18);
+  border-radius: 11px;
+  background: #fff;
+  color: #34242c;
+  font: inherit;
+  outline: none;
+}
+
+#modalForm input:focus,
+#modalForm select:focus,
+#modalForm textarea:focus {
+  border-color: #e00d92;
+  box-shadow: 0 0 0 4px rgba(224,13,146,.08);
+}
+
+.upload-help {
+  color: #806a75;
+  font-size: .78rem;
+}
+
+.admin-image-preview {
+  display: block;
+  margin-top: 8px;
+  border: 1px solid rgba(147,20,81,.13);
+  border-radius: 14px;
+  background: #fffafd;
+  object-fit: cover;
+}
+
+.admin-image-preview.portrait {
+  width: 150px;
+  height: 190px;
+}
+
+.admin-image-preview.landscape {
+  width: min(100%, 420px);
+  aspect-ratio: 16 / 10;
+}
+
+.admin-image-preview.hidden {
+  display: none;
+}
+
+body.admin-modal-open {
+  overflow: hidden;
+}
+
+#modalBackdrop:not(.hidden) {
+  overflow-y: auto;
+  padding: 24px 14px;
+}
+
+#modalBackdrop .modal {
+  width: min(900px, 96vw);
+  max-height: none;
+}
+
+.manager-list {
+  display: grid;
+  gap: 10px;
+}
+
+.manager-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 14px;
+  border: 1px solid rgba(147,20,81,.12);
+  border-radius: 14px;
+  background: #fffafd;
+}
+
+.manager-row p {
+  margin: 4px 0;
+  color: #755b68;
+  font-size: .84rem;
+}
+
+.manager-row small {
+  color: #8b7580;
+}
+
+.manager-row-end {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.manager-row-end > strong {
+  color: #e00d92;
+}
+
+.manager-row-end del {
+  color: #937e88;
+}
+
+.manager-empty {
+  padding: 26px;
+  border: 1px dashed rgba(147,20,81,.18);
+  border-radius: 14px;
+  color: #7a6570;
+  text-align: center;
+}
+
+.modal-divider {
+  margin: 24px 0;
+  border: 0;
+  border-top: 1px solid rgba(147,20,81,.12);
+}
+
+.gallery-manager-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.gallery-manager-card {
+  overflow: hidden;
+  border: 1px solid rgba(147,20,81,.12);
+  border-radius: 14px;
+  background: #fffafd;
+}
+
+.gallery-manager-card img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  display: block;
+  object-fit: cover;
+}
+
+.gallery-manager-card > div {
+  display: grid;
+  gap: 7px;
+  padding: 11px;
+}
+
+.gallery-manager-card small {
+  color: #846d79;
+}
+
+@media (max-width: 760px) {
+  .admin-upgrade-toolbar,
+  .admin-pager,
+  .manager-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .admin-form-grid.two-column,
+  .admin-form-grid.three-column,
+  .gallery-manager-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pager-actions {
+    justify-content: space-between;
+  }
+}
+
+.forgot-password-link {
+  display: inline-block;
+  margin-top: 12px;
+  color: #931451;
+  font-size: .9rem;
+  font-weight: 700;
+  text-decoration: none;
+}
