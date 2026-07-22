@@ -63,6 +63,20 @@
           <label for="bk-phone">Phone number *</label>
           <input type="tel" id="bk-phone" name="phone" placeholder="012-3456789" required>
         </div>
+
+        <label for="bk-email">Email for confirmation</label>
+
+<input
+  id="bk-email"
+  name="email"
+  type="email"
+  autocomplete="email"
+  placeholder="name@example.com"
+>
+
+<div class="field-note">
+  Optional, but required if the patient wants an email confirmation.
+</div>
         <div>
           <label for="bk-ic">IC number</label>
           <input type="text" id="bk-ic" name="ic_number" placeholder="Optional">
@@ -89,5 +103,8 @@
   </section>
   </main>
   <div id="site-footer"></div>
+
+  <script src="js/api.js" defer></script>
+<script src="js/appointment.js" defer></script>
 </body>
 </html>

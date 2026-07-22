@@ -9,28 +9,81 @@
 <link rel="stylesheet"
   href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <link rel="stylesheet" href="css/admin.css">
+<link rel="stylesheet" href="css/admin-upgrades.css">
 </head>
 <body>
 
-  <!-- LOGIN SCREEN -->
-  <div id="loginScreen" class="login-screen">
-    <div class="login-card">
-      <img src="images/logoklinik.png" alt="Klinik Putrijaya" class="login-logo">
-      <h1>Staff Login</h1>
-      <p class="login-sub">Sign in to manage bookings, feedback, doctors and services.</p>
-      <form id="loginForm" novalidate>
+  <section id="loginScreen" class="admin-login-screen">
+  <div class="admin-login-card">
+
+    <a class="admin-login-brand" href="index.html" aria-label="Klinik Putrijaya Home">
+      <img
+        src="images/logoklinik.png"
+        alt="Klinik Putrijaya"
+      >
+    </a>
+
+    <p class="admin-login-kicker">Admin Portal</p>
+
+    <h1>Welcome back</h1>
+
+    <p class="admin-login-intro">
+      Sign in to manage Klinik Putrijaya website content,
+      bookings and customer feedback.
+    </p>
+
+    <form id="loginForm" class="admin-login-form">
+
+      <div class="admin-login-field">
         <label for="loginUsername">Username</label>
-        <input type="text" id="loginUsername" required autocomplete="username">
 
+        <input
+          id="loginUsername"
+          name="username"
+          type="text"
+          autocomplete="username"
+          placeholder="Enter admin username"
+          required
+        >
+      </div>
+
+      <div class="admin-login-field">
         <label for="loginPassword">Password</label>
-        <input type="password" id="loginPassword" required autocomplete="current-password">
 
-        <div class="form-message" id="loginMessage"></div>
-        <button type="submit" class="btn-primary" id="loginBtn">Log in</button>
-      </form>
-      <a href="index.html" class="back-link">&larr; Back to website</a>
+        <input
+          id="loginPassword"
+          name="password"
+          type="password"
+          autocomplete="current-password"
+          placeholder="Enter your password"
+          required
+        >
+      </div>
+
+      <div class="admin-login-options">
+        <a class="forgot-password-link" href="forgot-password.html">
+          Forgot password?
+        </a>
+      </div>
+
+      <button id="loginBtn" class="admin-login-button" type="submit">
+        Log in
+      </button>
+
+      <div
+        id="loginMessage"
+        class="admin-login-message"
+        aria-live="polite"
+      ></div>
+
+    </form>
+
+    <div class="admin-login-footer">
+      <span>Protected administrator access</span>
     </div>
+
   </div>
+</section>
 
   <!-- DASHBOARD -->
   <div id="dashboard" class="dashboard hidden">
@@ -229,7 +282,7 @@
     </div>
   </div>
 
-<script src="js/api.js"></script>
-<script src="js/admin.js"></script>
+<script src="js/api.js" defer></script>
+<script src="admin.js" defer></script>
 </body>
 </html>
