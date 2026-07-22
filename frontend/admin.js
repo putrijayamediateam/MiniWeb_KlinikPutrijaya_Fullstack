@@ -24,8 +24,6 @@ const feedbackState = {
 
 document.addEventListener('DOMContentLoaded', () => {
   bindCoreEvents();
-  installAdminEnhancementControls();
-
   const token = sessionStorage.getItem(TOKEN_KEY);
   if (token) {
     enterDashboard(token, sessionStorage.getItem(USERNAME_KEY) || 'admin');
@@ -55,6 +53,16 @@ function bindCoreEvents() {
     loadBookings();
   }, 350));
 
+  document.getElementById('feedbackStatusFilter')?.addEventListener('change', () => {
+    feedbackState.page = 1;
+    loadFeedback();
+  });
+
+  document.getElementById('feedbackSearchInput')?.addEventListener('input', debounce(() => {
+    feedbackState.page = 1;
+    loadFeedback();
+  }, 350));
+
   document.getElementById('exportBookingsBtn')?.addEventListener('click', exportBookingsToCSV);
   document.getElementById('addDoctorBtn')?.addEventListener('click', () => openDoctorModal());
   document.getElementById('addServiceBtn')?.addEventListener('click', () => openServiceModal());
@@ -70,55 +78,6 @@ function bindCoreEvents() {
   });
 }
 
-function installAdminEnhancementControls() {
-  const feedbackTable = document.getElementById('feedbackTableBody')?.closest('table');
-  const feedbackPanel = feedbackTable?.closest('.tab-panel') || feedbackTable?.parentElement;
-
-  if (feedbackPanel && !document.getElementById('feedbackUpgradeFilters')) {
-    const controls = document.createElement('div');
-    controls.id = 'feedbackUpgradeFilters';
-    controls.className = 'admin-upgrade-toolbar';
-    controls.innerHTML = `
-      <label>
-        <span>Status</span>
-        <select id="feedbackStatusFilter">
-          <option value="">All feedback</option>
-          <option value="pending">Pending</option>
-          <option value="approved">Approved</option>
-        </select>
-      </label>
-      <label class="grow">
-        <span>Search</span>
-        <input id="feedbackSearchInput" type="search" placeholder="Patient, branch or message…">
-      </label>
-    `;
-    feedbackTable.parentElement.insertBefore(controls, feedbackTable);
-
-    document.getElementById('feedbackStatusFilter')?.addEventListener('change', () => {
-      feedbackState.page = 1;
-      loadFeedback();
-    });
-
-    document.getElementById('feedbackSearchInput')?.addEventListener('input', debounce(() => {
-      feedbackState.page = 1;
-      loadFeedback();
-    }, 350));
-  }
-
-  ensurePager('bookingsTableBody', 'bookingsPager');
-  ensurePager('feedbackTableBody', 'feedbackPager');
-}
-
-function ensurePager(tbodyId, pagerId) {
-  if (document.getElementById(pagerId)) return;
-  const table = document.getElementById(tbodyId)?.closest('table');
-  if (!table) return;
-
-  const pager = document.createElement('div');
-  pager.id = pagerId;
-  pager.className = 'admin-pager';
-  table.insertAdjacentElement('afterend', pager);
-}
 
 async function handleLogin(event) {
   event.preventDefault();
@@ -147,6 +106,7 @@ function handleLogout() {
   sessionStorage.removeItem(TOKEN_KEY);
   sessionStorage.removeItem(USERNAME_KEY);
   authedApi = null;
+  setApprovalsAccess(false);
   document.getElementById('dashboard')?.classList.add('hidden');
   document.getElementById('loginScreen')?.classList.remove('hidden');
 }
@@ -158,6 +118,14 @@ async function enterDashboard(token, username) {
 
   document.getElementById('loginScreen')?.classList.add('hidden');
   document.getElementById('dashboard')?.classList.remove('hidden');
+
+  try {
+    const profile = await authedApi.getMyAdminProfile();
+    setApprovalsAccess(String(profile.role || '').toLowerCase() === 'superadmin');
+  } catch (error) {
+    console.warn('Could not load admin profile:', error);
+    setApprovalsAccess(false);
+  }
 
   try {
     branchesCache = await KPApi.getBranches();
@@ -173,6 +141,13 @@ async function enterDashboard(token, username) {
     loadServices(),
     loadPromotions(),
   ]);
+}
+
+function setApprovalsAccess(isSuperadmin) {
+  const approvalsLink = document.getElementById('approvalsLink');
+  if (!approvalsLink) return;
+  approvalsLink.classList.toggle('hidden', !isSuperadmin);
+  approvalsLink.hidden = !isSuperadmin;
 }
 
 function switchTab(tab) {
@@ -1173,23 +1148,46 @@ function closeModal() {
 function renderPager(container, pagination, onPage) {
   if (!container || !pagination) return;
 
-  const page = Number(pagination.page || 1);
-  const totalPages = Number(pagination.totalPages || 1);
-  const total = Number(pagination.total || 0);
-  const start = total ? ((page - 1) * Number(pagination.limit || 20)) + 1 : 0;
-  const end = Math.min(page * Number(pagination.limit || 20), total);
+  const page = Math.max(1, Number(pagination.page || 1));
+  const totalPages = Math.max(1, Number(pagination.totalPages || 1));
+  const total = Math.max(0, Number(pagination.total || 0));
+  const limit = Math.max(1, Number(pagination.limit || 20));
+
+  const start = total ? ((page - 1) * limit) + 1 : 0;
+  const end = total ? Math.min(page * limit, total) : 0;
 
   container.innerHTML = `
-    <div class="pager-info">Showing ${start}–${end} of ${total}</div>
+    <span class="booking-showing-info">
+      Showing ${start}–${end} of ${total}
+    </span>
+
     <div class="pager-actions">
-      <button type="button" data-page="${page - 1}" ${page <= 1 ? 'disabled' : ''}>Previous</button>
-      <span>Page ${page} of ${totalPages}</span>
-      <button type="button" data-page="${page + 1}" ${page >= totalPages ? 'disabled' : ''}>Next</button>
+      <button
+        type="button"
+        data-page="${page - 1}"
+        ${page <= 1 ? 'disabled' : ''}
+      >
+        Previous
+      </button>
+
+      <span class="pager-page-info">
+        Page ${page} of ${totalPages}
+      </span>
+
+      <button
+        type="button"
+        data-page="${page + 1}"
+        ${page >= totalPages ? 'disabled' : ''}
+      >
+        Next
+      </button>
     </div>
   `;
 
   container.querySelectorAll('[data-page]').forEach((button) => {
-    button.addEventListener('click', () => onPage(Number(button.dataset.page)));
+    button.addEventListener('click', () => {
+      onPage(Number(button.dataset.page));
+    });
   });
 }
 

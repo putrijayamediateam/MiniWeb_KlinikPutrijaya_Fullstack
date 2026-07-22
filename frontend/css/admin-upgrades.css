@@ -39,55 +39,49 @@
   font: inherit;
 }
 
-/* Compact pagination */
-.admin-pager {
+/* =========================================================
+   CONSISTENT BOOKING + FEEDBACK FILTERS
+   ========================================================= */
+
+.feedback-toolbar {
+  margin: 18px 0;
+}
+
+.feedback-toolbar .booking-search-wrap {
+  flex: 1;
+  min-width: 240px;
+}
+
+.feedback-toolbar select {
+  min-width: 180px;
+}
+
+/* =========================================================
+   STATIC PAGINATION FOR BOOKINGS + FEEDBACK
+   ========================================================= */
+
+.booking-table-footer {
+  width: 100%;
+  min-height: 44px;
+  margin-top: 8px;
+  padding: 8px 10px;
+
   display: flex;
   align-items: center;
-  justify-content: flex-end;
-  gap: 6px;
-
-  width: 100%;
-  margin-top: 10px;
-  padding: 7px 9px;
+  justify-content: space-between;
+  gap: 12px;
 
   border: 1px solid rgba(147, 20, 81, 0.12);
   border-radius: 10px;
   background: #fffafd;
+
+  box-sizing: border-box;
 }
 
-/* Previous, page status and Next stay in one fixed row */
-.pager-actions {
-  display: grid;
-  grid-template-columns: 72px 95px 72px;
-  align-items: center;
-  gap: 6px;
-}
-
-/* Previous and Next */
-.pager-actions button {
-  width: 72px;
-  min-height: 30px;
-  padding: 5px 8px;
-
-  border: 1px solid rgb(0, 0, 0);
-  border-radius: 999px;
-  background: #f7f7f7;
-  color: #000000;
-
-  font-family: "Inter", sans-serif;
-  font-size: 0.65rem;
-  font-weight: 800;
-  line-height: 1;
-
-  cursor: pointer;
-}
-
-/* Fixed box for Page 1 of 1 */
-.pager-info,
-.pager-page-info {
-  width: 110px;
-  min-width: 95px;
-  height: 30px;
+.booking-showing-info {
+  min-width: 112px;
+  min-height: 28px;
+  padding: 5px 9px;
 
   display: inline-flex;
   align-items: center;
@@ -99,20 +93,74 @@
   color: #765c69;
 
   font-family: "Inter", sans-serif;
-  font-size: 0.65rem;
-  font-weight: 800;
+  font-size: 0.67rem;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.pager-actions {
+  display: grid;
+  grid-template-columns: 64px 90px 64px;
+  align-items: center;
+  gap: 6px;
+}
+
+.pager-actions button {
+  width: 64px;
+  min-height: 28px;
+  padding: 4px 7px;
+
+  border: 1px solid rgba(147, 20, 81, 0.18);
+  border-radius: 999px;
+  background: #ffffff;
+  color: #931451;
+
+  font-family: "Inter", sans-serif;
+  font-size: 0.66rem;
+  font-weight: 700;
+  line-height: 1;
+
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.pager-page-info {
+  width: 90px;
+  min-width: 90px;
+  height: 28px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid rgba(147, 20, 81, 0.12);
+  border-radius: 999px;
+  background: #ffffff;
+  color: #765c69;
+
+  font-family: "Inter", sans-serif;
+  font-size: 0.66rem;
+  font-weight: 600;
+  line-height: 1;
   white-space: nowrap;
 }
 
 .pager-actions button:hover:not(:disabled) {
-  background: #fff0f7;
   border-color: #e00d92;
+  background: #fff0f7;
   color: #e00d92;
+  transform: translateY(-1px);
 }
 
 .pager-actions button:disabled {
-  opacity: 0.4;
+  opacity: 0.38;
   cursor: not-allowed;
+  transform: none;
 }
 
 .cell-subtext,
@@ -682,7 +730,6 @@ body.admin-modal-open {
 
 @media (max-width: 760px) {
   .admin-upgrade-toolbar,
-  .admin-pager,
   .manager-row {
     align-items: stretch;
     flex-direction: column;
@@ -706,4 +753,23 @@ body.admin-modal-open {
   font-size: .9rem;
   font-weight: 700;
   text-decoration: none;
+}
+
+
+@media (max-width: 600px) {
+  .feedback-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .feedback-toolbar .booking-search-wrap,
+  .feedback-toolbar select {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .booking-table-footer {
+    flex-direction: column;
+    justify-content: center;
+  }
 }

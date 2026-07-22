@@ -1,8 +1,8 @@
-.services-hero {
-  background:
-    radial-gradient(circle at 15% 20%, rgba(255, 255, 255, 0.92), transparent 36%),
-    linear-gradient(135deg, #ffe0ef 0%, #fff7fb 58%, #ffd0e5 100%);
-}
+/* ============================================================
+   SERVICES LIST PAGE
+   Uses the same site typography, inner-page hero and spacing
+   system as the rest of the Klinik Putrijaya website.
+   ============================================================ */
 
 .services-section {
   padding: 72px 0 90px;
@@ -17,7 +17,11 @@
 }
 
 .services-toolbar h2 {
-  margin: 6px 0 0;
+  margin-top: 8px;
+  font-family: "Poppins", sans-serif;
+  font-size: clamp(1.8rem, 4vw, 2.55rem);
+  font-weight: 700;
+  letter-spacing: -0.8px;
 }
 
 .services-controls {
@@ -34,15 +38,17 @@
   border: 1px solid rgba(147, 20, 81, 0.18);
   border-radius: 14px;
   background: #fff;
-  color: #392731;
-  font: inherit;
+  color: var(--ink, #24141c);
+  font-family: "Inter", sans-serif;
+  font-size: 0.94rem;
   outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .services-controls input:focus,
 .services-controls select:focus {
-  border-color: #e00d92;
-  box-shadow: 0 0 0 4px rgba(224, 13, 146, 0.09);
+  border-color: var(--primary, #e31c79);
+  box-shadow: 0 0 0 4px rgba(227, 28, 121, 0.09);
 }
 
 .services-grid {
@@ -52,36 +58,58 @@
 }
 
 .service-card {
+  min-width: 0;
   overflow: hidden;
   border: 1px solid rgba(147, 20, 81, 0.11);
   border-radius: 24px;
   background: #fff;
   box-shadow: 0 20px 50px rgba(67, 33, 50, 0.08);
-  transition: transform 180ms ease, box-shadow 180ms ease;
+  font-family: "Inter", sans-serif;
+  transition: transform 180ms ease, box-shadow 180ms ease,
+    border-color 180ms ease;
 }
 
 .service-card:hover {
   transform: translateY(-5px);
+  border-color: rgba(227, 28, 121, 0.23);
   box-shadow: 0 28px 65px rgba(67, 33, 50, 0.14);
 }
 
 .service-card-link {
-  display: block;
+  display: flex;
   height: 100%;
+  flex-direction: column;
   color: inherit;
   text-decoration: none;
 }
 
+.service-card-link:focus-visible {
+  outline: 3px solid rgba(227, 28, 121, 0.28);
+  outline-offset: -3px;
+}
+
 .service-card-media {
   position: relative;
-  min-height: 230px;
-  background-position: center;
-  background-size: cover;
+  height: 230px;
+  flex-shrink: 0;
+  overflow: hidden;
+  background: #f9eaf1;
+}
+
+.service-card-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.service-card:hover .service-card-media img {
+  transform: scale(1.035);
 }
 
 .service-card-media.placeholder {
   background:
-    radial-gradient(circle at 24% 30%, rgba(255,255,255,.92), transparent 25%),
+    radial-gradient(circle at 24% 30%, rgba(255, 255, 255, 0.92), transparent 25%),
     linear-gradient(145deg, #ffd5e8, #fff8fb 62%, #ffafd4);
 }
 
@@ -92,6 +120,7 @@
   display: grid;
   place-items: center;
   color: rgba(224, 13, 146, 0.22);
+  font-family: "Poppins", sans-serif;
   font-size: 4.2rem;
   font-weight: 800;
 }
@@ -103,39 +132,52 @@
   left: 16px;
   padding: 7px 11px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.92);
-  color: #931451;
-  font-size: 0.78rem;
-  font-weight: 800;
-  letter-spacing: 0.04em;
+  background: rgba(255, 255, 255, 0.94);
+  color: var(--primary-deep, #931451);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
 }
 
 .service-card-body {
   display: flex;
-  flex-direction: column;
   min-height: 270px;
+  flex: 1;
+  flex-direction: column;
   padding: 24px;
+  font-family: "Inter", sans-serif;
 }
 
 .service-kicker {
   margin: 0 0 8px;
-  color: #e00d92;
-  font-size: 0.78rem;
-  font-weight: 800;
+  color: var(--primary, #e31c79);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.72rem;
+  font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
 
 .service-card h3 {
   margin: 0 0 12px;
-  color: #34242c;
-  font-size: 1.45rem;
+  color: var(--ink, #24141c);
+  font-family: "Poppins", sans-serif;
+  font-size: 1.42rem;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.35px;
 }
 
-.service-card-body > p:not(.service-kicker) {
+.service-card-description {
   margin: 0;
-  color: #765c69;
+  color: var(--ink-soft, #5c4a52);
+  font-family: "Inter", sans-serif;
+  font-size: 0.95rem;
+  font-weight: 400;
   line-height: 1.65;
 }
 
@@ -146,16 +188,20 @@
   gap: 14px;
   margin-top: auto;
   padding-top: 24px;
+  font-family: "Inter", sans-serif;
 }
 
 .service-price {
-  color: #931451;
-  font-weight: 800;
+  color: var(--primary-deep, #931451);
+  font-size: 0.92rem;
+  font-weight: 700;
 }
 
 .service-more {
-  color: #e00d92;
+  color: var(--primary, #e31c79);
+  font-size: 0.9rem;
   font-weight: 700;
+  white-space: nowrap;
 }
 
 .services-empty {
@@ -164,9 +210,10 @@
   border: 1px dashed rgba(147, 20, 81, 0.2);
   border-radius: 22px;
   background: #fffafd;
-  color: #755b68;
+  color: var(--ink-soft, #5c4a52);
+  font-family: "Inter", sans-serif;
+  font-weight: 600;
   text-align: center;
-  font-weight: 700;
 }
 
 .services-empty.error {
@@ -207,6 +254,10 @@
   }
 
   .service-card-media {
-    min-height: 210px;
+    height: 210px;
+  }
+
+  .service-card-body {
+    min-height: 0;
   }
 }

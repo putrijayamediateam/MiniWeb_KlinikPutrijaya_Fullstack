@@ -1,5 +1,9 @@
 'use strict';
 
+// Public Services page.
+// Every service card deliberately uses that service record's own
+// hero_image_url, which is also used on its service detail page.
+
 document.addEventListener('DOMContentLoaded', initServicesPage);
 
 let allServices = [];
@@ -9,7 +13,8 @@ async function initServicesPage() {
   if (!grid) return;
 
   try {
-    allServices = await KPApi.getServices();
+    const response = await KPApi.getServices();
+    allServices = Array.isArray(response) ? response : [];
     populateCategoryFilter(allServices);
     renderServices(allServices);
   } catch (error) {
@@ -29,13 +34,15 @@ function populateCategoryFilter(services) {
   if (!select) return;
 
   const categories = [...new Set(
-    services.map((service) => service.category_key).filter(Boolean)
-  )].sort();
+    services
+      .map((service) => String(service.category_key || '').trim())
+      .filter(Boolean)
+  )].sort((a, b) => formatCategory(a).localeCompare(formatCategory(b)));
 
   select.innerHTML = [
     '<option value="">All categories</option>',
     ...categories.map((category) => (
-      `<option value="${escapeHtml(category)}">${escapeHtml(formatCategory(category))}</option>`
+      `<option value="${escapeAttribute(category)}">${escapeHtml(formatCategory(category))}</option>`
     )),
   ].join('');
 }
@@ -51,7 +58,10 @@ function applyFilters() {
       service.kicker,
       service.description,
       service.category_key,
-    ].filter(Boolean).join(' ').toLowerCase();
+    ]
+      .filter(Boolean)
+      .join(' ')
+      .toLowerCase();
 
     return matchesCategory && (!query || searchable.includes(query));
   });
@@ -69,23 +79,44 @@ function renderServices(services) {
   }
 
   grid.innerHTML = services.map((service) => {
-    const imageUrl = resolveImageUrl(service.hero_image_url);
+    const heroImage = resolveImageUrl(service.hero_image_url);
     const price = service.starting_price == null
       ? 'View price list'
       : `From ${formatMoney(service.starting_price)}`;
 
+    const media = heroImage
+      ? `
+        <div class="service-card-media">
+          <img
+            src="${escapeAttribute(heroImage)}"
+            alt="${escapeAttribute(`${service.title} at Klinik Putrijaya`)}"
+            loading="lazy"
+            data-service-card-image
+          >
+          <span class="service-category">${escapeHtml(formatCategory(service.category_key))}</span>
+        </div>
+      `
+      : `
+        <div class="service-card-media placeholder">
+          <span class="service-category">${escapeHtml(formatCategory(service.category_key))}</span>
+        </div>
+      `;
+
     return `
       <article class="service-card">
-        <a class="service-card-link" href="service-detail.html?slug=${encodeURIComponent(service.slug)}">
-          <div class="service-card-media ${imageUrl ? '' : 'placeholder'}"
-               ${imageUrl ? `style="background-image:url('${escapeAttribute(imageUrl)}')"` : ''}>
-            <span class="service-category">${escapeHtml(formatCategory(service.category_key))}</span>
-          </div>
+        <a
+          class="service-card-link"
+          href="service-detail.html?slug=${encodeURIComponent(service.slug)}"
+          aria-label="View ${escapeAttribute(service.title)} service details"
+        >
+          ${media}
 
           <div class="service-card-body">
             ${service.kicker ? `<p class="service-kicker">${escapeHtml(service.kicker)}</p>` : ''}
             <h3>${escapeHtml(service.title)}</h3>
-            <p>${escapeHtml(service.description || 'View detailed information about this service.')}</p>
+            <p class="service-card-description">
+              ${escapeHtml(service.description || 'View detailed information about this service.')}
+            </p>
 
             <div class="service-card-footer">
               <span class="service-price">${escapeHtml(price)}</span>
@@ -96,13 +127,30 @@ function renderServices(services) {
       </article>
     `;
   }).join('');
+
+  installCardImageFallbacks();
+}
+
+function installCardImageFallbacks() {
+  document.querySelectorAll('[data-service-card-image]').forEach((image) => {
+    image.addEventListener('error', () => {
+      const media = image.closest('.service-card-media');
+      media?.classList.add('placeholder');
+      image.remove();
+    }, { once: true });
+  });
 }
 
 function resolveImageUrl(url) {
   if (!url) return '';
   if (/^https?:\/\//i.test(url)) return url;
-  const backendOrigin = new URL(KPApi.baseUrl).origin;
-  return `${backendOrigin}${url.startsWith('/') ? '' : '/'}${url}`;
+
+  try {
+    const backendOrigin = new URL(KPApi.baseUrl).origin;
+    return `${backendOrigin}${url.startsWith('/') ? '' : '/'}${url}`;
+  } catch (error) {
+    return url;
+  }
 }
 
 function formatMoney(value) {
