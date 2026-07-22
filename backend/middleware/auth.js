@@ -19,6 +19,7 @@ function requireAdmin(req, res, next) {
     req.admin = {
       id: payload.id,
       username: payload.username,
+      role: payload.role || 'admin',
     };
     return next();
   } catch (error) {

@@ -39,44 +39,80 @@
   font: inherit;
 }
 
+/* Compact pagination */
 .admin-pager {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 18px;
-  margin-top: 16px;
-  padding: 13px 15px;
-  border: 1px solid rgba(147,20,81,.12);
-  border-radius: 14px;
+  justify-content: flex-end;
+  gap: 6px;
+
+  width: 100%;
+  margin-top: 10px;
+  padding: 7px 9px;
+
+  border: 1px solid rgba(147, 20, 81, 0.12);
+  border-radius: 10px;
   background: #fffafd;
 }
 
-.pager-info {
-  color: #765c69;
-  font-size: .88rem;
-}
-
+/* Previous, page status and Next stay in one fixed row */
 .pager-actions {
-  display: flex;
+  display: grid;
+  grid-template-columns: 72px 95px 72px;
   align-items: center;
-  gap: 12px;
+  gap: 6px;
 }
 
+/* Previous and Next */
 .pager-actions button {
-  min-height: 36px;
-  padding: 0 13px;
-  border: 1px solid rgba(147,20,81,.18);
-  border-radius: 10px;
-  background: #fff;
-  color: #931451;
-  font: inherit;
-  font-weight: 700;
+  width: 72px;
+  min-height: 30px;
+  padding: 5px 8px;
+
+  border: 1px solid rgb(0, 0, 0);
+  border-radius: 999px;
+  background: #f7f7f7;
+  color: #000000;
+
+  font-family: "Inter", sans-serif;
+  font-size: 0.65rem;
+  font-weight: 800;
+  line-height: 1;
+
   cursor: pointer;
 }
 
+/* Fixed box for Page 1 of 1 */
+.pager-info,
+.pager-page-info {
+  width: 110px;
+  min-width: 95px;
+  height: 30px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid rgba(147, 20, 81, 0.12);
+  border-radius: 999px;
+  background: #ffffff;
+  color: #765c69;
+
+  font-family: "Inter", sans-serif;
+  font-size: 0.65rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.pager-actions button:hover:not(:disabled) {
+  background: #fff0f7;
+  border-color: #e00d92;
+  color: #e00d92;
+}
+
 .pager-actions button:disabled {
-  opacity: .42;
-  cursor: default;
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
 .cell-subtext,
@@ -529,6 +565,97 @@ body.admin-modal-open {
 .admin-login-footer::before {
   content: "🔒";
   font-size: 0.76rem;
+}
+
+/* =========================================================
+   HEADER ADMIN ACTION BUTTONS
+   Rounded, compact and modern pill design
+   ========================================================= */
+
+.admin-action-buttons {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  width: auto;
+}
+
+.admin-action-buttons .logout-btn {
+  width: 135px;
+  min-height: 34px;
+  padding: 7px 13px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 999px;
+  font-family: "Inter", sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1;
+  text-align: center;
+  text-decoration: none;
+
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
+}
+
+/* Logout */
+#logoutBtn {
+  border: 1px solid #f3a8ca;
+  background: #ffffff;
+  color: #7d1044;
+  box-shadow: 0 4px 10px rgba(147, 20, 81, 0.15);
+}
+
+#logoutBtn:hover {
+  background: #ffd7e9;
+  border-color: #931451;
+  transform: translateY(-1px);
+}
+
+/* Admin Approvals */
+.admin-approvals-btn {
+  border: 1px solid #f3a8ca;
+  background: #fff0f7;
+  color: #931451;
+  box-shadow: 0 4px 10px rgba(224, 13, 146, 0.08);
+}
+
+.admin-approvals-btn:hover {
+  background: #ffd7e9;
+  border-color: #931451;
+  color: #931451;
+  transform: translateY(-1px);
+}
+
+.admin-action-buttons .logout-btn:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+.admin-action-buttons .logout-btn:focus-visible {
+  outline: 2px solid rgba(224, 13, 146, 0.25);
+  outline-offset: 2px;
+}
+
+@media (max-width: 700px) {
+  .admin-action-buttons {
+    align-items: flex-end;
+    width: auto;
+  }
+
+  .admin-action-buttons .logout-btn {
+    width: 125px;
+    min-height: 32px;
+    font-size: 0.74rem;
+  }
 }
 
 @media (max-width: 540px) {

@@ -53,10 +53,28 @@ router.post('/login', async (req, res) => {
 
     const admin = rows[0];
     const storedHash = admin ? getPasswordHash(admin) : null;
-    const active = admin && (!columns.has('is_active') || Number(admin.is_active) === 1);
 
-    if (!admin || !storedHash || !active) {
+    if (!admin || !storedHash) {
       return res.status(401).json({ message: 'Invalid username or password.' });
+    }
+
+    const accountStatus = String(admin.account_status || 'active');
+
+    if (accountStatus === 'pending_verification') {
+      return res.status(403).json({ message: 'Verify your email address before logging in.' });
+    }
+
+    if (accountStatus === 'pending_approval') {
+      return res.status(403).json({ message: 'Your account is waiting for superadmin approval.' });
+    }
+
+    if (accountStatus === 'rejected') {
+      return res.status(403).json({ message: 'Your administrator account request was rejected.' });
+    }
+
+    const active = !columns.has('is_active') || Number(admin.is_active) === 1;
+    if (!active || accountStatus !== 'active') {
+      return res.status(403).json({ message: 'This administrator account is not active.' });
     }
 
     const passwordMatches = await bcrypt.compare(password, storedHash);
@@ -69,7 +87,7 @@ router.post('/login', async (req, res) => {
     }
 
     const token = jwt.sign(
-      { id: admin.id, username: admin.username },
+      { id: admin.id, username: admin.username, role: admin.role || 'admin' },
       process.env.JWT_SECRET,
       { expiresIn: process.env.JWT_EXPIRES_IN || '8h' }
     );
@@ -78,6 +96,7 @@ router.post('/login', async (req, res) => {
       token,
       username: admin.username,
       email: admin.email || null,
+      role: admin.role || 'admin',
     });
   } catch (error) {
     console.error('Login error:', error);

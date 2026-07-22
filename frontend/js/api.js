@@ -117,6 +117,33 @@
       const headers = authHeaders(token);
 
       return {
+
+        getMyAdminProfile() {
+  return apiRequest('/admin-users/me', {
+    headers,
+  });
+},
+
+getPendingAdmins() {
+  return apiRequest('/admin-users/pending', {
+    headers,
+  });
+},
+
+approveAdmin(id) {
+  return apiRequest(`/admin-users/${id}/approve`, {
+    method: 'PUT',
+    headers,
+  });
+},
+
+rejectAdmin(id, reason = '') {
+  return apiRequest(`/admin-users/${id}/reject`, {
+    method: 'PUT',
+    headers,
+    body: jsonBody({ reason }),
+  });
+},
         getBookings(params = {}) {
           return apiRequest(`/bookings${buildQuery(params)}`, { headers });
         },

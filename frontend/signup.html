@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create Account | Klinik Putrijaya Admin</title>
+  <link rel="stylesheet" href="css/admin-auth.css">
+  <link rel="stylesheet" href="css/signup.css">
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script src="js/signup.js" defer></script>
+</head>
+<body>
+  <main class="auth-page">
+    <section class="auth-card">
+      <a class="auth-brand" href="index.html" aria-label="Klinik Putrijaya Home">
+        <img src="images/logoklinik.png" alt="Klinik Putrijaya">
+      </a>
+
+      <p class="auth-kicker">Admin Portal</p>
+      <h1>Create an account</h1>
+      <p class="auth-intro">Use your work email and create a secure password.</p>
+
+      <p class="auth-note">
+        You will receive an email to proceed with signing up.
+      </p>
+
+      <form id="signupForm">
+        <label for="signupEmail">Email address</label>
+        <input
+          id="signupEmail"
+          name="email"
+          type="email"
+          autocomplete="email"
+          placeholder="name@example.com"
+          required
+        >
+
+        <label for="signupPassword">Create new password</label>
+        <input
+          id="signupPassword"
+          name="password"
+          type="password"
+          autocomplete="new-password"
+          placeholder="At least 10 characters"
+          minlength="10"
+          maxlength="128"
+          required
+        >
+        <p class="password-help">Use at least 10 characters, including one letter and one number.</p>
+
+        <button id="signupBtn" type="submit">Create account</button>
+        <div id="signupMessage" class="auth-message" aria-live="polite"></div>
+      </form>
+
+      <div class="auth-divider"><span>or</span></div>
+
+      <div id="googleButton" class="google-button-shell" aria-label="Continue with Google"></div>
+
+      <p class="auth-switch">
+        Already have an account? <a href="admin.html">Log In</a>
+      </p>
+    </section>
+  </main>
+</body>
+</html>

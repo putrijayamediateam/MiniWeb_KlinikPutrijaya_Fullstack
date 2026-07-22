@@ -49,6 +49,9 @@ app.get('/api/health', async (req, res) => {
 });
 
 app.use('/api/auth', require('./routes/auth'));
+app.use('/api/auth', require('./routes/signup'));
+app.use('/api/admin-users', require('./routes/adminUsers'));
+
 app.use('/api/uploads', require('./routes/uploads'));
 app.use('/api/doctors', require('./routes/doctors'));
 app.use('/api/services', require('./routes/services'));
