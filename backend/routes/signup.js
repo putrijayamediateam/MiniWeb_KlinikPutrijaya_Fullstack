@@ -158,13 +158,138 @@ router.post('/signup', async (req, res) => {
     }
 
     const [existingRows] = await db.query(
-      'SELECT id FROM admins WHERE LOWER(email) = ? LIMIT 1',
-      [email]
+  `SELECT
+     id,
+     email,
+     account_status,
+     is_active
+   FROM admins
+   WHERE LOWER(TRIM(email)) = ?
+   LIMIT 1`,
+  [email]
+);
+
+if (existingRows.length > 0) {
+  const existingAdmin = existingRows[0];
+  const status = String(
+    existingAdmin.account_status || ''
+  ).toLowerCase();
+
+  /*
+    Account exists but email verification
+    has not been completed.
+
+    Generate a fresh token and send a new email.
+  */
+  if (status === 'pending_verification') {
+    const rawToken = crypto
+      .randomBytes(32)
+      .toString('hex');
+
+    const tokenHash = crypto
+      .createHash('sha256')
+      .update(rawToken)
+      .digest('hex');
+
+    const expiresAt = new Date(
+      Date.now() + 30 * 60 * 1000
     );
 
-    if (existingRows.length > 0) {
-      return res.status(409).json({ message: 'An account already exists for this email. Please log in.' });
+    await db.query(
+      `UPDATE admins
+       SET email_verification_token_hash = ?,
+           email_verification_expires_at = ?
+       WHERE id = ?`,
+      [
+        tokenHash,
+        expiresAt,
+        existingAdmin.id,
+      ]
+    );
+
+    const frontendUrl = String(
+      process.env.FRONTEND_URL ||
+        'http://127.0.0.1:5500'
+    ).replace(/\/+$/, '');
+
+    const verificationUrl =
+      `${frontendUrl}/verify-account.html` +
+      `?token=${encodeURIComponent(rawToken)}`;
+
+    try {
+      const emailResult =
+        await sendSignupVerification({
+          email,
+          verificationUrl,
+        });
+
+      if (!emailResult.sent) {
+        console.warn(
+          'Resend verification email was not sent:',
+          emailResult.reason
+        );
+
+        if (process.env.NODE_ENV !== 'production') {
+          console.log(
+            'Development signup verification URL:',
+            verificationUrl
+          );
+        }
+
+        return res.status(503).json({
+          message:
+            'A new verification link was generated, ' +
+            'but the email could not be sent. ' +
+            'Please try again shortly.',
+        });
+      }
+
+      return res.status(200).json({
+        message:
+          'A new verification link has been sent ' +
+          'to your email address.',
+      });
+    } catch (emailError) {
+      console.error(
+        'Resend signup verification error:',
+        emailError
+      );
+
+      if (process.env.NODE_ENV !== 'production') {
+        console.log(
+          'Development signup verification URL:',
+          verificationUrl
+        );
+      }
+
+      return res.status(502).json({
+        message:
+          'Unable to send a new verification email right now.',
+      });
     }
+  }
+
+  if (status === 'pending_approval') {
+    return res.status(409).json({
+      message:
+        'Your email is already verified. ' +
+        'Your account is waiting for superadmin approval.',
+    });
+  }
+
+  if (status === 'rejected') {
+    return res.status(403).json({
+      message:
+        'This account registration was rejected. ' +
+        'Please contact the superadmin.',
+    });
+  }
+
+  return res.status(409).json({
+    message:
+      'An account already exists for this email. Please log in.',
+  });
+}
 
     const username = createUsername(email);
     const passwordHash = await bcrypt.hash(password, 12);
