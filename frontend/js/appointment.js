@@ -64,14 +64,12 @@ function initAppointmentForm() {
     event.preventDefault();
     setFormMessage(messageBox, '');
 
-    const emailField = form.querySelector('[name="email"]');
     const payload = {
       branch_id: Number(form.branch_id.value) || null,
       doctor_id: form.doctor_id.value ? Number(form.doctor_id.value) : null,
       service_id: form.service_id.value ? Number(form.service_id.value) : null,
       patient_name: form.patient_name.value.trim(),
       phone: form.phone.value.trim(),
-      email: emailField?.value.trim() || null,
       ic_number: form.ic_number?.value.trim() || null,
       preferred_date: form.preferred_date.value,
       preferred_time: form.preferred_time.value,
@@ -80,11 +78,6 @@ function initAppointmentForm() {
 
     if (!payload.branch_id || !payload.patient_name || !payload.phone || !payload.preferred_date || !payload.preferred_time) {
       setFormMessage(messageBox, 'Please fill in all required fields (*).', 'error');
-      return;
-    }
-
-    if (payload.email && !/^\S+@\S+\.\S+$/.test(payload.email)) {
-      setFormMessage(messageBox, 'Please enter a valid email address.', 'error');
       return;
     }
 

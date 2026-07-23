@@ -274,15 +274,12 @@ function renderBookings(bookings) {
 
   tbody.innerHTML = bookings.map((booking) => {
     const whatsappLink = buildWhatsappLink(booking);
-    const emailStatus = booking.confirmation_email_sent_at ? 'Email sent' : 'Email pending';
-    const smsStatus = booking.confirmation_sms_sent_at ? 'SMS sent' : 'SMS pending';
 
     return `
       <tr data-id="${booking.id}">
         <td><span class="booking-ref">${formatBookingRef(booking.id)}</span></td>
         <td>
           <strong>${escapeHtml(booking.patient_name)}</strong>
-          ${booking.email ? `<div class="cell-subtext">${escapeHtml(booking.email)}</div>` : ''}
         </td>
         <td>${escapeHtml(booking.phone)}</td>
         <td>${escapeHtml(booking.branch_name || '—')}</td>
@@ -292,9 +289,6 @@ function renderBookings(bookings) {
         <td>${escapeHtml(booking.preferred_time || '—')}</td>
         <td class="reason-col">
           <div class="reason-text">${escapeHtml(booking.reason || '—')}</div>
-          <div class="notification-mini" title="${escapeAttribute(booking.notification_error || '')}">
-            ${escapeHtml(emailStatus)} · ${escapeHtml(smsStatus)}
-          </div>
         </td>
         <td>
           <select class="status-select status-${escapeAttribute(booking.status)}" data-id="${booking.id}">
@@ -306,7 +300,46 @@ function renderBookings(bookings) {
         </td>
         <td>
           <div class="booking-actions">
-            ${whatsappLink ? `<a class="btn-small" href="${escapeAttribute(whatsappLink)}" target="_blank" rel="noopener">WhatsApp</a>` : ''}
+            ${
+  whatsappLink
+    ? `
+      <a
+        class="booking-whatsapp-btn"
+        href="${escapeAttribute(whatsappLink)}"
+        target="_blank"
+        rel="noopener noreferrer"
+        title="WhatsApp patient"
+        aria-label="Open WhatsApp chat with patient"
+      >
+        <svg
+          viewBox="0 0 32 32"
+          aria-hidden="true"
+          focusable="false"
+        >
+          <path
+            d="M16.02 3C8.85 3 3.02 8.83 3.02 16c0 2.29.6 4.53 1.73 6.5L3 29l6.67-1.7A12.9 12.9 0 0 0 16.02 29c7.17 0 13-5.83 13-13s-5.83-13-13-13Zm0 23.7c-2.02 0-3.99-.57-5.69-1.66l-.41-.26-3.95 1.01 1.05-3.84-.28-.43A10.67 10.67 0 0 1 5.32 16c0-5.9 4.8-10.7 10.7-10.7s10.7 4.8 10.7 10.7-4.8 10.7-10.7 10.7Zm5.87-8.01c-.32-.16-1.89-.93-2.18-1.04-.29-.11-.5-.16-.71.16-.21.32-.82 1.04-1.01 1.25-.19.21-.37.24-.69.08-.32-.16-1.35-.5-2.57-1.59-.95-.85-1.59-1.89-1.78-2.21-.19-.32-.02-.49.14-.65.15-.15.32-.37.48-.56.16-.19.21-.32.32-.53.11-.21.05-.4-.03-.56-.08-.16-.71-1.71-.97-2.34-.26-.61-.52-.53-.71-.54h-.61c-.21 0-.56.08-.85.4-.29.32-1.12 1.09-1.12 2.66s1.15 3.09 1.31 3.3c.16.21 2.26 3.45 5.47 4.84.76.33 1.36.53 1.82.68.77.24 1.46.21 2.01.13.61-.09 1.89-.77 2.16-1.52.27-.75.27-1.39.19-1.52-.08-.13-.29-.21-.61-.37Z"
+          />
+        </svg>
+      </a>
+    `
+    : `
+      <span
+        class="booking-whatsapp-btn is-disabled"
+        title="Invalid phone number"
+        aria-label="WhatsApp unavailable"
+      >
+        <svg
+          viewBox="0 0 32 32"
+          aria-hidden="true"
+          focusable="false"
+        >
+          <path
+            d="M16.02 3C8.85 3 3.02 8.83 3.02 16c0 2.29.6 4.53 1.73 6.5L3 29l6.67-1.7A12.9 12.9 0 0 0 16.02 29c7.17 0 13-5.83 13-13s-5.83-13-13-13Zm0 23.7c-2.02 0-3.99-.57-5.69-1.66l-.41-.26-3.95 1.01 1.05-3.84-.28-.43A10.67 10.67 0 0 1 5.32 16c0-5.9 4.8-10.7 10.7-10.7s10.7 4.8 10.7 10.7-4.8 10.7-10.7 10.7Z"
+          />
+        </svg>
+      </span>
+    `
+}
             <button class="btn-small danger" type="button" data-action="delete-booking" data-id="${booking.id}">Delete</button>
           </div>
         </td>
@@ -320,16 +353,12 @@ function renderBookings(bookings) {
       select.disabled = true;
 
       try {
-        const response = await authedApi.updateBookingStatus(select.dataset.id, select.value);
+        await authedApi.updateBookingStatus(
+  select.dataset.id,
+  select.value
+);
         select.dataset.previous = select.value;
         select.className = `status-select status-${select.value}`;
-
-        if (select.value === 'confirmed') {
-          const notices = [];
-          if (response.notification?.email?.sent) notices.push('email sent');
-          if (response.notification?.sms?.sent) notices.push('SMS sent');
-          if (notices.length) alert(`Booking confirmed: ${notices.join(' and ')}.`);
-        }
 
         await loadBookings();
       } catch (error) {
@@ -374,7 +403,7 @@ async function exportBookingsToCSV() {
     }
 
     const headers = [
-      'Reference', 'Patient Name', 'Phone', 'Email', 'Branch', 'Doctor',
+      'Reference', 'Patient Name', 'Phone', 'Branch', 'Doctor',
       'Service', 'Preferred Date', 'Preferred Time', 'Reason', 'Status',
     ];
 
@@ -382,7 +411,6 @@ async function exportBookingsToCSV() {
       formatBookingRef(booking.id),
       booking.patient_name || '',
       booking.phone || '',
-      booking.email || '',
       booking.branch_name || '',
       booking.doctor_name || '',
       booking.service_title || '',
