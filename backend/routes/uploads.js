@@ -3,35 +3,58 @@
 const express = require('express');
 const multer = require('multer');
 const path = require('path');
-const fs = require('fs');
 const crypto = require('crypto');
-const { requireAdmin } = require('../middleware/auth');
+
+const {
+  normalizeUploadFolder,
+  getUploadFolderPath,
+} = require('../config/uploadStorage');
+
+const {
+  requireAdmin,
+} = require('../middleware/auth');
 
 const router = express.Router();
-const allowedFolders = new Set(['general', 'doctors', 'services', 'promotions']);
-const allowedMimeTypes = new Set(['image/jpeg', 'image/png', 'image/webp']);
+
+const allowedMimeTypes = new Set([
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+]);
 
 function resolveFolder(req) {
-  const requested = String(req.query.folder || 'general').toLowerCase();
-  return allowedFolders.has(requested) ? requested : 'general';
+  return normalizeUploadFolder(
+    req.query.folder || 'general'
+  );
+}
+
+function getBackendPublicUrl(req) {
+  const configuredUrl = String(
+    process.env.BACKEND_PUBLIC_URL || ''
+  )
+    .trim()
+    .replace(/\/+$/, '');
+
+  if (configuredUrl) {
+    return configuredUrl;
+  }
+
+  return `${req.protocol}://${req.get('host')}`;
 }
 
 const storage = multer.diskStorage({
   destination(req, file, callback) {
-    const folder = resolveFolder(req);
-    const destination = path.join(
-      __dirname,
-      '..',
-      '..',
-      'frontend',
-      'images',
-      'uploads',
-      folder
-    );
+    try {
+      const folder = resolveFolder(req);
+      const destination =
+        getUploadFolderPath(folder);
 
-    fs.mkdirSync(destination, { recursive: true });
-    callback(null, destination);
+      return callback(null, destination);
+    } catch (error) {
+      return callback(error);
+    }
   },
+
   filename(req, file, callback) {
     const extensionByMime = {
       'image/jpeg': '.jpg',
@@ -39,56 +62,109 @@ const storage = multer.diskStorage({
       'image/webp': '.webp',
     };
 
-    const extension = extensionByMime[file.mimetype] || path.extname(file.originalname).toLowerCase();
-    const baseName = path
-      .basename(file.originalname, path.extname(file.originalname))
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '')
-      .slice(0, 60) || 'image';
+    const extension =
+      extensionByMime[file.mimetype] ||
+      path.extname(file.originalname).toLowerCase();
 
-    const unique = `${Date.now()}-${crypto.randomBytes(4).toString('hex')}`;
-    callback(null, `${baseName}-${unique}${extension}`);
+    const baseName =
+      path
+        .basename(
+          file.originalname,
+          path.extname(file.originalname)
+        )
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '')
+        .slice(0, 60) || 'image';
+
+    const unique = [
+      Date.now(),
+      crypto.randomBytes(4).toString('hex'),
+    ].join('-');
+
+    return callback(
+      null,
+      `${baseName}-${unique}${extension}`
+    );
   },
 });
 
 const upload = multer({
   storage,
+
   limits: {
     fileSize: 5 * 1024 * 1024,
     files: 1,
   },
+
   fileFilter(req, file, callback) {
     if (!allowedMimeTypes.has(file.mimetype)) {
-      return callback(new multer.MulterError('LIMIT_UNEXPECTED_FILE', 'file'));
+      return callback(
+        new multer.MulterError(
+          'LIMIT_UNEXPECTED_FILE',
+          'file'
+        )
+      );
     }
+
     return callback(null, true);
   },
 });
 
-router.post('/', requireAdmin, upload.single('file'), (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({ message: 'Please select an image file.' });
-  }
+router.post(
+  '/',
+  requireAdmin,
+  upload.single('file'),
+  (req, res) => {
+    if (!req.file) {
+      return res.status(400).json({
+        message: 'Please select an image file.',
+      });
+    }
 
-  const folder = resolveFolder(req);
-  return res.status(201).json({
-    message: 'Image uploaded successfully.',
-    url: `/images/uploads/${folder}/${req.file.filename}`,
-    filename: req.file.filename,
-    size: req.file.size,
-  });
-});
+    const folder = resolveFolder(req);
+
+    /*
+      Keep the relative path in the database so records remain
+      portable between local development and production.
+    */
+    const relativeUrl =
+      `/images/uploads/${folder}/${req.file.filename}`;
+
+    return res.status(201).json({
+      message: 'Image uploaded successfully.',
+
+      /*
+        Existing admin code can continue using "url".
+      */
+      url: relativeUrl,
+
+      /*
+        Additional full URL is available when needed.
+      */
+      absoluteUrl:
+        `${getBackendPublicUrl(req)}${relativeUrl}`,
+
+      filename: req.file.filename,
+      size: req.file.size,
+    });
+  }
+);
 
 router.use((error, req, res, next) => {
-  if (!(error instanceof multer.MulterError)) return next(error);
+  if (!(error instanceof multer.MulterError)) {
+    return next(error);
+  }
 
   if (error.code === 'LIMIT_FILE_SIZE') {
-    return res.status(400).json({ message: 'Image must be 5 MB or smaller.' });
+    return res.status(400).json({
+      message: 'Image must be 5 MB or smaller.',
+    });
   }
 
   return res.status(400).json({
-    message: 'Only JPEG, PNG and WebP images are allowed.',
+    message:
+      'Only JPEG, PNG and WebP images are allowed.',
   });
 });
 
