@@ -34,17 +34,13 @@
         <div class="section-head">
           <div class="eyebrow">Resident doctors</div>
           <h2>Find a doctor</h2>
-          <p>The doctor list below is loaded from your existing backend database.</p>
         </div>
 
         <div class="doctor-search-bar">
           <input type="search" id="doctorSearchInput" placeholder="Search doctor by name…" aria-label="Search doctors by name">
           <select id="doctorBranchFilter" aria-label="Filter doctors by branch">
-            <option value="">All branches</option>
-            <option value="cheras">Cheras</option>
-            <option value="sungai-besi">Sungai Besi</option>
-            <option value="puchong">Puchong</option>
-          </select>
+            <option value="">Loading branches...</option>
+              </select>
         </div>
 
         <div id="doctorsContainer" aria-live="polite">
