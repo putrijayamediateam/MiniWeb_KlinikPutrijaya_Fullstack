@@ -1,0 +1,420 @@
+/* ============================================================
+   SERVICE DETAIL PAGE
+   The hero intentionally reuses the global .page-hero structure,
+   so its height, overlay, typography and spacing match other pages.
+   ============================================================ */
+
+.service-loading,
+.service-error {
+  min-height: 55vh;
+  display: grid;
+  place-items: center;
+  padding: 90px 0;
+  font-family: "Inter", sans-serif;
+  text-align: center;
+}
+
+.service-error h1 {
+  margin-bottom: 10px;
+}
+
+.service-error p {
+  margin: 0 0 24px;
+  color: var(--ink-soft, #5c4a52);
+}
+
+.service-detail-page-hero .page-hero-content {
+  padding-top: 62px;
+}
+
+.service-back-link {
+  display: inline-flex;
+  margin-bottom: 18px;
+  color: rgba(255, 255, 255, 0.9);
+  font-family: "Inter", sans-serif;
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.service-back-link:hover,
+.service-back-link:focus-visible {
+  color: #fff;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.service-detail-page-hero h1 {
+  max-width: 20ch;
+}
+
+.service-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 26px;
+}
+
+.service-detail-page-hero .btn-secondary {
+  border-color: rgba(255, 255, 255, 0.48);
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+
+.service-detail-page-hero .btn-secondary:hover,
+.service-detail-page-hero .btn-secondary:focus-visible {
+  border-color: #fff;
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+}
+
+.service-detail-main {
+  padding: 72px 0 96px;
+  background: #fffafd;
+}
+
+.service-detail-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 330px;
+  align-items: start;
+  gap: 30px;
+}
+
+.service-detail-content {
+  display: grid;
+  min-width: 0;
+  gap: 24px;
+}
+
+.service-info-card,
+.service-booking-card {
+  border: 1px solid rgba(147, 20, 81, 0.11);
+  border-radius: 24px;
+  background: #fff;
+  box-shadow: 0 18px 45px rgba(67, 33, 50, 0.07);
+  font-family: "Inter", sans-serif;
+}
+
+.service-info-card {
+  padding: 32px;
+}
+
+.service-info-card h2,
+.service-booking-card h2 {
+  font-family: "Poppins", sans-serif;
+  font-weight: 700;
+}
+
+.service-info-card h2 {
+  margin: 0 0 16px;
+  font-size: 1.55rem;
+}
+
+.service-info-card p {
+  margin: 0 0 14px;
+  color: var(--ink-soft, #5c4a52);
+  font-size: 0.97rem;
+  line-height: 1.75;
+}
+
+.service-info-card p:last-child {
+  margin-bottom: 0;
+}
+
+.service-detail-list {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.service-detail-list li {
+  position: relative;
+  padding-left: 28px;
+  color: var(--ink-soft, #5c4a52);
+  font-size: 0.97rem;
+  line-height: 1.65;
+}
+
+.service-detail-list li::before {
+  content: "✓";
+  position: absolute;
+  top: 0;
+  left: 0;
+  color: var(--primary, #e31c79);
+  font-weight: 900;
+}
+
+.service-detail-sidebar {
+  position: sticky;
+  top: 90px;
+}
+
+.service-booking-card {
+  padding: 28px;
+}
+
+.service-booking-card .eyebrow {
+  margin-bottom: 10px;
+}
+
+.service-booking-card h2 {
+  margin: 0 0 12px;
+  font-size: 1.42rem;
+}
+
+.service-booking-card > p:not(.eyebrow) {
+  margin: 0 0 22px;
+  color: var(--ink-soft, #5c4a52);
+  font-size: 0.95rem;
+  line-height: 1.65;
+}
+
+.btn-primary.full {
+  width: 100%;
+  justify-content: center;
+  text-align: center;
+}
+
+.sidebar-link {
+  display: block;
+  margin-top: 16px;
+  color: var(--primary-deep, #931451);
+  font-family: "Inter", sans-serif;
+  font-weight: 700;
+  text-align: center;
+  text-decoration: none;
+}
+
+.sidebar-link:hover,
+.sidebar-link:focus-visible {
+  color: var(--primary, #e31c79);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.section-title-row {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+.section-title-row h2 {
+  margin: 6px 0 0;
+}
+
+.price-note {
+  max-width: 260px;
+  color: var(--muted, #8a7580);
+  font-size: 0.82rem;
+  text-align: right;
+}
+
+.price-list {
+  display: grid;
+  gap: 12px;
+}
+
+.price-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 20px;
+  border: 1px solid rgba(147, 20, 81, 0.1);
+  border-radius: 17px;
+  background: #fffafd;
+}
+
+.price-item h3 {
+  margin: 0 0 5px;
+  font-family: "Poppins", sans-serif;
+  font-size: 1.02rem;
+  font-weight: 700;
+}
+
+.price-item p {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.price-value {
+  display: flex;
+  align-items: flex-end;
+  flex-direction: column;
+  white-space: nowrap;
+}
+
+.price-value del {
+  color: #9d8892;
+  font-size: 0.82rem;
+}
+
+.price-value strong {
+  color: var(--primary, #e31c79);
+  font-size: 1.25rem;
+}
+
+.price-empty {
+  padding: 22px;
+  border: 1px dashed rgba(147, 20, 81, 0.2);
+  border-radius: 16px;
+  color: var(--ink-soft, #5c4a52);
+  text-align: center;
+}
+
+.service-gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.service-gallery-item {
+  position: relative;
+  min-height: 190px;
+  overflow: hidden;
+  padding: 0;
+  border: 0;
+  border-radius: 17px;
+  background: #f9eaf1;
+  cursor: pointer;
+}
+
+.service-gallery-item img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 190px;
+  object-fit: cover;
+  transition: transform 0.25s ease;
+}
+
+.service-gallery-item:hover img {
+  transform: scale(1.04);
+}
+
+.service-gallery-item:focus-visible {
+  outline: 3px solid rgba(227, 28, 121, 0.35);
+  outline-offset: 3px;
+}
+
+.service-gallery-item span {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  left: 10px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: rgba(34, 18, 26, 0.72);
+  color: #fff;
+  font-family: "Inter", sans-serif;
+  font-size: 0.78rem;
+  text-align: left;
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+
+.service-lightbox {
+  position: fixed;
+  z-index: 500;
+  inset: 0;
+  display: none;
+  place-items: center;
+  padding: 60px 24px 28px;
+  background: rgba(24, 12, 18, 0.92);
+}
+
+.service-lightbox.is-open {
+  display: grid;
+}
+
+.service-lightbox img {
+  max-width: min(1100px, 94vw);
+  max-height: 78vh;
+  border-radius: 18px;
+  object-fit: contain;
+}
+
+.service-lightbox p {
+  margin: 14px 0 0;
+  color: #fff;
+  font-family: "Inter", sans-serif;
+  text-align: center;
+}
+
+.lightbox-close {
+  position: absolute;
+  top: 18px;
+  right: 24px;
+  width: 44px;
+  height: 44px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  font-size: 2rem;
+  cursor: pointer;
+}
+
+body.lightbox-open {
+  overflow: hidden;
+}
+
+@media (max-width: 940px) {
+  .service-detail-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .service-detail-sidebar {
+    position: static;
+  }
+}
+
+@media (max-width: 700px) {
+  .service-detail-main {
+    padding-top: 52px;
+  }
+
+  .service-info-card {
+    padding: 24px 20px;
+  }
+
+  .section-title-row,
+  .price-item {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .price-note {
+    text-align: left;
+  }
+
+  .price-value {
+    align-items: flex-start;
+  }
+
+  .service-gallery-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 520px) {
+  .service-hero-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .service-hero-actions .btn-primary,
+  .service-hero-actions .btn-secondary {
+    width: 100%;
+  }
+
+  .service-gallery-grid {
+    grid-template-columns: 1fr;
+  }
+}

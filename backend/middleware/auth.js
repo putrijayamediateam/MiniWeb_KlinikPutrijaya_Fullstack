@@ -1,20 +1,29 @@
+'use strict';
+
 const jwt = require('jsonwebtoken');
 
-// Verifies the "Authorization: Bearer <token>" header on protected admin routes.
 function requireAdmin(req, res, next) {
   const header = req.headers.authorization || '';
-  const token = header.startsWith('Bearer ') ? header.slice(7) : null;
+  const [scheme, token] = header.split(' ');
 
-  if (!token) {
-    return res.status(401).json({ error: 'No token provided. Please log in.' });
+  if (scheme !== 'Bearer' || !token) {
+    return res.status(401).json({ message: 'Authentication token is required.' });
   }
 
   try {
+    if (!process.env.JWT_SECRET) {
+      throw new Error('JWT_SECRET is not configured.');
+    }
+
     const payload = jwt.verify(token, process.env.JWT_SECRET);
-    req.admin = payload; // { id, username }
-    next();
-  } catch (err) {
-    return res.status(401).json({ error: 'Invalid or expired token. Please log in again.' });
+    req.admin = {
+      id: payload.id,
+      username: payload.username,
+      role: payload.role || 'admin',
+    };
+    return next();
+  } catch (error) {
+    return res.status(401).json({ message: 'Invalid or expired authentication token.' });
   }
 }
 

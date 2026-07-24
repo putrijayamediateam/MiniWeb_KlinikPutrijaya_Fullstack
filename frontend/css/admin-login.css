@@ -1,0 +1,274 @@
+/* =========================================================
+   KLINIK PUTRIJAYA STAFF LOGIN
+   Scoped to the login screen only.
+   This matches signup.html and forgot-password.html without
+   changing the admin dashboard or login JavaScript.
+   ========================================================= */
+
+.admin-login-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  overflow-y: auto;
+  padding: 30px 18px;
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: #34242c;
+  background:
+    radial-gradient(circle at 10% 10%, rgba(255, 255, 255, 0.96), transparent 32%),
+    linear-gradient(145deg, #ffd6e9, #fff8fb 58%, #ffadd4);
+}
+
+.admin-login-screen.hidden {
+  display: none !important;
+}
+
+.admin-login-card {
+  width: min(460px, 100%);
+  padding: 34px;
+  border: 1px solid rgba(147, 20, 81, 0.13);
+  border-radius: 26px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 30px 80px rgba(74, 31, 52, 0.16);
+  text-align: left;
+  animation: kpLoginCardEnter 0.4s ease both;
+}
+
+@keyframes kpLoginCardEnter {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.admin-login-brand {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.admin-login-brand img,
+.admin-login-card .login-logo {
+  display: block;
+  width: auto;
+  max-width: 180px;
+  max-height: 72px;
+  margin: 0;
+  object-fit: contain;
+}
+
+.admin-login-kicker {
+  margin: 24px 0 8px;
+  color: #e00d92;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.admin-login-card h1 {
+  margin: 0;
+  color: #34242c;
+  font-family: Poppins, Inter, system-ui, sans-serif;
+  font-size: 2rem;
+  line-height: 1.2;
+  text-align: left;
+}
+
+.admin-login-card .admin-login-intro {
+  margin: 10px 0 24px;
+  color: #745b68;
+  font-size: 0.96rem;
+  line-height: 1.6;
+  text-align: left;
+}
+
+.admin-login-form {
+  display: grid;
+  gap: 10px;
+}
+
+.admin-login-field {
+  display: grid;
+  gap: 8px;
+}
+
+.admin-login-field label {
+  margin-top: 8px;
+  color: #503a45;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.admin-login-field input {
+  width: 100%;
+  min-height: 48px;
+  padding: 0 14px;
+  border: 1px solid rgba(147, 20, 81, 0.18);
+  border-radius: 13px;
+  background: #ffffff;
+  color: #34242c;
+  font: inherit;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.admin-login-field input::placeholder {
+  color: #aa929e;
+}
+
+.admin-login-field input:hover {
+  border-color: rgba(224, 13, 146, 0.34);
+}
+
+.admin-login-field input:focus {
+  border-color: #e00d92;
+  box-shadow: 0 0 0 4px rgba(224, 13, 146, 0.09);
+}
+
+.admin-login-options {
+  display: flex;
+  justify-content: flex-end;
+  min-height: 22px;
+  margin-top: 2px;
+}
+
+.admin-login-options .forgot-password-link {
+  margin: 0;
+  color: #931451;
+  font-size: 0.88rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.admin-login-options .forgot-password-link:hover,
+.admin-login-options .forgot-password-link:focus-visible {
+  color: #e00d92;
+  text-decoration: underline;
+}
+
+.admin-login-message {
+  min-height: 24px;
+  margin-top: 6px;
+  color: #745b68;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.admin-login-message.success {
+  color: #157347;
+}
+
+.admin-login-message.error {
+  color: #b4234a;
+}
+
+.admin-login-card .admin-login-button {
+  width: 100%;
+  min-height: 49px;
+  margin-top: 4px;
+  border: 0;
+  border-radius: 13px;
+  background: #e00d92;
+  color: #ffffff;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: none;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.admin-login-card .admin-login-button:hover {
+  background: #c90b82;
+  transform: translateY(-1px);
+}
+
+.admin-login-card .admin-login-button:active {
+  transform: translateY(0);
+}
+
+.admin-login-card .admin-login-button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+  transform: none;
+}
+
+.admin-login-card .admin-login-signup-link {
+  margin: 22px 0 0;
+  padding-top: 18px;
+  border-top: 1px solid rgba(147, 20, 81, 0.1);
+  color: #745b68;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.admin-login-card .admin-login-signup-link a {
+  color: #931451;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.admin-login-card .admin-login-signup-link a:hover,
+.admin-login-card .admin-login-signup-link a:focus-visible {
+  color: #e00d92;
+  text-decoration: underline;
+}
+
+.admin-login-card .admin-login-back {
+  display: inline-block;
+  margin-top: 22px;
+  color: #931451;
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.admin-login-card .admin-login-back:hover,
+.admin-login-card .admin-login-back:focus-visible {
+  color: #e00d92;
+  text-decoration: underline;
+}
+
+@media (max-width: 540px) {
+  .admin-login-screen {
+    place-items: start center;
+    padding: 22px 14px;
+  }
+
+  .admin-login-card {
+    margin-top: 20px;
+    padding: 28px 22px;
+    border-radius: 22px;
+  }
+
+  .admin-login-brand img,
+  .admin-login-card .login-logo {
+    max-width: 155px;
+    max-height: 64px;
+  }
+
+  .admin-login-card h1 {
+    font-size: 1.75rem;
+  }
+
+  .admin-login-card .admin-login-intro {
+    font-size: 0.9rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-login-card {
+    animation: none;
+  }
+
+  .admin-login-card .admin-login-button {
+    transition: none;
+  }
+}

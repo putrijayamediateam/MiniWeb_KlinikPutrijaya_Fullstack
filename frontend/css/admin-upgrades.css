@@ -1,0 +1,857 @@
+/* Load this file after your existing admin CSS. */
+
+.admin-upgrade-toolbar {
+  display: flex;
+  align-items: end;
+  gap: 14px;
+  margin: 18px 0;
+  padding: 16px;
+  border: 1px solid rgba(147, 20, 81, .12);
+  border-radius: 16px;
+  background: #fffafd;
+}
+
+.admin-upgrade-toolbar label {
+  display: grid;
+  gap: 6px;
+  min-width: 170px;
+}
+
+.admin-upgrade-toolbar label.grow {
+  flex: 1;
+}
+
+.admin-upgrade-toolbar span {
+  color: #6f5663;
+  font-size: .78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.admin-upgrade-toolbar input,
+.admin-upgrade-toolbar select {
+  width: 100%;
+  min-height: 42px;
+  padding: 0 12px;
+  border: 1px solid rgba(147,20,81,.16);
+  border-radius: 11px;
+  background: #fff;
+  font: inherit;
+}
+
+/* =========================================================
+   CONSISTENT BOOKING + FEEDBACK FILTERS
+   ========================================================= */
+
+.feedback-toolbar {
+  margin: 18px 0;
+}
+
+.feedback-toolbar .booking-search-wrap {
+  flex: 1;
+  min-width: 240px;
+}
+
+.feedback-toolbar select {
+  min-width: 180px;
+}
+
+/* =========================================================
+   STATIC PAGINATION FOR BOOKINGS + FEEDBACK
+   ========================================================= */
+
+.booking-table-footer {
+  width: 100%;
+  min-height: 44px;
+  margin-top: 8px;
+  padding: 8px 10px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+
+  border: 1px solid rgba(147, 20, 81, 0.12);
+  border-radius: 10px;
+  background: #fffafd;
+
+  box-sizing: border-box;
+}
+
+.booking-showing-info {
+  min-width: 112px;
+  min-height: 28px;
+  padding: 5px 9px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid rgba(147, 20, 81, 0.12);
+  border-radius: 999px;
+  background: #ffffff;
+  color: #765c69;
+
+  font-family: "Inter", sans-serif;
+  font-size: 0.67rem;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.pager-actions {
+  display: grid;
+  grid-template-columns: 64px 90px 64px;
+  align-items: center;
+  gap: 6px;
+}
+
+.pager-actions button {
+  width: 64px;
+  min-height: 28px;
+  padding: 4px 7px;
+
+  border: 1px solid rgba(147, 20, 81, 0.18);
+  border-radius: 999px;
+  background: #ffffff;
+  color: #931451;
+
+  font-family: "Inter", sans-serif;
+  font-size: 0.66rem;
+  font-weight: 700;
+  line-height: 1;
+
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.pager-page-info {
+  width: 90px;
+  min-width: 90px;
+  height: 28px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid rgba(147, 20, 81, 0.12);
+  border-radius: 999px;
+  background: #ffffff;
+  color: #765c69;
+
+  font-family: "Inter", sans-serif;
+  font-size: 0.66rem;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.pager-actions button:hover:not(:disabled) {
+  border-color: #e00d92;
+  background: #fff0f7;
+  color: #e00d92;
+  transform: translateY(-1px);
+}
+
+.pager-actions button:disabled {
+  opacity: 0.38;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.cell-subtext,
+.notification-mini {
+  margin-top: 4px;
+  color: #8a7280;
+  font-size: .76rem;
+  line-height: 1.35;
+}
+
+.notification-mini {
+  max-width: 220px;
+}
+
+.doctor-admin-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.doctor-admin-cell img,
+.doctor-admin-placeholder {
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.doctor-admin-placeholder {
+  display: grid;
+  place-items: center;
+  background: #ffe3ef;
+  color: #e00d92;
+  font-size: .72rem;
+  font-weight: 900;
+}
+
+.table-action-stack,
+.booking-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.admin-form-grid {
+  display: grid;
+  gap: 14px;
+}
+
+.admin-form-grid.two-column {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.admin-form-grid.three-column {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+#modalForm label,
+.admin-upload-field {
+  display: grid;
+  gap: 7px;
+  margin-bottom: 14px;
+}
+
+#modalForm label > span,
+.admin-upload-field > label {
+  color: #503a45;
+  font-size: .86rem;
+  font-weight: 800;
+}
+
+#modalForm input,
+#modalForm select,
+#modalForm textarea {
+  width: 100%;
+  padding: 11px 12px;
+  border: 1px solid rgba(147,20,81,.18);
+  border-radius: 11px;
+  background: #fff;
+  color: #34242c;
+  font: inherit;
+  outline: none;
+}
+
+#modalForm input:focus,
+#modalForm select:focus,
+#modalForm textarea:focus {
+  border-color: #e00d92;
+  box-shadow: 0 0 0 4px rgba(224,13,146,.08);
+}
+
+.upload-help {
+  color: #806a75;
+  font-size: .78rem;
+}
+
+.admin-image-preview {
+  display: block;
+  margin-top: 8px;
+  border: 1px solid rgba(147,20,81,.13);
+  border-radius: 14px;
+  background: #fffafd;
+  object-fit: cover;
+}
+
+.admin-image-preview.portrait {
+  width: 150px;
+  height: 190px;
+}
+
+.admin-image-preview.landscape {
+  width: min(100%, 420px);
+  aspect-ratio: 16 / 10;
+}
+
+.admin-image-preview.hidden {
+  display: none;
+}
+
+body.admin-modal-open {
+  overflow: hidden;
+}
+
+#modalBackdrop:not(.hidden) {
+  overflow-y: auto;
+  padding: 24px 14px;
+}
+
+#modalBackdrop .modal {
+  width: min(900px, 96vw);
+  max-height: none;
+}
+
+.manager-list {
+  display: grid;
+  gap: 10px;
+}
+
+.manager-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 14px;
+  border: 1px solid rgba(147,20,81,.12);
+  border-radius: 14px;
+  background: #fffafd;
+}
+
+.manager-row p {
+  margin: 4px 0;
+  color: #755b68;
+  font-size: .84rem;
+}
+
+.manager-row small {
+  color: #8b7580;
+}
+
+.manager-row-end {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.manager-row-end > strong {
+  color: #e00d92;
+}
+
+.manager-row-end del {
+  color: #937e88;
+}
+
+.manager-empty {
+  padding: 26px;
+  border: 1px dashed rgba(147,20,81,.18);
+  border-radius: 14px;
+  color: #7a6570;
+  text-align: center;
+}
+
+.modal-divider {
+  margin: 24px 0;
+  border: 0;
+  border-top: 1px solid rgba(147,20,81,.12);
+}
+
+.gallery-manager-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.gallery-manager-card {
+  overflow: hidden;
+  border: 1px solid rgba(147,20,81,.12);
+  border-radius: 14px;
+  background: #fffafd;
+}
+
+.gallery-manager-card img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  display: block;
+  object-fit: cover;
+}
+
+.gallery-manager-card > div {
+  display: grid;
+  gap: 7px;
+  padding: 11px;
+}
+
+.gallery-manager-card small {
+  color: #846d79;
+}
+
+/* =========================================================
+   KLINIK PUTRIJAYA ADMIN LOGIN
+   Same visual style as Forgot Password page
+   ========================================================= */
+
+.admin-login-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  overflow-y: auto;
+  padding: 32px 18px;
+
+  background:
+    radial-gradient(
+      circle at 10% 10%,
+      rgba(255, 255, 255, 0.96),
+      transparent 32%
+    ),
+    linear-gradient(
+      145deg,
+      #ffd6e9,
+      #fff8fb 58%,
+      #ffadd4
+    );
+}
+
+.admin-login-screen.hidden {
+  display: none !important;
+}
+
+.admin-login-card {
+  width: min(460px, 100%);
+  padding: 36px;
+  border: 1px solid rgba(147, 20, 81, 0.13);
+  border-radius: 26px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow:
+    0 30px 80px rgba(74, 31, 52, 0.16),
+    0 8px 24px rgba(147, 20, 81, 0.06);
+
+  animation: adminLoginCardEnter 0.45s ease both;
+}
+
+@keyframes adminLoginCardEnter {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.985);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.admin-login-brand {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.admin-login-brand img {
+  display: block;
+  max-width: 180px;
+  max-height: 72px;
+  object-fit: contain;
+}
+
+.admin-login-kicker {
+  margin: 24px 0 8px;
+  color: #e00d92;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.admin-login-card h1 {
+  margin: 0;
+  color: #34242c;
+  font-size: clamp(1.75rem, 5vw, 2rem);
+  line-height: 1.15;
+}
+
+.admin-login-intro {
+  margin: 10px 0 24px;
+  color: #745b68;
+  font-size: 0.96rem;
+  line-height: 1.65;
+}
+
+.admin-login-form {
+  display: grid;
+  gap: 15px;
+}
+
+.admin-login-field {
+  display: grid;
+  gap: 8px;
+}
+
+.admin-login-field label {
+  color: #503a45;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.admin-login-field input {
+  width: 100%;
+  min-height: 50px;
+  padding: 0 15px;
+  border: 1px solid rgba(147, 20, 81, 0.18);
+  border-radius: 13px;
+  background: #ffffff;
+  color: #34242c;
+  font: inherit;
+  outline: none;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.admin-login-field input::placeholder {
+  color: #aa929e;
+}
+
+.admin-login-field input:hover {
+  border-color: rgba(224, 13, 146, 0.34);
+}
+
+.admin-login-field input:focus {
+  border-color: #e00d92;
+  box-shadow: 0 0 0 4px rgba(224, 13, 146, 0.09);
+}
+
+.admin-login-options {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-height: 22px;
+  margin-top: -3px;
+}
+
+.admin-login-options .forgot-password-link {
+  margin: 0;
+  color: #931451;
+  font-size: 0.88rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition:
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.admin-login-options .forgot-password-link:hover {
+  color: #e00d92;
+  text-decoration: underline;
+}
+
+.admin-login-button {
+  width: 100%;
+  min-height: 50px;
+  margin-top: 2px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 13px;
+  background: #e00d92;
+  color: #ffffff;
+  font: inherit;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  box-shadow: 0 12px 25px rgba(224, 13, 146, 0.2);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+}
+
+.admin-login-button:hover {
+  background: #c90b82;
+  transform: translateY(-1px);
+  box-shadow: 0 15px 30px rgba(224, 13, 146, 0.25);
+}
+
+.admin-login-button:active {
+  transform: translateY(0);
+}
+
+.admin-login-button:disabled {
+  opacity: 0.62;
+  cursor: wait;
+  transform: none;
+  box-shadow: none;
+}
+
+.admin-login-message {
+  min-height: 24px;
+  color: #745b68;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.admin-login-message.success {
+  color: #157347;
+}
+
+.admin-login-message.error {
+  color: #b4234a;
+}
+
+.admin-login-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  margin-top: 24px;
+  padding-top: 18px;
+  border-top: 1px solid rgba(147, 20, 81, 0.1);
+  color: #927985;
+  font-size: 0.78rem;
+  text-align: center;
+}
+
+.admin-login-footer::before {
+  content: "🔒";
+  font-size: 0.76rem;
+}
+
+/* =========================================================
+   HEADER ADMIN ACTION BUTTONS
+   Rounded, compact and modern pill design
+   ========================================================= */
+
+.admin-action-buttons {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  width: auto;
+}
+
+.admin-action-buttons .logout-btn {
+  width: 135px;
+  min-height: 34px;
+  padding: 7px 13px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 999px;
+  font-family: "Inter", sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1;
+  text-align: center;
+  text-decoration: none;
+
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
+}
+
+/* Logout */
+#logoutBtn {
+  border: 1px solid #f3a8ca;
+  background: #ffffff;
+  color: #7d1044;
+  box-shadow: 0 4px 10px rgba(147, 20, 81, 0.15);
+}
+
+#logoutBtn:hover {
+  background: #ffd7e9;
+  border-color: #931451;
+  transform: translateY(-1px);
+}
+
+/* Admin Approvals */
+.admin-approvals-btn {
+  border: 1px solid #f3a8ca;
+  background: #fff0f7;
+  color: #931451;
+  box-shadow: 0 4px 10px rgba(224, 13, 146, 0.08);
+}
+
+.admin-approvals-btn:hover {
+  background: #ffd7e9;
+  border-color: #931451;
+  color: #931451;
+  transform: translateY(-1px);
+}
+
+.admin-action-buttons .logout-btn:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+.admin-action-buttons .logout-btn:focus-visible {
+  outline: 2px solid rgba(224, 13, 146, 0.25);
+  outline-offset: 2px;
+}
+
+/* =========================================================
+   WhatsApp round icon button — Admin booking table
+   ========================================================= */
+
+.booking-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: nowrap;
+}
+
+.booking-whatsapp-btn {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  flex: 0 0 32px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+  border: 1px solid #20bd5a;
+  border-radius: 50%;
+
+  background: #25d366;
+  color: #ffffff;
+  text-decoration: none;
+
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(37, 211, 102, 0.2);
+
+  transition:
+    transform 0.18s ease,
+    background 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.booking-whatsapp-btn svg {
+  width: 22px;
+  height: 22px;
+  display: block;
+  fill: currentColor;
+}
+
+.booking-whatsapp-btn:hover {
+  background: #1fbd59;
+  color: #ffffff;
+  transform: translateY(-2px) scale(1.04);
+  box-shadow: 0 7px 15px rgba(37, 211, 102, 0.28);
+}
+
+.booking-whatsapp-btn:focus-visible {
+  outline: 3px solid rgba(37, 211, 102, 0.3);
+  outline-offset: 3px;
+}
+
+.booking-whatsapp-btn.is-disabled {
+  background: #d4d4d4;
+  border-color: #c3c3c3;
+  color: #ffffff;
+  cursor: not-allowed;
+  box-shadow: none;
+  opacity: 0.7;
+}
+
+.booking-whatsapp-btn.is-disabled:hover {
+  transform: none;
+  background: #d4d4d4;
+  box-shadow: none;
+}
+
+@media (max-width: 700px) {
+  .admin-action-buttons {
+    align-items: flex-end;
+    width: auto;
+  }
+
+  .admin-action-buttons .logout-btn {
+    width: 125px;
+    min-height: 32px;
+    font-size: 0.74rem;
+  }
+}
+
+@media (max-width: 540px) {
+  .admin-login-screen {
+    align-items: start;
+    padding: 22px 14px;
+  }
+
+  .admin-login-card {
+    margin-top: 20px;
+    padding: 28px 22px;
+    border-radius: 22px;
+  }
+
+  .admin-login-brand img {
+    max-width: 155px;
+    max-height: 64px;
+  }
+
+  .admin-login-intro {
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 760px) {
+  .admin-upgrade-toolbar,
+  .manager-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .admin-form-grid.two-column,
+  .admin-form-grid.three-column,
+  .gallery-manager-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pager-actions {
+    justify-content: space-between;
+  }
+}
+
+.forgot-password-link {
+  display: inline-block;
+  margin-top: 12px;
+  color: #931451;
+  font-size: .9rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+
+@media (max-width: 600px) {
+  .feedback-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .feedback-toolbar .booking-search-wrap,
+  .feedback-toolbar select {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .booking-table-footer {
+    flex-direction: column;
+    justify-content: center;
+  }
+}
+
+
+/* AUTH LINKS RESTORED */
+.admin-login-signup-link {
+  margin-top: 18px;
+}
+
+.admin-approvals-btn.hidden {
+  display: none !important;
+}

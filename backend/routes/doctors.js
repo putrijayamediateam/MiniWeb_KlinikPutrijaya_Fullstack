@@ -1,108 +1,169 @@
+'use strict';
+
 const express = require('express');
-const pool = require('../db');
+const db = require('../db');
 const { requireAdmin } = require('../middleware/auth');
 
 const router = express.Router();
 
-// GET /api/doctors?branch=cheras&q=fatin
-// Public: dynamic content for the "Resident Doctors" section + search/filter feature.
+function toActive(value, fallback = 1) {
+  if (value === undefined || value === null || value === '') return fallback;
+  return Number(value) === 1 ? 1 : 0;
+}
+
 router.get('/', async (req, res) => {
   try {
-    const { branch, q } = req.query;
-    let sql = `
-      SELECT d.*, b.name AS branch_name, b.slug AS branch_slug
-      FROM doctors d
-      JOIN branches b ON b.id = d.branch_id
-      WHERE d.is_active = 1
-    `;
+    const conditions = ['d.is_active = 1'];
     const params = [];
 
-    if (branch) {
-      sql += ' AND b.slug = ?';
-      params.push(branch);
+    if (req.query.q) {
+      conditions.push('(d.name LIKE ? OR d.qualification LIKE ? OR d.reg_no LIKE ?)');
+      const search = `%${String(req.query.q).trim()}%`;
+      params.push(search, search, search);
     }
-    if (q) {
-      sql += ' AND d.name LIKE ?';
-      params.push(`%${q}%`);
+
+    if (req.query.branch) {
+      const branch = String(req.query.branch).trim();
+      if (/^\d+$/.test(branch)) {
+        conditions.push('d.branch_id = ?');
+        params.push(Number(branch));
+      } else {
+        conditions.push('b.name = ?');
+        params.push(branch);
+      }
     }
-    sql += ' ORDER BY b.name, d.name';
 
-    const [rows] = await pool.query(sql, params);
-    res.json(rows);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Failed to fetch doctors.' });
-  }
-});
-
-// ---- Admin CRUD (protected) ----
-
-// POST /api/doctors
-router.post('/', requireAdmin, async (req, res) => {
-  try {
-    const { branch_id, name, qualification, reg_no, photo_url } = req.body;
-    if (!branch_id || !name || !qualification || !reg_no) {
-      return res.status(400).json({ error: 'branch_id, name, qualification and reg_no are required.' });
-    }
-    const [result] = await pool.query(
-      'INSERT INTO doctors (branch_id, name, qualification, reg_no, photo_url) VALUES (?, ?, ?, ?, ?)',
-      [branch_id, name, qualification, reg_no, photo_url || null]
+    const [rows] = await db.query(
+      `SELECT
+         d.id,
+         d.branch_id,
+         b.name AS branch_name,
+         d.name,
+         d.qualification,
+         d.reg_no,
+         d.photo_url,
+         d.is_active
+       FROM doctors d
+       INNER JOIN branches b ON b.id = d.branch_id
+       WHERE ${conditions.join(' AND ')}
+       ORDER BY b.id, d.name`,
+      params
     );
-    res.status(201).json({ id: result.insertId });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Failed to create doctor.' });
+
+    return res.json(rows);
+  } catch (error) {
+    console.error('Public doctors error:', error);
+    return res.status(500).json({ message: 'Unable to load doctors.' });
   }
 });
 
 router.get('/admin/all', requireAdmin, async (req, res) => {
   try {
-    const [rows] = await pool.query(`
-      SELECT 
-        d.*,
-        b.name AS branch_name
-      FROM doctors d
-      LEFT JOIN branches b ON d.branch_id = b.id
-      ORDER BY b.id ASC, d.name ASC
-    `);
-
-    res.json(rows);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Failed to load admin doctors.' });
+    const [rows] = await db.query(
+      `SELECT
+         d.id,
+         d.branch_id,
+         b.name AS branch_name,
+         d.name,
+         d.qualification,
+         d.reg_no,
+         d.photo_url,
+         d.is_active
+       FROM doctors d
+       INNER JOIN branches b ON b.id = d.branch_id
+       ORDER BY b.id, d.name`
+    );
+    return res.json(rows);
+  } catch (error) {
+    console.error('Admin doctors error:', error);
+    return res.status(500).json({ message: 'Unable to load doctors.' });
   }
 });
 
-// PUT /api/doctors/:id
+router.post('/', requireAdmin, async (req, res) => {
+  try {
+    const branchId = Number(req.body.branch_id);
+    const name = String(req.body.name || '').trim();
+    const qualification = String(req.body.qualification || '').trim();
+    const regNo = String(req.body.reg_no || '').trim();
+    const photoUrl = String(req.body.photo_url || '').trim() || null;
+    const isActive = toActive(req.body.is_active, 1);
+
+    if (!branchId || !name || !qualification || !regNo) {
+      return res.status(400).json({
+        message: 'Branch, name, qualification and registration number are required.',
+      });
+    }
+
+    const [result] = await db.query(
+      `INSERT INTO doctors
+       (branch_id, name, qualification, reg_no, photo_url, is_active)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [branchId, name, qualification, regNo, photoUrl, isActive]
+    );
+
+    return res.status(201).json({
+      message: 'Doctor created successfully.',
+      id: result.insertId,
+    });
+  } catch (error) {
+    console.error('Create doctor error:', error);
+    return res.status(500).json({ message: 'Unable to create doctor.' });
+  }
+});
+
 router.put('/:id', requireAdmin, async (req, res) => {
   try {
-    const { branch_id, name, qualification, reg_no, photo_url, is_active } = req.body;
-    await pool.query(
-      `UPDATE doctors SET
-        branch_id = COALESCE(?, branch_id),
-        name = COALESCE(?, name),
-        qualification = COALESCE(?, qualification),
-        reg_no = COALESCE(?, reg_no),
-        photo_url = COALESCE(?, photo_url),
-        is_active = COALESCE(?, is_active)
-      WHERE id = ?`,
-      [branch_id, name, qualification, reg_no, photo_url, is_active, req.params.id]
+    const id = Number(req.params.id);
+    const branchId = Number(req.body.branch_id);
+    const name = String(req.body.name || '').trim();
+    const qualification = String(req.body.qualification || '').trim();
+    const regNo = String(req.body.reg_no || '').trim();
+    const photoUrl = String(req.body.photo_url || '').trim() || null;
+    const isActive = toActive(req.body.is_active, 1);
+
+    if (!id || !branchId || !name || !qualification || !regNo) {
+      return res.status(400).json({ message: 'Invalid doctor information.' });
+    }
+
+    const [result] = await db.query(
+      `UPDATE doctors
+       SET branch_id = ?, name = ?, qualification = ?, reg_no = ?, photo_url = ?, is_active = ?
+       WHERE id = ?`,
+      [branchId, name, qualification, regNo, photoUrl, isActive, id]
     );
-    res.json({ message: 'Doctor updated.' });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Failed to update doctor.' });
+
+    if (!result.affectedRows) {
+      return res.status(404).json({ message: 'Doctor not found.' });
+    }
+
+    return res.json({ message: 'Doctor updated successfully.' });
+  } catch (error) {
+    console.error('Update doctor error:', error);
+    return res.status(500).json({ message: 'Unable to update doctor.' });
   }
 });
 
-// DELETE /api/doctors/:id
 router.delete('/:id', requireAdmin, async (req, res) => {
   try {
-    await pool.query('DELETE FROM doctors WHERE id = ?', [req.params.id]);
-    res.json({ message: 'Doctor deleted.' });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Failed to delete doctor.' });
+    const id = Number(req.params.id);
+    const [result] = await db.query('DELETE FROM doctors WHERE id = ?', [id]);
+
+    if (!result.affectedRows) {
+      return res.status(404).json({ message: 'Doctor not found.' });
+    }
+
+    return res.json({ message: 'Doctor deleted successfully.' });
+  } catch (error) {
+    console.error('Delete doctor error:', error);
+
+    if (error.code === 'ER_ROW_IS_REFERENCED_2') {
+      return res.status(409).json({
+        message: 'This doctor is linked to bookings. Set the doctor as inactive instead of deleting.',
+      });
+    }
+
+    return res.status(500).json({ message: 'Unable to delete doctor.' });
   }
 });
 

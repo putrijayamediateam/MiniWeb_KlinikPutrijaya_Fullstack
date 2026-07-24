@@ -10,6 +10,9 @@ let authedApi = null;
 let branchesCache = [];
 let bookingsCache = [];
 
+let bookingCurrentPage = 1;
+const bookingPageSize = 10;
+
 // ------------------------------------------------------------
 // Auth / bootstrap
 // ------------------------------------------------------------
@@ -26,10 +29,41 @@ document.addEventListener('DOMContentLoaded', () => {
     btn.addEventListener('click', () => switchTab(btn.dataset.tab));
   });
 
-  document.getElementById('bookingStatusFilter')?.addEventListener('change', renderBookingsFromCache);
-document.getElementById('bookingBranchFilter')?.addEventListener('change', renderBookingsFromCache);
-document.getElementById('bookingSearchInput')?.addEventListener('input', renderBookingsFromCache);
-document.getElementById('exportBookingsBtn')?.addEventListener('click', exportFilteredBookingsToCSV);
+  document
+  .getElementById('bookingStatusFilter')
+  ?.addEventListener('change', resetBookingPagination);
+
+document
+  .getElementById('bookingBranchFilter')
+  ?.addEventListener('change', resetBookingPagination);
+
+document
+  .getElementById('bookingSearchInput')
+  ?.addEventListener('input', resetBookingPagination);
+
+document
+  .getElementById('exportBookingsBtn')
+  ?.addEventListener('click', exportFilteredBookingsToCSV);
+
+document
+  .getElementById('bookingPreviousBtn')
+  ?.addEventListener('click', () => {
+    if (bookingCurrentPage <= 1) return;
+
+    bookingCurrentPage -= 1;
+    renderBookingsFromCache();
+  });
+
+document
+  .getElementById('bookingNextBtn')
+  ?.addEventListener('click', () => {
+    const totalPages = getBookingTotalPages();
+
+    if (bookingCurrentPage >= totalPages) return;
+
+    bookingCurrentPage += 1;
+    renderBookingsFromCache();
+  });
   document.getElementById('addDoctorBtn').addEventListener('click', () => openDoctorModal());
   document.getElementById('addServiceBtn').addEventListener('click', () => openServiceModal());
   document.getElementById('addPromotionBtn').addEventListener('click', () => openPromotionModal());
@@ -162,42 +196,6 @@ function populateBookingBranchFilter() {
       .join('');
 }
 
-function normalizeMalaysiaPhone(phone) {
-  if (!phone) return null;
-
-  let digits = String(phone).replace(/\D/g, '');
-
-  // 0139887151 -> 60139887151
-  if (digits.startsWith('0')) {
-    digits = '6' + digits;
-  }
-
-  // 139887151 -> 60139887151
-  if (digits.startsWith('1')) {
-    digits = '60' + digits;
-  }
-
-  // 60139887151 stays same
-  if (!digits.startsWith('60')) {
-    return null;
-  }
-
-  return digits;
-}
-
-function buildWhatsappLink(booking) {
-  const phone = normalizeMalaysiaPhone(booking.phone);
-  if (!phone) return null;
-
-  const date = booking.preferred_date
-    ? new Date(booking.preferred_date).toLocaleDateString()
-    : '';
-
-  const message = `Assalamualaikum / Hi ${booking.patient_name}, kami dari Klinik Putrijaya. Kami ingin mengesahkan permohonan appointment anda di ${booking.branch_name} pada ${date} jam ${booking.preferred_time}. Boleh kami bantu confirmkan slot anda?`;
-
-  return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
-}
-
 function handleAuthError(err) {
   if (String(err.message).toLowerCase().includes('token')) {
     alert('Your session has expired. Please log in again.');
@@ -218,8 +216,10 @@ async function loadBookings() {
   try {
     bookingsCache = await authedApi.getBookings();
 
-    renderBookingSummary(bookingsCache);
-    renderBookingsFromCache();
+bookingCurrentPage = 1;
+
+renderBookingSummary(bookingsCache);
+renderBookingsFromCache();
 
   } catch (err) {
     if (!handleAuthError(err)) {
@@ -259,6 +259,45 @@ function getFilteredBookings() {
   });
 }
 
+function resetBookingPagination() {
+  bookingCurrentPage = 1;
+  renderBookingsFromCache();
+}
+
+function getBookingTotalPages() {
+  const totalItems = getFilteredBookings().length;
+
+  return Math.max(
+    1,
+    Math.ceil(totalItems / bookingPageSize)
+  );
+}
+
+function updateBookingPager(totalItems) {
+  const pageInfo = document.getElementById('bookingPageInfo');
+  const previousBtn = document.getElementById('bookingPreviousBtn');
+  const nextBtn = document.getElementById('bookingNextBtn');
+
+  if (!pageInfo || !previousBtn || !nextBtn) {
+    return;
+  }
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(totalItems / bookingPageSize)
+  );
+
+  if (bookingCurrentPage > totalPages) {
+    bookingCurrentPage = totalPages;
+  }
+
+  pageInfo.textContent =
+    `Page ${bookingCurrentPage} of ${totalPages}`;
+
+  previousBtn.disabled = bookingCurrentPage <= 1;
+  nextBtn.disabled = bookingCurrentPage >= totalPages;
+}
+
 function renderBookingSummary(bookings) {
   const total = bookings.length;
   const pending = bookings.filter((b) => b.status === 'pending').length;
@@ -275,10 +314,37 @@ function renderBookingSummary(bookings) {
 
 function renderBookingsFromCache() {
   const tbody = document.getElementById('bookingsTableBody');
-  const bookings = getFilteredBookings();
+  const filteredBookings = getFilteredBookings();
 
-  if (!bookings.length) {
-    tbody.innerHTML = '<tr><td colspan="11" class="empty-row">No bookings found.</td></tr>';
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredBookings.length / bookingPageSize)
+  );
+
+  if (bookingCurrentPage > totalPages) {
+    bookingCurrentPage = totalPages;
+  }
+
+  const startIndex =
+    (bookingCurrentPage - 1) * bookingPageSize;
+
+  const endIndex =
+    startIndex + bookingPageSize;
+
+  const bookings =
+    filteredBookings.slice(startIndex, endIndex);
+
+  updateBookingPager(filteredBookings.length);
+
+  if (!filteredBookings.length) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="11" class="empty-row">
+          No bookings found.
+        </td>
+      </tr>
+    `;
+
     return;
   }
 
@@ -290,7 +356,9 @@ function renderBookingsFromCache() {
     return `
       <tr data-id="${bk.id}">
         <td>
-          <span class="booking-ref">${formatBookingRef(bk.id)}</span>
+          <span class="booking-ref">
+            ${formatBookingRef(bk.id)}
+          </span>
         </td>
 
         <td>${escapeHtml(bk.patient_name)}</td>
@@ -302,20 +370,56 @@ function renderBookingsFromCache() {
         <td>${escapeHtml(bk.preferred_time)}</td>
 
         <td class="reason-col">
-          <div class="reason-text">${escapeHtml(reasonText)}</div>
+          <div class="reason-text">
+            ${escapeHtml(reasonText)}
+          </div>
+
           ${
             shouldShowToggle
-              ? `<button class="reason-toggle" type="button">Read more</button>`
+              ? `
+                <button
+                  class="reason-toggle"
+                  type="button"
+                >
+                  Read more
+                </button>
+              `
               : ''
           }
         </td>
 
         <td>
-          <select class="status-select status-${bk.status}" data-id="${bk.id}">
-            <option value="pending" ${bk.status === 'pending' ? 'selected' : ''}>Pending Review</option>
-            <option value="confirmed" ${bk.status === 'confirmed' ? 'selected' : ''}>Confirmed</option>
-            <option value="completed" ${bk.status === 'completed' ? 'selected' : ''}>Completed</option>
-            <option value="cancelled" ${bk.status === 'cancelled' ? 'selected' : ''}>Cancelled</option>
+          <select
+            class="status-select status-${bk.status}"
+            data-id="${bk.id}"
+          >
+            <option
+              value="pending"
+              ${bk.status === 'pending' ? 'selected' : ''}
+            >
+              Pending Review
+            </option>
+
+            <option
+              value="confirmed"
+              ${bk.status === 'confirmed' ? 'selected' : ''}
+            >
+              Confirmed
+            </option>
+
+            <option
+              value="completed"
+              ${bk.status === 'completed' ? 'selected' : ''}
+            >
+              Completed
+            </option>
+
+            <option
+              value="cancelled"
+              ${bk.status === 'cancelled' ? 'selected' : ''}
+            >
+              Cancelled
+            </option>
           </select>
         </td>
 
@@ -332,15 +436,30 @@ function renderBookingsFromCache() {
                     title="WhatsApp patient"
                     aria-label="WhatsApp patient"
                   >
-                    <svg viewBox="0 0 32 32" aria-hidden="true">
+                    <svg
+                      viewBox="0 0 32 32"
+                      aria-hidden="true"
+                    >
                       <path d="M16.02 3C8.85 3 3.02 8.83 3.02 16c0 2.29.6 4.53 1.73 6.5L3 29l6.67-1.7A12.9 12.9 0 0 0 16.02 29c7.17 0 13-5.83 13-13s-5.83-13-13-13Zm0 23.7c-2.02 0-3.99-.57-5.69-1.66l-.41-.26-3.95 1.01 1.05-3.84-.28-.43A10.67 10.67 0 0 1 5.32 16c0-5.9 4.8-10.7 10.7-10.7s10.7 4.8 10.7 10.7-4.8 10.7-10.7 10.7Zm5.87-8.01c-.32-.16-1.89-.93-2.18-1.04-.29-.11-.5-.16-.71.16-.21.32-.82 1.04-1.01 1.25-.19.21-.37.24-.69.08-.32-.16-1.35-.5-2.57-1.59-.95-.85-1.59-1.89-1.78-2.21-.19-.32-.02-.49.14-.65.15-.15.32-.37.48-.56.16-.19.21-.32.32-.53.11-.21.05-.4-.03-.56-.08-.16-.71-1.71-.97-2.34-.26-.61-.52-.53-.71-.54h-.61c-.21 0-.56.08-.85.4-.29.32-1.12 1.09-1.12 2.66s1.15 3.09 1.31 3.3c.16.21 2.26 3.45 5.47 4.84.76.33 1.36.53 1.82.68.77.24 1.46.21 2.01.13.61-.09 1.89-.77 2.16-1.52.27-.75.27-1.39.19-1.52-.08-.13-.29-.21-.61-.37Z"/>
                     </svg>
                   </a>
                 `
-                : `<span class="whatsapp-icon-btn disabled" title="Invalid phone number">-</span>`
+                : `
+                  <span
+                    class="whatsapp-icon-btn disabled"
+                    title="Invalid phone number"
+                  >
+                    -
+                  </span>
+                `
             }
 
-            <button class="btn-small danger" data-action="delete-booking" data-id="${bk.id}">
+            <button
+              class="btn-small danger"
+              type="button"
+              data-action="delete-booking"
+              data-id="${bk.id}"
+            >
               Delete
             </button>
           </div>
@@ -365,7 +484,8 @@ function attachBookingRowEvents() {
 
         sel.className = `status-select status-${sel.value}`;
 
-        renderBookingSummary(bookingsCache);
+renderBookingSummary(bookingsCache);
+renderBookingsFromCache();
       } catch (err) {
         if (!handleAuthError(err)) alert('Failed to update status: ' + err.message);
         loadBookings();

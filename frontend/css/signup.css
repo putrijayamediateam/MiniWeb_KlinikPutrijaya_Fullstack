@@ -1,0 +1,80 @@
+.auth-note {
+  margin: -10px 0 18px;
+  padding: 12px 14px;
+  border: 1px solid rgba(224, 13, 146, 0.12);
+  border-radius: 12px;
+  background: #fff8fb;
+  color: #745b68;
+  font-size: 0.88rem;
+  line-height: 1.55;
+}
+
+.password-help {
+  margin: -2px 0 0;
+  color: #927985;
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 20px 0;
+  color: #9a8490;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: "";
+  height: 1px;
+  flex: 1;
+  background: rgba(147, 20, 81, 0.13);
+}
+
+.google-button-shell {
+  min-height: 44px;
+  display: flex;
+  justify-content: center;
+}
+
+.google-unavailable {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px dashed rgba(147, 20, 81, 0.25);
+  border-radius: 12px;
+  color: #927985;
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+.auth-switch {
+  margin: 22px 0 0;
+  padding-top: 18px;
+  border-top: 1px solid rgba(147, 20, 81, 0.1);
+  color: #745b68;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.auth-switch a {
+  color: #931451;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.auth-switch a:hover {
+  color: #e00d92;
+  text-decoration: underline;
+}
+
+.auth-card button.secondary-link-button {
+  margin-top: 0;
+  background: transparent;
+  color: #931451;
+  box-shadow: none;
+}

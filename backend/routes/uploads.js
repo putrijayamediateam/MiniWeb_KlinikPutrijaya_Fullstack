@@ -1,77 +1,91 @@
-// ============================================================
-// Klinik Putrijaya - Image Upload Route
-// Saves uploaded images into frontend/images
-// Endpoint: POST /api/uploads
-// ============================================================
+'use strict';
 
 const express = require('express');
 const multer = require('multer');
 const path = require('path');
-const fs = require('fs');
+const crypto = require('crypto');
+
+const {
+  normalizeUploadFolder,
+  getUploadFolderPath,
+} = require('../config/uploadStorage');
+
+const {
+  requireAdmin,
+} = require('../middleware/auth');
 
 const router = express.Router();
 
-// Final destination:
-// MiniWeb_KlinikPutrijaya_Fullstack/frontend/images
-const uploadDir = path.resolve(
-  __dirname,
-  '../../frontend/images'
-);
+const allowedMimeTypes = new Set([
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+]);
 
-// Create the folder automatically if it does not exist
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, {
-    recursive: true,
-  });
+function resolveFolder(req) {
+  return normalizeUploadFolder(
+    req.query.folder || 'general'
+  );
 }
 
-const allowedExtensions = [
-  '.png',
-  '.jpg',
-  '.jpeg',
-  '.gif',
-  '.webp',
-];
+function getBackendPublicUrl(req) {
+  const configuredUrl = String(
+    process.env.BACKEND_PUBLIC_URL || ''
+  )
+    .trim()
+    .replace(/\/+$/, '');
 
-const allowedMimeTypes = [
-  'image/png',
-  'image/jpeg',
-  'image/gif',
-  'image/webp',
-];
+  if (configuredUrl) {
+    return configuredUrl;
+  }
+
+  return `${req.protocol}://${req.get('host')}`;
+}
 
 const storage = multer.diskStorage({
-  destination: (req, file, callback) => {
-    callback(null, uploadDir);
+  destination(req, file, callback) {
+    try {
+      const folder = resolveFolder(req);
+      const destination =
+        getUploadFolderPath(folder);
+
+      return callback(null, destination);
+    } catch (error) {
+      return callback(error);
+    }
   },
 
-  filename: (req, file, callback) => {
-    const extension = path
-      .extname(file.originalname)
-      .toLowerCase();
+  filename(req, file, callback) {
+    const extensionByMime = {
+      'image/jpeg': '.jpg',
+      'image/png': '.png',
+      'image/webp': '.webp',
+    };
 
-    const originalBaseName = path.basename(
-      file.originalname,
-      extension
-    );
+    const extension =
+      extensionByMime[file.mimetype] ||
+      path.extname(file.originalname).toLowerCase();
 
-    const safeBaseName =
-      originalBaseName
+    const baseName =
+      path
+        .basename(
+          file.originalname,
+          path.extname(file.originalname)
+        )
         .toLowerCase()
-        .trim()
         .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-+|-+$/g, '') || 'image';
+        .replace(/^-+|-+$/g, '')
+        .slice(0, 60) || 'image';
 
-    const timestamp = Date.now();
+    const unique = [
+      Date.now(),
+      crypto.randomBytes(4).toString('hex'),
+    ].join('-');
 
-    const randomNumber = Math.round(
-      Math.random() * 1e9
+    return callback(
+      null,
+      `${baseName}-${unique}${extension}`
     );
-
-    const finalFilename =
-      `${safeBaseName}-${timestamp}-${randomNumber}${extension}`;
-
-    callback(null, finalFilename);
   },
 });
 
@@ -80,66 +94,77 @@ const upload = multer({
 
   limits: {
     fileSize: 5 * 1024 * 1024,
+    files: 1,
   },
 
-  fileFilter: (req, file, callback) => {
-    const extension = path
-      .extname(file.originalname)
-      .toLowerCase();
-
-    const extensionAllowed =
-      allowedExtensions.includes(extension);
-
-    const mimeTypeAllowed =
-      allowedMimeTypes.includes(file.mimetype);
-
-    if (!extensionAllowed || !mimeTypeAllowed) {
+  fileFilter(req, file, callback) {
+    if (!allowedMimeTypes.has(file.mimetype)) {
       return callback(
-        new Error(
-          'Invalid image type. Please upload PNG, JPG, JPEG, GIF or WEBP.'
+        new multer.MulterError(
+          'LIMIT_UNEXPECTED_FILE',
+          'file'
         )
       );
     }
 
-    callback(null, true);
+    return callback(null, true);
   },
 });
 
-router.post('/', (req, res) => {
-  upload.single('file')(req, res, (error) => {
-    if (error instanceof multer.MulterError) {
-      if (error.code === 'LIMIT_FILE_SIZE') {
-        return res.status(400).json({
-          error: 'Image size must not exceed 5MB.',
-        });
-      }
-
-      return res.status(400).json({
-        error: error.message,
-      });
-    }
-
-    if (error) {
-      return res.status(400).json({
-        error: error.message,
-      });
-    }
-
+router.post(
+  '/',
+  requireAdmin,
+  upload.single('file'),
+  (req, res) => {
     if (!req.file) {
       return res.status(400).json({
-        error: 'No image was uploaded.',
+        message: 'Please select an image file.',
       });
     }
 
-    // This URL is stored in promotions.image_url
-    const publicImageUrl =
-      `/images/${req.file.filename}`;
+    const folder = resolveFolder(req);
+
+    /*
+      Keep the relative path in the database so records remain
+      portable between local development and production.
+    */
+    const relativeUrl =
+      `/images/uploads/${folder}/${req.file.filename}`;
 
     return res.status(201).json({
       message: 'Image uploaded successfully.',
+
+      /*
+        Existing admin code can continue using "url".
+      */
+      url: relativeUrl,
+
+      /*
+        Additional full URL is available when needed.
+      */
+      absoluteUrl:
+        `${getBackendPublicUrl(req)}${relativeUrl}`,
+
       filename: req.file.filename,
-      url: publicImageUrl,
+      size: req.file.size,
     });
+  }
+);
+
+router.use((error, req, res, next) => {
+  if (!(error instanceof multer.MulterError)) {
+    return next(error);
+  }
+
+  if (error.code === 'LIMIT_FILE_SIZE') {
+    return res.status(400).json({
+      message: 'Image must be 5 MB or smaller.',
+    });
+  }
+
+  return res.status(400).json({
+    message:
+      'Only JPEG, PNG and WebP images are allowed.',
   });
 });
 

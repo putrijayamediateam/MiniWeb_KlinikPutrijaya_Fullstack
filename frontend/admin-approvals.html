@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admin Approvals | Klinik Putrijaya</title>
+  <link rel="stylesheet" href="css/admin-approvals.css">
+</head>
+<body>
+  <main class="approval-shell">
+    <header class="approval-header">
+      <div>
+        <p class="eyebrow">Klinik Putrijaya</p>
+        <h1>Admin Account Approvals</h1>
+        <p>Only the active superadmin may approve or reject new management accounts.</p>
+      </div>
+      <div class="header-actions">
+        <a href="admin.html" class="secondary-button">Back to dashboard</a>
+        <button id="refreshBtn" type="button" class="primary-button">Refresh</button>
+      </div>
+    </header>
+
+    <section id="accessCard" class="status-card">Checking superadmin access…</section>
+
+    <section id="approvalPanel" class="approval-panel" hidden>
+      <div class="panel-heading">
+        <div>
+          <h2>Pending approval</h2>
+          <p id="pendingSummary">Loading accounts…</p>
+        </div>
+      </div>
+
+      <div id="approvalMessage" class="message" aria-live="polite"></div>
+      <div id="pendingAccounts" class="account-list"></div>
+    </section>
+  </main>
+
+  <script src="js/api.js"></script>
+  <script src="js/admin-approvals.js"></script>
+</body>
+</html>

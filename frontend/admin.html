@@ -9,27 +9,89 @@
 <link rel="stylesheet"
   href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <link rel="stylesheet" href="css/admin.css">
+<link rel="stylesheet" href="css/admin-upgrades.css">
+<link rel="stylesheet" href="css/signup.css">
+<link rel="stylesheet" href="css/admin-login.css">
 </head>
 <body>
 
   <!-- LOGIN SCREEN -->
-  <div id="loginScreen" class="login-screen">
-    <div class="login-card">
-      <img src="images/logoklinik.png" alt="Klinik Putrijaya" class="login-logo">
-      <h1>Staff Login</h1>
-      <p class="login-sub">Sign in to manage bookings, feedback, doctors and services.</p>
-      <form id="loginForm" novalidate>
-        <label for="loginUsername">Username</label>
-        <input type="text" id="loginUsername" required autocomplete="username">
+  <div id="loginScreen" class="login-screen admin-login-screen">
+    <section class="login-card admin-login-card" aria-labelledby="loginTitle">
+      <a
+        class="admin-login-brand"
+        href="index.html"
+        aria-label="Klinik Putrijaya Home"
+      >
+        <img
+          src="images/logoklinik.png"
+          alt="Klinik Putrijaya"
+          class="login-logo"
+        >
+      </a>
 
-        <label for="loginPassword">Password</label>
-        <input type="password" id="loginPassword" required autocomplete="current-password">
+      <p class="admin-login-kicker">Admin Portal</p>
 
-        <div class="form-message" id="loginMessage"></div>
-        <button type="submit" class="btn-primary" id="loginBtn">Log in</button>
+      <h1 id="loginTitle">Staff Login</h1>
+
+      <p class="login-sub admin-login-intro">
+        Sign in to manage bookings, feedback, doctors and services.
+      </p>
+
+      <form id="loginForm" class="admin-login-form" novalidate>
+        <div class="admin-login-field">
+          <label for="loginUsername">Username or email</label>
+          <input
+            type="text"
+            id="loginUsername"
+            name="username"
+            autocomplete="username"
+            placeholder="Enter your username or email"
+            required
+          >
+        </div>
+
+        <div class="admin-login-field">
+          <label for="loginPassword">Password</label>
+          <input
+            type="password"
+            id="loginPassword"
+            name="password"
+            autocomplete="current-password"
+            placeholder="Enter your password"
+            required
+          >
+        </div>
+
+        <div class="admin-login-options">
+          <a href="forgot-password.html" class="forgot-password-link">
+            Forgot password?
+          </a>
+        </div>
+
+        <div
+          class="form-message admin-login-message"
+          id="loginMessage"
+          aria-live="polite"
+        ></div>
+
+        <button
+          type="submit"
+          class="btn-primary admin-login-button"
+          id="loginBtn"
+        >
+          Log in
+        </button>
       </form>
-      <a href="index.html" class="back-link">&larr; Back to website</a>
-    </div>
+
+      <p class="auth-switch admin-login-signup-link">
+        New user? <a href="signup.html">Create an account</a>
+      </p>
+
+      <a href="index.html" class="back-link admin-login-back">
+        &larr; Back to website
+      </a>
+    </section>
   </div>
 
   <!-- DASHBOARD -->
@@ -40,7 +102,24 @@
         <span class="admin-title">Staff Dashboard</span>
         <div class="admin-header-right">
           <span id="adminUsername" class="admin-username"></span>
-          <button id="logoutBtn" class="btn-ghost">Log out</button>
+
+          <div class="admin-action-buttons">
+            <a
+              href="admin-approvals.html"
+              id="adminApprovalsBtn"
+              class="logout-btn admin-approvals-btn hidden"
+            >
+              Admin Approvals
+            </a>
+
+            <button
+              id="logoutBtn"
+              class="btn-ghost logout-btn"
+              type="button"
+            >
+              Logout
+            </button>
+          </div>
         </div>
       </div>
     </header>
@@ -144,23 +223,75 @@
       </tbody>
     </table>
   </div>
+
+  <div
+    class="booking-table-footer"
+    id="bookingsPager"
+    aria-label="Booking pagination"
+  ></div>
 </section>
 
       <!-- FEEDBACK TAB -->
       <section class="tab-panel" id="tab-feedback">
         <div class="panel-head">
-          <h2>Patient feedback</h2>
+          <div>
+            <h2>Patient feedback</h2>
+            <p class="panel-subtitle">
+              Search, review and manage patient feedback using the same layout as bookings.
+            </p>
+          </div>
         </div>
+
+        <!-- FEEDBACK FILTER BAR -->
+        <div
+          class="booking-toolbar feedback-toolbar"
+          id="feedbackUpgradeFilters"
+        >
+          <div class="booking-search-wrap">
+            <input
+              type="search"
+              id="feedbackSearchInput"
+              aria-label="Search patient feedback"
+              placeholder="Search by patient, branch or message..."
+            >
+          </div>
+
+          <select
+            id="feedbackStatusFilter"
+            aria-label="Filter feedback by status"
+          >
+            <option value="">All feedback</option>
+            <option value="pending">Pending</option>
+            <option value="approved">Approved</option>
+          </select>
+        </div>
+
         <div class="table-wrap">
-          <table>
+          <table class="feedback-table">
             <thead>
-              <tr><th>Name</th><th>Branch</th><th>Rating</th><th>Message</th><th>Status</th><th></th></tr>
+              <tr>
+                <th>Name</th>
+                <th>Branch</th>
+                <th>Rating</th>
+                <th>Message</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
             </thead>
+
             <tbody id="feedbackTableBody">
-              <tr><td colspan="6" class="loading-row">Loading…</td></tr>
+              <tr>
+                <td colspan="6" class="loading-row">Loading…</td>
+              </tr>
             </tbody>
           </table>
         </div>
+
+        <div
+          class="booking-table-footer"
+          id="feedbackPager"
+          aria-label="Feedback pagination"
+        ></div>
       </section>
 
       <!-- DOCTORS TAB -->
@@ -229,7 +360,7 @@
     </div>
   </div>
 
-<script src="js/api.js"></script>
-<script src="js/admin.js"></script>
+<script src="js/api.js" defer></script>
+<script src="admin.js" defer></script>
 </body>
 </html>

@@ -1,0 +1,83 @@
+USE klinik_putrijaya;
+
+-- MariaDB-safe migration for Klinik Putrijaya.
+-- No stored procedures, no DELIMITER changes, and no UTF-8 BOM required.
+-- Safe to run more than once because ADD COLUMN IF NOT EXISTS and CREATE TABLE IF NOT EXISTS are used.
+
+CREATE TABLE IF NOT EXISTS admins (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  username VARCHAR(120) NOT NULL UNIQUE,
+  email VARCHAR(190) NULL,
+  password_hash VARCHAR(255) NULL,
+  is_active TINYINT(1) NOT NULL DEFAULT 1,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+ALTER TABLE admins ADD COLUMN IF NOT EXISTS email VARCHAR(190) NULL;
+ALTER TABLE admins ADD COLUMN IF NOT EXISTS password_hash VARCHAR(255) NULL;
+ALTER TABLE admins ADD COLUMN IF NOT EXISTS is_active TINYINT(1) NOT NULL DEFAULT 1;
+ALTER TABLE admins ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE admins ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;
+
+ALTER TABLE services ADD COLUMN IF NOT EXISTS slug VARCHAR(180) NULL;
+ALTER TABLE services ADD COLUMN IF NOT EXISTS full_description LONGTEXT NULL;
+ALTER TABLE services ADD COLUMN IF NOT EXISTS suitable_for TEXT NULL;
+ALTER TABLE services ADD COLUMN IF NOT EXISTS included_items TEXT NULL;
+ALTER TABLE services ADD COLUMN IF NOT EXISTS preparation TEXT NULL;
+ALTER TABLE services ADD COLUMN IF NOT EXISTS aftercare TEXT NULL;
+ALTER TABLE services ADD COLUMN IF NOT EXISTS hero_image_url VARCHAR(500) NULL;
+ALTER TABLE services ADD COLUMN IF NOT EXISTS sort_order INT NOT NULL DEFAULT 0;
+ALTER TABLE services ADD COLUMN IF NOT EXISTS is_active TINYINT(1) NOT NULL DEFAULT 1;
+ALTER TABLE services ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE services ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;
+
+UPDATE services
+SET slug = CONCAT('service-', id)
+WHERE id > 0
+  AND (slug IS NULL OR TRIM(slug) = '');
+
+CREATE TABLE IF NOT EXISTS service_prices (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  service_id INT NOT NULL,
+  package_name VARCHAR(180) NOT NULL,
+  package_description TEXT NULL,
+  price DECIMAL(10,2) NOT NULL,
+  original_price DECIMAL(10,2) NULL,
+  sort_order INT NOT NULL DEFAULT 0,
+  is_active TINYINT(1) NOT NULL DEFAULT 1,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX idx_service_prices_service (service_id, is_active, sort_order)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS service_gallery (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  service_id INT NOT NULL,
+  image_url VARCHAR(500) NOT NULL,
+  caption VARCHAR(255) NULL,
+  alt_text VARCHAR(255) NULL,
+  sort_order INT NOT NULL DEFAULT 0,
+  is_active TINYINT(1) NOT NULL DEFAULT 1,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_service_gallery_service (service_id, is_active, sort_order)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS email VARCHAR(190) NULL;
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS confirmation_email_sent_at DATETIME NULL;
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS confirmation_sms_sent_at DATETIME NULL;
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS notification_error TEXT NULL;
+
+CREATE TABLE IF NOT EXISTS admin_password_resets (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  admin_id INT NOT NULL,
+  token_hash CHAR(64) NOT NULL UNIQUE,
+  expires_at DATETIME NOT NULL,
+  used_at DATETIME NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_password_reset_admin (admin_id),
+  INDEX idx_password_reset_expiry (expires_at, used_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Verification summary
+SELECT 'migration_complete' AS status;
