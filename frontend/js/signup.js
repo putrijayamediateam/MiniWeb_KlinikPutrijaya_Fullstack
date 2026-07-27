@@ -1,6 +1,13 @@
 'use strict';
 
-const API_BASE = String(window.KP_API_BASE || 'http://localhost:4000/api').replace(/\/$/, '');
+const API_BASE = String(
+  window.KP_API_BASE ||
+  (
+    ['localhost', '127.0.0.1'].includes(window.location.hostname)
+      ? 'http://localhost:4000/api'
+      : 'https://backend-production-d730.up.railway.app/api'
+  )
+).replace(/\/$/, '');
 const TOKEN_KEY = 'kp_admin_token';
 const USERNAME_KEY = 'kp_admin_username';
 

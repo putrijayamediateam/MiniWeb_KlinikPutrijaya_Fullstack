@@ -1,7 +1,14 @@
 'use strict';
 
 (function exposeKPApi() {
-  const API_BASE = String(window.KP_API_BASE || 'http://localhost:4000/api').replace(/\/$/, '');
+  const API_BASE = String(
+  window.KP_API_BASE ||
+  (
+    ['localhost', '127.0.0.1'].includes(window.location.hostname)
+      ? 'http://localhost:4000/api'
+      : 'https://backend-production-d730.up.railway.app/api'
+  )
+).replace(/\/$/, '');
 
   function buildQuery(params = {}) {
     const search = new URLSearchParams();
