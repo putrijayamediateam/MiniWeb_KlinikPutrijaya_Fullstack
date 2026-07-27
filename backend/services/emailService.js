@@ -1,46 +1,32 @@
 'use strict';
 
-const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
 
-let transporter = null;
+let resendClient = null;
 
 /**
- * Check whether SMTP settings are available.
+ * Check whether Resend settings are available.
  */
 function emailConfigured() {
   return Boolean(
-    process.env.SMTP_HOST &&
-      process.env.SMTP_PORT &&
-      process.env.SMTP_USER &&
-      process.env.SMTP_PASS
+    process.env.RESEND_API_KEY &&
+    process.env.RESEND_FROM
   );
 }
 
 /**
- * Create and reuse the Nodemailer transporter.
+ * Create and reuse the Resend client.
  */
-function getTransporter() {
+function getResendClient() {
   if (!emailConfigured()) {
     return null;
   }
 
-  if (transporter) {
-    return transporter;
+  if (!resendClient) {
+    resendClient = new Resend(process.env.RESEND_API_KEY);
   }
 
-  transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: Number(process.env.SMTP_PORT),
-    secure:
-      String(process.env.SMTP_SECURE).toLowerCase() ===
-      'true',
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS,
-    },
-  });
-
-  return transporter;
+  return resendClient;
 }
 
 /**
@@ -51,9 +37,9 @@ async function sendPasswordReset({
   username,
   resetUrl,
 }) {
-  const mailer = getTransporter();
+  const resend = getResendClient();
 
-  if (!mailer) {
+  if (!resend) {
     return {
       sent: false,
       reason: 'email_not_configured',
@@ -133,20 +119,29 @@ async function sendPasswordReset({
     </div>
   `;
 
-  const info = await mailer.sendMail({
-    from:
-      process.env.MAIL_FROM ||
-      process.env.SMTP_USER,
-    to: email,
-    subject:
-      'Klinik Putrijaya Admin Password Reset',
+  const { data, error } = await resend.emails.send({
+    from: process.env.RESEND_FROM,
+    to: [email],
+    subject: 'Klinik Putrijaya Admin Password Reset',
     text,
     html,
   });
 
+  if (error) {
+    const resendError = new Error(
+      error.message || 'Resend could not send the password reset email.'
+    );
+
+    resendError.name = 'ResendEmailError';
+    resendError.code = error.name || 'RESEND_SEND_FAILED';
+    resendError.details = error;
+
+    throw resendError;
+  }
+
   return {
     sent: true,
-    messageId: info.messageId,
+    messageId: data?.id || null,
   };
 }
 
