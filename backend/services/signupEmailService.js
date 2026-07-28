@@ -1,39 +1,43 @@
 'use strict';
 
-const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
 
-let transporter = null;
+let resendClient = null;
 
 function emailConfigured() {
   return Boolean(
-    process.env.SMTP_HOST &&
-    process.env.SMTP_PORT &&
-    process.env.SMTP_USER &&
-    process.env.SMTP_PASS
+    process.env.RESEND_API_KEY &&
+    process.env.RESEND_FROM
   );
 }
 
-function getTransporter() {
-  if (!emailConfigured()) return null;
-  if (transporter) return transporter;
+function getResendClient() {
+  if (!emailConfigured()) {
+    return null;
+  }
 
-  transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: Number(process.env.SMTP_PORT),
-    secure: String(process.env.SMTP_SECURE).toLowerCase() === 'true',
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS,
-    },
-  });
+  if (!resendClient) {
+    resendClient = new Resend(process.env.RESEND_API_KEY);
+  }
 
-  return transporter;
+  return resendClient;
 }
 
 async function sendSignupVerification({ email, verificationUrl }) {
-  const mailer = getTransporter();
-  if (!mailer) {
-    return { sent: false, reason: 'email_not_configured' };
+  const resend = getResendClient();
+
+  if (!resend) {
+    return {
+      sent: false,
+      reason: 'email_not_configured',
+    };
+  }
+
+  if (!email || !verificationUrl) {
+    return {
+      sent: false,
+      reason: 'missing_email_or_verification_url',
+    };
   }
 
   const text = [
@@ -49,31 +53,62 @@ async function sendSignupVerification({ email, verificationUrl }) {
   const html = `
     <div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;color:#30212a;line-height:1.6">
       <div style="background:linear-gradient(135deg,#ffe5f0,#fff7fb);padding:26px;border-radius:18px 18px 0 0">
-        <h1 style="margin:0;color:#e00d92;font-size:24px">Complete your account</h1>
+        <h1 style="margin:0;color:#e00d92;font-size:24px">
+          Complete your account
+        </h1>
       </div>
+
       <div style="padding:26px;border:1px solid #f4c8dc;border-top:0;border-radius:0 0 18px 18px">
         <p>Welcome to Klinik Putrijaya Admin Portal.</p>
-        <p>Confirm your email address to finish creating your account.</p>
+
         <p>
-          <a href="${escapeAttribute(verificationUrl)}" style="display:inline-block;background:#e00d92;color:#fff;text-decoration:none;padding:12px 20px;border-radius:10px;font-weight:700">
+          Confirm your email address to finish creating your account.
+        </p>
+
+        <p>
+          <a
+            href="${escapeAttribute(verificationUrl)}"
+            style="display:inline-block;background:#e00d92;color:#fff;text-decoration:none;padding:12px 20px;border-radius:10px;font-weight:700"
+          >
             Verify email and continue
           </a>
         </p>
-        <p>This link expires in 30 minutes and can only be used once.</p>
-        <p style="color:#7a5b6b">If you did not create this account, ignore this email.</p>
+
+        <p>
+          This link expires in 30 minutes and can only be used once.
+        </p>
+
+        <p style="color:#7a5b6b">
+          If you did not create this account, ignore this email.
+        </p>
       </div>
     </div>
   `;
 
-  const info = await mailer.sendMail({
-    from: process.env.MAIL_FROM || process.env.SMTP_USER,
-    to: email,
+  const { data, error } = await resend.emails.send({
+    from: process.env.RESEND_FROM,
+    to: [email],
     subject: 'Complete Your Klinik Putrijaya Admin Account',
     text,
     html,
   });
 
-  return { sent: true, messageId: info.messageId };
+  if (error) {
+    const resendError = new Error(
+      error.message || 'Resend could not send the verification email.'
+    );
+
+    resendError.name = 'ResendEmailError';
+    resendError.code = error.name || 'RESEND_SEND_FAILED';
+    resendError.details = error;
+
+    throw resendError;
+  }
+
+  return {
+    sent: true,
+    messageId: data?.id || null,
+  };
 }
 
 function escapeAttribute(value) {
