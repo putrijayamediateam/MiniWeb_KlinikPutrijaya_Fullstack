@@ -14,12 +14,35 @@ let doctorsCache = [];
 let branchesCache = [];
 let doctorSearchTimer = null;
 
-document.addEventListener('DOMContentLoaded', initialiseDoctorsPage);
+/*
+  Uploaded doctor images are stored in the Railway backend volume.
+
+  Local development:
+  http://localhost:4000
+
+  Deployed website:
+  https://backend-production-d730.up.railway.app
+*/
+const DOCTOR_IMAGE_ORIGIN =
+  window.location.hostname === 'localhost' ||
+  window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:4000'
+    : 'https://backend-production-d730.up.railway.app';
+
+document.addEventListener(
+  'DOMContentLoaded',
+  initialiseDoctorsPage
+);
 
 async function initialiseDoctorsPage() {
-  const container = document.getElementById('doctorsContainer');
-  const searchInput = document.getElementById('doctorSearchInput');
-  const branchFilter = document.getElementById('doctorBranchFilter');
+  const container =
+    document.getElementById('doctorsContainer');
+
+  const searchInput =
+    document.getElementById('doctorSearchInput');
+
+  const branchFilter =
+    document.getElementById('doctorBranchFilter');
 
   if (!container || !branchFilter) {
     return;
@@ -33,10 +56,11 @@ async function initialiseDoctorsPage() {
     '<option value="">Loading branches...</option>';
 
   try {
-    const [branchResponse, doctorResponse] = await Promise.all([
-      KPApi.getBranches(),
-      KPApi.getDoctors(),
-    ]);
+    const [branchResponse, doctorResponse] =
+      await Promise.all([
+        KPApi.getBranches(),
+        KPApi.getDoctors(),
+      ]);
 
     /*
       Support both possible API response formats:
@@ -53,7 +77,10 @@ async function initialiseDoctorsPage() {
     populateBranchFilter();
     filterAndRenderDoctors();
   } catch (error) {
-    console.error('Unable to initialise doctors page:', error);
+    console.error(
+      'Unable to initialise doctors page:',
+      error
+    );
 
     branchFilter.disabled = true;
     branchFilter.innerHTML =
@@ -75,7 +102,10 @@ async function initialiseDoctorsPage() {
     }, 250);
   });
 
-  branchFilter.addEventListener('change', filterAndRenderDoctors);
+  branchFilter.addEventListener(
+    'change',
+    filterAndRenderDoctors
+  );
 }
 
 function normaliseApiArray(response) {
@@ -100,11 +130,16 @@ function populateBranchFilter() {
 
   const activeBranches = branchesCache.filter((branch) => {
     /*
-      Show the branch unless the API explicitly returns is_active = 0.
-      This also works when the branches API does not include is_active.
+      Show the branch unless the API explicitly returns
+      is_active = 0.
+
+      This also works when the branches API does not include
+      is_active.
     */
-    return branch.is_active === undefined ||
-      Number(branch.is_active) === 1;
+    return (
+      branch.is_active === undefined ||
+      Number(branch.is_active) === 1
+    );
   });
 
   branchFilter.innerHTML = [
@@ -131,10 +166,12 @@ function filterAndRenderDoctors() {
       .toLowerCase() || '';
 
   const selectedBranchId =
-    document.getElementById('doctorBranchFilter')?.value || '';
+    document.getElementById('doctorBranchFilter')
+      ?.value || '';
 
   const filteredDoctors = doctorsCache.filter((doctor) => {
-    const doctorBranchId = String(doctor.branch_id ?? '');
+    const doctorBranchId =
+      String(doctor.branch_id ?? '');
 
     const matchesBranch =
       !selectedBranchId ||
@@ -161,7 +198,8 @@ function filterAndRenderDoctors() {
 }
 
 function renderDoctors(doctors) {
-  const container = document.getElementById('doctorsContainer');
+  const container =
+    document.getElementById('doctorsContainer');
 
   if (!container) {
     return;
@@ -185,12 +223,14 @@ function renderDoctors(doctors) {
     }
 
     result[branchName].push(doctor);
+
     return result;
   }, {});
 
   container.innerHTML = Object.entries(groups)
     .map(([branchName, branchDoctors]) => {
-      const shortBranchName = getShortBranchName(branchName);
+      const shortBranchName =
+        getShortBranchName(branchName);
 
       return `
         <section class="doctor-branch-group">
@@ -201,7 +241,8 @@ function renderDoctors(doctors) {
               </span>
 
               <h3>
-                ${escapeHtml(shortBranchName)} Resident Doctors
+                ${escapeHtml(shortBranchName)}
+                Resident Doctors
               </h3>
             </div>
           </div>
@@ -217,23 +258,78 @@ function renderDoctors(doctors) {
     .join('');
 }
 
+/*
+  Convert the photo path from the database into a usable URL.
+
+  Examples:
+
+  images/uploads/doctors/dr-fatin.png
+  becomes
+  https://backend-production-d730.up.railway.app/
+  images/uploads/doctors/dr-fatin.png
+*/
+function resolveDoctorPhotoUrl(photoUrl) {
+  if (!photoUrl) {
+    return '/images/logoklinik.png';
+  }
+
+  const cleanedUrl = String(photoUrl)
+    .trim()
+    .replace(/\\/g, '/');
+
+  /*
+    Do not modify the URL when the database already contains
+    a complete http or https URL.
+  */
+  if (/^https?:\/\//i.test(cleanedUrl)) {
+    return cleanedUrl;
+  }
+
+  /*
+    Uploaded images are served by the Railway backend.
+  */
+  if (
+    cleanedUrl.startsWith('/images/uploads/') ||
+    cleanedUrl.startsWith('images/uploads/')
+  ) {
+    const relativePath =
+      cleanedUrl.replace(/^\/+/, '');
+
+    return `${DOCTOR_IMAGE_ORIGIN}/${relativePath}`;
+  }
+
+  /*
+    Other images remain inside Firebase Hosting.
+  */
+  return cleanedUrl.startsWith('/')
+    ? cleanedUrl
+    : `/${cleanedUrl}`;
+}
+
 function renderDoctorCard(doctor) {
   const photoUrl =
-    doctor.photo_url || 'images/logoklinik.png';
+    resolveDoctorPhotoUrl(doctor.photo_url);
 
   return `
     <article class="doctor-detail">
       <div class="doctor-photo">
         <img
           src="${escapeAttribute(photoUrl)}"
-          alt="${escapeAttribute(doctor.name || 'Doctor')}"
+          alt="${escapeAttribute(
+            doctor.name || 'Doctor'
+          )}"
           loading="lazy"
-          onerror="this.onerror=null;this.src='images/logoklinik.png';"
+          onerror="
+            this.onerror=null;
+            this.src='/images/logoklinik.png';
+          "
         >
       </div>
 
       <div class="doctor-info">
-        <h5>${escapeHtml(doctor.name || 'Doctor')}</h5>
+        <h5>
+          ${escapeHtml(doctor.name || 'Doctor')}
+        </h5>
 
         <p>
           ${escapeHtml(doctor.qualification || '')}
