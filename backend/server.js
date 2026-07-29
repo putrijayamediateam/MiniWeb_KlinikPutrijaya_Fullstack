@@ -253,7 +253,24 @@ app.use(
 
 app.use('/api/uploads', require('./routes/uploads'));
 app.use('/api/doctors', require('./routes/doctors'));
+
+app.use(
+  '/api/service-categories',
+  require('./routes/serviceCategories')
+);
+
+app.use(
+  '/api/service-subcategories',
+  require('./routes/serviceSubcategories')
+);
+
+app.use(
+  '/api/service-catalog',
+  require('./routes/serviceCatalog')
+);
+
 app.use('/api/services', require('./routes/services'));
+
 app.use('/api/bookings', require('./routes/bookings'));
 app.use('/api/feedback', require('./routes/feedback'));
 

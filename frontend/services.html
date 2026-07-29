@@ -2,73 +2,211 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Explore Klinik Putrijaya services, treatment information, prices and galleries.">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <meta
+    name="description"
+    content="Explore Klinik Putrijaya healthcare services by category, treatment type and available clinic branch."
+  >
+
   <title>Services | Klinik Putrijaya</title>
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    rel="preconnect"
+    href="https://fonts.googleapis.com"
+  >
+
+  <link
+    rel="preconnect"
+    href="https://fonts.gstatic.com"
+    crossorigin
+  >
+
   <link
     href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Manrope:wght@600;700;800&display=swap"
     rel="stylesheet"
   >
 
-  <link rel="stylesheet" href="css/global.css">
-  <link rel="stylesheet" href="css/services.css">
+  <link
+    rel="stylesheet"
+    href="css/global.css"
+  >
+
+  <link
+  rel="stylesheet"
+  href="css/services.css?v=20260729-2"
+>
 
   <script src="js/main.js" defer></script>
-  <script src="js/api.js" defer></script>
-  <script src="js/services.js" defer></script>
-</head>
+  <script
+  src="js/api.js?v=20260729-2"
+  defer
+></script>
+
+  <script
+  src="js/services.js?v=20260729-2"
+  defer
+></script>
+
 <body data-page="services">
   <div id="site-header"></div>
 
   <main>
-    <section class="page-hero" aria-labelledby="servicesHeroTitle">
-      <img
-        src="images/puchong-interior.png"
-        alt="Klinik Putrijaya treatment and consultation area"
-      >
-
+    <section
+      class="page-hero"
+      aria-labelledby="servicesHeroTitle"
+    >
       <div class="page-hero-content">
         <div class="wrap">
-          <div class="eyebrow">Care for every stage</div>
-          <h1 id="servicesHeroTitle">Our Services</h1>
+          <div class="eyebrow">
+            Care for every stage
+          </div>
+
+          <h1 id="servicesHeroTitle">
+            Healthcare made easier to explore
+          </h1>
+
           <p>
-            Browse service information, preparation guidance, available
-            packages and clinic galleries.
+            Find the right service based on your healthcare
+            needs and see which Klinik Putrijaya branch is
+            available for your selected service.
           </p>
         </div>
       </div>
     </section>
 
-    <section class="services-section" aria-labelledby="servicesListTitle">
+    <section
+      class="services-v2-section"
+      aria-labelledby="servicesCategoryTitle"
+    >
       <div class="wrap">
-        <div class="services-toolbar">
+        <header class="services-v2-heading">
           <div>
-            <div class="eyebrow">Explore care</div>
-            <h2 id="servicesListTitle">Find the right service</h2>
+            <div class="eyebrow">
+              Explore our care
+            </div>
+
+            <h2 id="servicesCategoryTitle">
+              Choose a service category
+            </h2>
+
+            <p>
+              Start with a category, then narrow your search
+              using the available service subcategories.
+            </p>
           </div>
 
-          <div class="services-controls">
-            <label class="sr-only" for="serviceSearch">Search services</label>
-            <input
-              id="serviceSearch"
-              type="search"
-              placeholder="Search service…"
-              autocomplete="off"
+          <div class="services-v2-heading-note">
+            <strong>4</strong>
+            <span>main care categories</span>
+          </div>
+        </header>
+
+        <div
+          id="serviceCategoryCards"
+          class="service-category-grid"
+          aria-live="polite"
+        >
+          <div class="services-empty">
+            Loading service categories...
+          </div>
+        </div>
+
+        <section
+          class="service-browser"
+          aria-labelledby="selectedServiceCategoryTitle"
+        >
+          <div class="service-browser-header">
+            <div class="service-browser-copy">
+              <div
+                id="servicesCategoryEyebrow"
+                class="eyebrow"
+              >
+                Selected category
+              </div>
+
+              <h2 id="selectedServiceCategoryTitle">
+                Loading services...
+              </h2>
+
+              <p id="servicesCategoryDescription">
+                Please wait while we prepare the service
+                catalogue.
+              </p>
+            </div>
+
+            <div class="services-search-panel">
+              <label
+                class="sr-only"
+                for="serviceSearch"
+              >
+                Search services
+              </label>
+
+              <div class="services-search-field">
+                <span
+                  class="services-search-icon"
+                  aria-hidden="true"
+                >
+                  ⌕
+                </span>
+
+                <input
+                  id="serviceSearch"
+                  type="search"
+                  placeholder="Search within this category..."
+                  autocomplete="off"
+                >
+              </div>
+
+              <button
+                id="clearServiceFilters"
+                class="services-clear-button"
+                type="button"
+              >
+                Clear filters
+              </button>
+            </div>
+          </div>
+
+          <div
+            id="serviceSubcategories"
+            class="service-subcategory-list"
+            aria-label="Service subcategories"
+          ></div>
+
+          <div class="service-results-header">
+            <div>
+              <div class="eyebrow">
+                Available care
+              </div>
+
+              <h3>Services</h3>
+            </div>
+
+            <p
+              id="serviceCount"
+              class="service-result-count"
+              aria-live="polite"
             >
-
-            <label class="sr-only" for="serviceCategory">Filter by category</label>
-            <select id="serviceCategory">
-              <option value="">All categories</option>
-            </select>
+              Loading...
+            </p>
           </div>
-        </div>
 
-        <div id="servicesGrid" class="services-grid" aria-live="polite">
-          <div class="services-empty">Loading services…</div>
-        </div>
+          <div
+            id="servicesGrid"
+            class="services-grid"
+            aria-live="polite"
+          >
+            <div class="services-empty">
+              Loading services...
+            </div>
+          </div>
+        </section>
       </div>
     </section>
   </main>

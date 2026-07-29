@@ -86,17 +86,43 @@
       return apiRequest('/branches');
     },
 
+    getServiceCategories(params = {}) {
+      return apiRequest(
+        `/service-categories${buildQuery(params)}`
+      );
+    },
+
+    getServiceSubcategories(params = {}) {
+      return apiRequest(
+        `/service-subcategories${buildQuery(params)}`
+      );
+    },
+
     getDoctors(params = {}) {
       return apiRequest(`/doctors${buildQuery(params)}`);
     },
 
     getServices(params = {}) {
-      return apiRequest(`/services${buildQuery(params)}`);
-    },
+  return apiRequest(`/services${buildQuery(params)}`);
+},
 
-    getServiceBySlug(slug) {
-      return apiRequest(`/services/slug/${encodeURIComponent(slug)}`);
-    },
+getServiceBySlug(slug) {
+  return apiRequest(
+    `/services/slug/${encodeURIComponent(slug)}`
+  );
+},
+
+getServiceCatalog(params = {}) {
+  return apiRequest(
+    `/service-catalog${buildQuery(params)}`
+  );
+},
+
+getServiceCatalogBySlug(slug) {
+  return apiRequest(
+    `/service-catalog/slug/${encodeURIComponent(slug)}`
+  );
+},
 
     createBooking(payload) {
       return apiRequest('/bookings', {

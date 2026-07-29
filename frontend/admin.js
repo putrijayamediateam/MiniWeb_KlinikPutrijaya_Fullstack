@@ -725,139 +725,765 @@ async function loadServices() {
   }
 }
 
-function openServiceModal(service = null) {
+function getServiceCategoryKey(categorySlug) {
+  const categoryKeyMap = {
+    'family-general-medicine': 'general',
+    'womens-maternity-care': 'women',
+    'procedures-minor-care': 'treatment',
+    'wellness-certification': 'special',
+  };
+
+  return (
+    categoryKeyMap[
+      String(categorySlug || '')
+        .trim()
+        .toLowerCase()
+    ] || 'general'
+  );
+}
+
+async function openServiceModal(service = null) {
   const isEdit = Boolean(service);
+  const isLegacy =
+    isEdit && !Number(service?.subcategory_id);
 
-  showModal(isEdit ? 'Edit service details' : 'Add service', `
-    <div class="admin-form-grid two-column">
-      <label>
-        <span>Category key</span>
-        <input id="m-service-category" type="text" value="${escapeAttribute(service?.category_key || '')}" placeholder="women, general, treatment…" required>
-      </label>
-      <label>
-        <span>Display order</span>
-        <input id="m-service-order" type="number" value="${Number(service?.sort_order || 0)}">
-      </label>
-    </div>
+  let categories = [];
+  let subcategories = [];
+  let branches = [];
 
-    <div class="admin-form-grid two-column">
-      <label>
-        <span>Service title</span>
-        <input id="m-service-title" type="text" value="${escapeAttribute(service?.title || '')}" required>
-      </label>
-      <label>
-        <span>URL slug</span>
-        <input id="m-service-slug" type="text" value="${escapeAttribute(service?.slug || '')}" placeholder="anomaly-scan">
-      </label>
-    </div>
+  try {
+    [categories, subcategories, branches] =
+      await Promise.all([
+        KPApi.getServiceCategories(),
+        KPApi.getServiceSubcategories(),
+        branchesCache.length
+          ? branchesCache
+          : KPApi.getBranches(),
+      ]);
 
-    <label>
-      <span>Kicker / short label</span>
-      <input id="m-service-kicker" type="text" value="${escapeAttribute(service?.kicker || '')}">
-    </label>
-
-    <label>
-      <span>Short card description</span>
-      <textarea id="m-service-description" rows="3">${escapeHtml(service?.description || '')}</textarea>
-    </label>
-
-    <label>
-      <span>Full service description</span>
-      <textarea id="m-service-full" rows="7">${escapeHtml(service?.full_description || '')}</textarea>
-    </label>
-
-    <div class="admin-form-grid two-column">
-      <label>
-        <span>Suitable for — one item per line</span>
-        <textarea id="m-service-suitable" rows="6">${escapeHtml(service?.suitable_for || '')}</textarea>
-      </label>
-      <label>
-        <span>What is included — one item per line</span>
-        <textarea id="m-service-included" rows="6">${escapeHtml(service?.included_items || '')}</textarea>
-      </label>
-    </div>
-
-    <div class="admin-form-grid two-column">
-      <label>
-        <span>Preparation — one item per line</span>
-        <textarea id="m-service-preparation" rows="6">${escapeHtml(service?.preparation || '')}</textarea>
-      </label>
-      <label>
-        <span>Aftercare — one item per line</span>
-        <textarea id="m-service-aftercare" rows="6">${escapeHtml(service?.aftercare || '')}</textarea>
-      </label>
-    </div>
-
-    <div class="admin-upload-field">
-      <label for="m-service-hero">Hero image</label>
-      <input id="m-service-hero" type="file" accept="image/jpeg,image/png,image/webp">
-      <input id="m-service-hero-url" type="hidden" value="${escapeAttribute(service?.hero_image_url || '')}">
-      <div class="upload-help">The image is used on the service card and detail page.</div>
-      <img id="m-service-hero-preview" class="admin-image-preview landscape ${service?.hero_image_url ? '' : 'hidden'}" src="${service?.hero_image_url ? escapeAttribute(resolveImageUrl(service.hero_image_url)) : ''}" alt="Service hero preview">
-    </div>
-
-    <label>
-      <span>Active</span>
-      <select id="m-service-active">
-        <option value="1" ${!service || Number(service.is_active) ? 'selected' : ''}>Yes</option>
-        <option value="0" ${service && !Number(service.is_active) ? 'selected' : ''}>No</option>
-      </select>
-    </label>
-
-    <div id="modalFormMessage" class="form-message"></div>
-    <div class="modal-actions">
-      <button class="btn-primary" type="submit">${isEdit ? 'Save service' : 'Create service'}</button>
-    </div>
-  `, async (event) => {
-    event.preventDefault();
-    const message = document.getElementById('modalFormMessage');
-    const heroInput = document.getElementById('m-service-hero');
-    let heroUrl = document.getElementById('m-service-hero-url').value.trim() || null;
-
-    try {
-      if (heroInput.files[0]) {
-        const upload = await authedApi.uploadImage(heroInput.files[0], 'services');
-        heroUrl = upload.url;
-      }
-
-      const payload = {
-        category_key: document.getElementById('m-service-category').value.trim(),
-        title: document.getElementById('m-service-title').value.trim(),
-        slug: document.getElementById('m-service-slug').value.trim(),
-        kicker: document.getElementById('m-service-kicker').value.trim() || null,
-        description: document.getElementById('m-service-description').value.trim() || null,
-        full_description: document.getElementById('m-service-full').value.trim() || null,
-        suitable_for: document.getElementById('m-service-suitable').value.trim() || null,
-        included_items: document.getElementById('m-service-included').value.trim() || null,
-        preparation: document.getElementById('m-service-preparation').value.trim() || null,
-        aftercare: document.getElementById('m-service-aftercare').value.trim() || null,
-        hero_image_url: heroUrl,
-        sort_order: Number(document.getElementById('m-service-order').value || 0),
-        is_active: Number(document.getElementById('m-service-active').value),
-      };
-
-      let savedId = service?.id;
-      if (isEdit) {
-        await authedApi.updateService(service.id, payload);
-      } else {
-        const response = await authedApi.createService(payload);
-        savedId = response.id;
-      }
-
-      closeModal();
-      await loadServices();
-
-      if (!isEdit && savedId) {
-        const addPriceNow = confirm('Service created. Add its price list now?');
-        if (addPriceNow) openPriceManager(savedId);
-      }
-    } catch (error) {
-      if (!handleAuthError(error)) setMessage(message, error.message, 'error');
+    if (!branchesCache.length) {
+      branchesCache = branches;
     }
-  });
+  } catch (error) {
+    alert(
+      `Unable to load the Services V2 form: ${
+        error.message || 'Unknown error'
+      }`
+    );
+    return;
+  }
 
-  bindImagePreview('m-service-hero', 'm-service-hero-preview');
-  bindSlugGenerator('m-service-title', 'm-service-slug', !isEdit);
+  const legacyCategorySlugMap = {
+    general: 'family-general-medicine',
+    women: 'womens-maternity-care',
+    treatment: 'procedures-minor-care',
+    special: 'wellness-certification',
+  };
+
+  const selectedCategory =
+    categories.find(
+      (category) =>
+        Number(category.id) ===
+        Number(service?.category_id)
+    ) ||
+    categories.find(
+      (category) =>
+        category.slug ===
+        legacyCategorySlugMap[
+          String(service?.category_key || '')
+            .trim()
+            .toLowerCase()
+        ]
+    ) ||
+    null;
+
+  const selectedCategoryId =
+    Number(selectedCategory?.id || 0);
+
+  const selectedSubcategoryId =
+    Number(service?.subcategory_id || 0);
+
+  const selectedBranchIds = new Set(
+    (service?.branch_ids || []).map(Number)
+  );
+
+  const categoryOptions = categories
+    .map(
+      (category) => `
+        <option
+          value="${Number(category.id)}"
+          ${
+            Number(category.id) ===
+            selectedCategoryId
+              ? 'selected'
+              : ''
+          }
+        >
+          ${escapeHtml(category.name)}
+        </option>
+      `
+    )
+    .join('');
+
+  const branchOptions = branches
+    .map(
+      (branch) => `
+        <option
+          value="${Number(branch.id)}"
+          ${
+            selectedBranchIds.has(
+              Number(branch.id)
+            )
+              ? 'selected'
+              : ''
+          }
+        >
+          ${escapeHtml(branch.name)}
+        </option>
+      `
+    )
+    .join('');
+
+  function getSubcategoryOptions(
+    categoryId,
+    currentSubcategoryId = 0
+  ) {
+    const availableSubcategories =
+      subcategories.filter(
+        (subcategory) =>
+          Number(subcategory.category_id) ===
+          Number(categoryId)
+      );
+
+    const blankLabel = isLegacy
+      ? 'Keep as legacy category card'
+      : 'Select service subcategory';
+
+    return `
+      <option value="">
+        ${blankLabel}
+      </option>
+
+      ${availableSubcategories
+        .map(
+          (subcategory) => `
+            <option
+              value="${Number(subcategory.id)}"
+              ${
+                Number(subcategory.id) ===
+                Number(currentSubcategoryId)
+                  ? 'selected'
+                  : ''
+              }
+            >
+              ${escapeHtml(subcategory.name)}
+            </option>
+          `
+        )
+        .join('')}
+    `;
+  }
+
+  showModal(
+    isEdit
+      ? 'Edit service details'
+      : 'Add Services V2 service',
+    `
+      ${
+        isLegacy
+          ? `
+            <div class="form-message">
+              This is an existing legacy category card.
+              Leave the subcategory empty to keep it as a
+              legacy card, or select a subcategory and
+              branches to convert it into Services V2.
+            </div>
+          `
+          : ''
+      }
+
+      <div class="admin-form-grid two-column">
+        <label>
+          <span>Service category</span>
+          <select
+            id="m-service-category"
+            required
+          >
+            <option value="">
+              Select category
+            </option>
+            ${categoryOptions}
+          </select>
+        </label>
+
+        <label>
+          <span>Service subcategory</span>
+          <select
+            id="m-service-subcategory"
+            ${isLegacy ? '' : 'required'}
+          >
+            ${getSubcategoryOptions(
+              selectedCategoryId,
+              selectedSubcategoryId
+            )}
+          </select>
+        </label>
+      </div>
+
+      <label>
+        <span>Available branches</span>
+        <select
+          id="m-service-branches"
+          multiple
+          size="3"
+          ${isLegacy ? '' : 'required'}
+        >
+          ${branchOptions}
+        </select>
+
+        <div class="upload-help">
+          Hold Ctrl while selecting to choose more than
+          one branch.
+        </div>
+      </label>
+
+      <div class="admin-form-grid two-column">
+        <label>
+          <span>Service title</span>
+          <input
+            id="m-service-title"
+            type="text"
+            value="${escapeAttribute(
+              service?.title || ''
+            )}"
+            required
+          >
+        </label>
+
+        <label>
+          <span>URL slug</span>
+          <input
+            id="m-service-slug"
+            type="text"
+            value="${escapeAttribute(
+              service?.slug || ''
+            )}"
+            placeholder="anomaly-scan"
+          >
+        </label>
+      </div>
+
+      <div class="admin-form-grid two-column">
+        <label>
+          <span>Kicker / short label</span>
+          <input
+            id="m-service-kicker"
+            type="text"
+            value="${escapeAttribute(
+              service?.kicker || ''
+            )}"
+          >
+        </label>
+
+        <label>
+          <span>Result time</span>
+          <input
+            id="m-service-result-time"
+            type="text"
+            value="${escapeAttribute(
+              service?.result_time || ''
+            )}"
+            placeholder="Same day, 1–3 working days..."
+          >
+        </label>
+      </div>
+
+      <label>
+        <span>Short card description</span>
+        <textarea
+          id="m-service-description"
+          rows="3"
+        >${escapeHtml(
+          service?.description || ''
+        )}</textarea>
+      </label>
+
+      <label>
+        <span>Full service description</span>
+        <textarea
+          id="m-service-full"
+          rows="7"
+        >${escapeHtml(
+          service?.full_description || ''
+        )}</textarea>
+      </label>
+
+      <div class="admin-form-grid two-column">
+        <label>
+          <span>Suitable for — one item per line</span>
+          <textarea
+            id="m-service-suitable"
+            rows="6"
+          >${escapeHtml(
+            service?.suitable_for || ''
+          )}</textarea>
+        </label>
+
+        <label>
+          <span>What is included — one item per line</span>
+          <textarea
+            id="m-service-included"
+            rows="6"
+          >${escapeHtml(
+            service?.included_items || ''
+          )}</textarea>
+        </label>
+      </div>
+
+      <div class="admin-form-grid two-column">
+        <label>
+          <span>Preparation — one item per line</span>
+          <textarea
+            id="m-service-preparation"
+            rows="6"
+          >${escapeHtml(
+            service?.preparation || ''
+          )}</textarea>
+        </label>
+
+        <label>
+          <span>Aftercare — one item per line</span>
+          <textarea
+            id="m-service-aftercare"
+            rows="6"
+          >${escapeHtml(
+            service?.aftercare || ''
+          )}</textarea>
+        </label>
+      </div>
+
+      <label>
+        <span>Search keywords</span>
+        <input
+          id="m-service-keywords"
+          type="text"
+          value="${escapeAttribute(
+            service?.keywords || ''
+          )}"
+          placeholder="pregnancy, scan, antenatal..."
+        >
+      </label>
+
+      <div class="admin-form-grid two-column">
+        <label>
+          <span>Display order</span>
+          <input
+            id="m-service-order"
+            type="number"
+            value="${Number(
+              service?.sort_order || 0
+            )}"
+          >
+        </label>
+
+        <label>
+          <span>Featured service</span>
+          <select id="m-service-featured">
+            <option
+              value="1"
+              ${
+                Number(service?.is_featured)
+                  ? 'selected'
+                  : ''
+              }
+            >
+              Yes
+            </option>
+
+            <option
+              value="0"
+              ${
+                !Number(service?.is_featured)
+                  ? 'selected'
+                  : ''
+              }
+            >
+              No
+            </option>
+          </select>
+        </label>
+      </div>
+
+      <div class="admin-upload-field">
+        <label for="m-service-hero">
+          Hero image
+        </label>
+
+        <input
+          id="m-service-hero"
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+        >
+
+        <input
+          id="m-service-hero-url"
+          type="hidden"
+          value="${escapeAttribute(
+            service?.hero_image_url || ''
+          )}"
+        >
+
+        <div class="upload-help">
+          This image is used on the service card and
+          service detail page.
+        </div>
+
+        <img
+          id="m-service-hero-preview"
+          class="admin-image-preview landscape ${
+            service?.hero_image_url
+              ? ''
+              : 'hidden'
+          }"
+          src="${
+            service?.hero_image_url
+              ? escapeAttribute(
+                  resolveImageUrl(
+                    service.hero_image_url
+                  )
+                )
+              : ''
+          }"
+          alt="Service hero preview"
+        >
+      </div>
+
+      <label>
+        <span>Active</span>
+        <select id="m-service-active">
+          <option
+            value="1"
+            ${
+              !service ||
+              Number(service.is_active)
+                ? 'selected'
+                : ''
+            }
+          >
+            Yes
+          </option>
+
+          <option
+            value="0"
+            ${
+              service &&
+              !Number(service.is_active)
+                ? 'selected'
+                : ''
+            }
+          >
+            No
+          </option>
+        </select>
+      </label>
+
+      <div
+        id="modalFormMessage"
+        class="form-message"
+      ></div>
+
+      <div class="modal-actions">
+        <button
+          class="btn-primary"
+          type="submit"
+        >
+          ${
+            isEdit
+              ? 'Save service'
+              : 'Create service'
+          }
+        </button>
+      </div>
+    `,
+    async (event) => {
+      event.preventDefault();
+
+      const message = document.getElementById(
+        'modalFormMessage'
+      );
+
+      const categoryId = Number(
+        document.getElementById(
+          'm-service-category'
+        ).value
+      );
+
+      const category = categories.find(
+        (item) =>
+          Number(item.id) === categoryId
+      );
+
+      const subcategoryValue =
+        document.getElementById(
+          'm-service-subcategory'
+        ).value;
+
+      const subcategoryId =
+        subcategoryValue === ''
+          ? null
+          : Number(subcategoryValue);
+
+      const branchSelect =
+        document.getElementById(
+          'm-service-branches'
+        );
+
+      const branchIds = Array.from(
+        branchSelect.selectedOptions
+      ).map((option) => Number(option.value));
+
+      const isServicesV2 =
+        Number.isInteger(subcategoryId) &&
+        subcategoryId > 0;
+
+      const heroInput =
+        document.getElementById(
+          'm-service-hero'
+        );
+
+      let heroUrl =
+        document
+          .getElementById(
+            'm-service-hero-url'
+          )
+          .value.trim() || null;
+
+      try {
+        if (!category) {
+          throw new Error(
+            'Please select a service category.'
+          );
+        }
+
+        if (!isLegacy && !isServicesV2) {
+          throw new Error(
+            'Please select a service subcategory.'
+          );
+        }
+
+        if (
+          isServicesV2 &&
+          !branchIds.length
+        ) {
+          throw new Error(
+            'Please select at least one branch.'
+          );
+        }
+
+        if (heroInput.files[0]) {
+          const upload =
+            await authedApi.uploadImage(
+              heroInput.files[0],
+              'services'
+            );
+
+          heroUrl = upload.url;
+        }
+
+        const payload = {
+          category_key:
+            getServiceCategoryKey(
+              category.slug
+            ),
+
+          subcategory_id: subcategoryId,
+
+          title:
+            document
+              .getElementById(
+                'm-service-title'
+              )
+              .value.trim(),
+
+          slug:
+            document
+              .getElementById(
+                'm-service-slug'
+              )
+              .value.trim(),
+
+          kicker:
+            document
+              .getElementById(
+                'm-service-kicker'
+              )
+              .value.trim() || null,
+
+          description:
+            document
+              .getElementById(
+                'm-service-description'
+              )
+              .value.trim() || null,
+
+          full_description:
+            document
+              .getElementById(
+                'm-service-full'
+              )
+              .value.trim() || null,
+
+          suitable_for:
+            document
+              .getElementById(
+                'm-service-suitable'
+              )
+              .value.trim() || null,
+
+          included_items:
+            document
+              .getElementById(
+                'm-service-included'
+              )
+              .value.trim() || null,
+
+          preparation:
+            document
+              .getElementById(
+                'm-service-preparation'
+              )
+              .value.trim() || null,
+
+          aftercare:
+            document
+              .getElementById(
+                'm-service-aftercare'
+              )
+              .value.trim() || null,
+
+          hero_image_url: heroUrl,
+
+          keywords:
+            document
+              .getElementById(
+                'm-service-keywords'
+              )
+              .value.trim() || null,
+
+          result_time:
+            document
+              .getElementById(
+                'm-service-result-time'
+              )
+              .value.trim() || null,
+
+          is_featured: Number(
+            document.getElementById(
+              'm-service-featured'
+            ).value
+          ),
+
+          sort_order: Number(
+            document.getElementById(
+              'm-service-order'
+            ).value || 0
+          ),
+
+          is_active: Number(
+            document.getElementById(
+              'm-service-active'
+            ).value
+          ),
+        };
+
+        /*
+          Branch IDs are required for Services V2.
+          Legacy cards remain untouched when no
+          subcategory is selected.
+        */
+        if (isServicesV2) {
+          payload.branch_ids = branchIds;
+        }
+
+        let savedId = service?.id;
+
+        if (isEdit) {
+          await authedApi.updateService(
+            service.id,
+            payload
+          );
+        } else {
+          const response =
+            await authedApi.createService(
+              payload
+            );
+
+          savedId = response.id;
+        }
+
+        closeModal();
+        await loadServices();
+
+        if (!isEdit && savedId) {
+          const addPriceNow = confirm(
+            'Service created. Add its price list now?'
+          );
+
+          if (addPriceNow) {
+            openPriceManager(savedId);
+          }
+        }
+      } catch (error) {
+        if (!handleAuthError(error)) {
+          setMessage(
+            message,
+            error.message,
+            'error'
+          );
+        }
+      }
+    }
+  );
+
+  const categorySelect =
+    document.getElementById(
+      'm-service-category'
+    );
+
+  const subcategorySelect =
+    document.getElementById(
+      'm-service-subcategory'
+    );
+
+  categorySelect?.addEventListener(
+    'change',
+    () => {
+      subcategorySelect.innerHTML =
+        getSubcategoryOptions(
+          Number(categorySelect.value),
+          0
+        );
+
+      subcategorySelect.disabled =
+        !categorySelect.value;
+    }
+  );
+
+  if (subcategorySelect) {
+    subcategorySelect.disabled =
+      !categorySelect?.value;
+  }
+
+  bindImagePreview(
+    'm-service-hero',
+    'm-service-hero-preview'
+  );
+
+  bindSlugGenerator(
+    'm-service-title',
+    'm-service-slug',
+    !isEdit
+  );
 }
 
 async function openPriceManager(serviceId) {
@@ -982,85 +1608,564 @@ function clearPriceForm() {
 
 async function openGalleryManager(serviceId) {
   try {
-    const service = await authedApi.getAdminService(serviceId);
+    const service =
+      await authedApi.getAdminService(
+        serviceId
+      );
+
     renderGalleryManager(service);
   } catch (error) {
-    if (!handleAuthError(error)) alert(`Unable to load gallery: ${error.message}`);
+    if (!handleAuthError(error)) {
+      alert(
+        `Unable to load gallery: ${error.message}`
+      );
+    }
   }
 }
 
 function renderGalleryManager(service) {
-  showModal(`Gallery · ${service.title}`, `
-    <div class="gallery-manager-grid">
-      ${(service.gallery || []).length ? service.gallery.map((image) => `
-        <article class="gallery-manager-card">
-          <img src="${escapeAttribute(resolveImageUrl(image.image_url))}" alt="${escapeAttribute(image.alt_text || '')}">
-          <div>
-            <strong>${escapeHtml(image.caption || 'No caption')}</strong>
-            <small>${Number(image.is_active) ? 'Active' : 'Inactive'} · Order ${Number(image.sort_order || 0)}</small>
-            <button class="btn-small danger" type="button" data-delete-gallery="${image.id}">Delete</button>
-          </div>
-        </article>
-      `).join('') : '<div class="manager-empty">No gallery images added yet.</div>'}
-    </div>
+  const gallery = Array.isArray(
+    service.gallery
+  )
+    ? service.gallery
+    : [];
 
-    <hr class="modal-divider">
-    <h3>Add gallery image</h3>
+  showModal(
+    `Gallery · ${service.title}`,
+    `
+      <div class="gallery-manager-grid">
+        ${
+          gallery.length
+            ? gallery
+                .map(
+                  (image) => `
+                    <article class="gallery-manager-card">
+                      <img
+                        src="${escapeAttribute(
+                          resolveImageUrl(
+                            image.image_url
+                          )
+                        )}"
+                        alt="${escapeAttribute(
+                          image.alt_text ||
+                            image.caption ||
+                            'Service gallery image'
+                        )}"
+                      >
 
-    <div class="admin-upload-field">
-      <label for="m-gallery-file">Image</label>
-      <input id="m-gallery-file" type="file" accept="image/jpeg,image/png,image/webp" required>
-      <img id="m-gallery-preview" class="admin-image-preview landscape hidden" src="" alt="Gallery preview">
-    </div>
+                      <div>
+                        <strong>
+                          ${escapeHtml(
+                            image.caption ||
+                              'No caption'
+                          )}
+                        </strong>
 
-    <label><span>Caption</span><input id="m-gallery-caption" type="text"></label>
-    <label><span>Alternative text</span><input id="m-gallery-alt" type="text" placeholder="Describe the image for accessibility"></label>
+                        <small>
+                          ${
+                            Number(
+                              image.is_active
+                            )
+                              ? 'Active'
+                              : 'Inactive'
+                          }
+                          · Order
+                          ${Number(
+                            image.sort_order || 0
+                          )}
+                        </small>
 
-    <div class="admin-form-grid two-column">
-      <label><span>Order</span><input id="m-gallery-order" type="number" value="0"></label>
-      <label><span>Active</span><select id="m-gallery-active"><option value="1">Yes</option><option value="0">No</option></select></label>
-    </div>
+                        <div class="gallery-manager-actions">
+                          <button
+                            class="btn-small"
+                            type="button"
+                            data-edit-gallery="${image.id}"
+                          >
+                            Edit
+                          </button>
 
-    <div id="modalFormMessage" class="form-message"></div>
-    <div class="modal-actions"><button class="btn-primary" type="submit">Upload image</button></div>
-  `, async (event) => {
-    event.preventDefault();
-    const message = document.getElementById('modalFormMessage');
-    const file = document.getElementById('m-gallery-file').files[0];
+                          <button
+                            class="btn-small danger"
+                            type="button"
+                            data-delete-gallery="${image.id}"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </div>
+                    </article>
+                  `
+                )
+                .join('')
+            : `
+                <div class="manager-empty">
+                  No gallery images added yet.
+                </div>
+              `
+        }
+      </div>
 
-    if (!file) {
-      setMessage(message, 'Please select an image.', 'error');
-      return;
-    }
+      <hr class="modal-divider">
 
-    try {
-      const upload = await authedApi.uploadImage(file, 'services');
-      await authedApi.createGalleryItem(service.id, {
-        image_url: upload.url,
-        caption: document.getElementById('m-gallery-caption').value.trim() || null,
-        alt_text: document.getElementById('m-gallery-alt').value.trim() || null,
-        sort_order: Number(document.getElementById('m-gallery-order').value || 0),
-        is_active: Number(document.getElementById('m-gallery-active').value),
-      });
-      await openGalleryManager(service.id);
-    } catch (error) {
-      if (!handleAuthError(error)) setMessage(message, error.message, 'error');
-    }
-  });
+      <h3 id="galleryFormHeading">
+        Add gallery image
+      </h3>
 
-  bindImagePreview('m-gallery-file', 'm-gallery-preview');
+      <input
+        id="m-gallery-id"
+        type="hidden"
+      >
 
-  document.querySelectorAll('[data-delete-gallery]').forEach((button) => {
-    button.addEventListener('click', async () => {
-      if (!confirm('Delete this gallery image?')) return;
-      try {
-        await authedApi.deleteGalleryItem(button.dataset.deleteGallery);
-        await openGalleryManager(service.id);
-      } catch (error) {
-        if (!handleAuthError(error)) alert(`Unable to delete gallery image: ${error.message}`);
+      <input
+        id="m-gallery-existing-url"
+        type="hidden"
+      >
+
+      <div class="admin-upload-field">
+        <label for="m-gallery-file">
+          Image
+        </label>
+
+        <input
+          id="m-gallery-file"
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+        >
+
+        <div class="upload-help">
+          Select an image when adding a new item.
+          When editing, leave this empty to keep
+          the existing image.
+        </div>
+
+        <img
+          id="m-gallery-preview"
+          class="admin-image-preview landscape hidden"
+          src=""
+          alt="Gallery preview"
+        >
+      </div>
+
+      <label>
+        <span>Caption</span>
+
+        <input
+          id="m-gallery-caption"
+          type="text"
+          placeholder="Optional image caption"
+        >
+      </label>
+
+      <label>
+        <span>Alternative text</span>
+
+        <input
+          id="m-gallery-alt"
+          type="text"
+          placeholder="Describe the image for accessibility"
+        >
+      </label>
+
+      <div class="admin-form-grid two-column">
+        <label>
+          <span>Display order</span>
+
+          <input
+            id="m-gallery-order"
+            type="number"
+            value="0"
+          >
+        </label>
+
+        <label>
+          <span>Active</span>
+
+          <select id="m-gallery-active">
+            <option value="1">
+              Yes
+            </option>
+
+            <option value="0">
+              No
+            </option>
+          </select>
+        </label>
+      </div>
+
+      <div
+        id="modalFormMessage"
+        class="form-message"
+      ></div>
+
+      <div class="modal-actions">
+        <button
+          class="btn-ghost"
+          id="galleryFormCancel"
+          type="button"
+        >
+          Clear form
+        </button>
+
+        <button
+          class="btn-primary"
+          id="gallerySaveButton"
+          type="submit"
+        >
+          Upload image
+        </button>
+      </div>
+    `,
+    async (event) => {
+      event.preventDefault();
+
+      const message =
+        document.getElementById(
+          'modalFormMessage'
+        );
+
+      const galleryId =
+        document.getElementById(
+          'm-gallery-id'
+        ).value;
+
+      const existingImageUrl =
+        document.getElementById(
+          'm-gallery-existing-url'
+        ).value;
+
+      const file =
+        document.getElementById(
+          'm-gallery-file'
+        ).files[0];
+
+      if (!galleryId && !file) {
+        setMessage(
+          message,
+          'Please select an image.',
+          'error'
+        );
+
+        return;
       }
+
+      let imageUrl =
+        existingImageUrl || '';
+
+      try {
+        setMessage(message, '');
+
+        if (file) {
+          const upload =
+            await authedApi.uploadImage(
+              file,
+              'services'
+            );
+
+          imageUrl = upload.url;
+        }
+
+        if (!imageUrl) {
+          setMessage(
+            message,
+            'A gallery image is required.',
+            'error'
+          );
+
+          return;
+        }
+
+        const payload = {
+          image_url: imageUrl,
+
+          caption:
+            document
+              .getElementById(
+                'm-gallery-caption'
+              )
+              .value.trim() || null,
+
+          alt_text:
+            document
+              .getElementById(
+                'm-gallery-alt'
+              )
+              .value.trim() || null,
+
+          sort_order: Number(
+            document.getElementById(
+              'm-gallery-order'
+            ).value || 0
+          ),
+
+          is_active: Number(
+            document.getElementById(
+              'm-gallery-active'
+            ).value
+          ),
+        };
+
+        if (galleryId) {
+          await authedApi.updateGalleryItem(
+            galleryId,
+            payload
+          );
+        } else {
+          await authedApi.createGalleryItem(
+            service.id,
+            payload
+          );
+        }
+
+        await openGalleryManager(
+          service.id
+        );
+      } catch (error) {
+        if (!handleAuthError(error)) {
+          setMessage(
+            message,
+            error.message ||
+              'Unable to save gallery image.',
+            'error'
+          );
+        }
+      }
+    }
+  );
+
+  bindImagePreview(
+    'm-gallery-file',
+    'm-gallery-preview'
+  );
+
+  document
+    .getElementById(
+      'galleryFormCancel'
+    )
+    ?.addEventListener(
+      'click',
+      clearGalleryForm
+    );
+
+  document
+    .querySelectorAll(
+      '[data-edit-gallery]'
+    )
+    .forEach((button) => {
+      button.addEventListener(
+        'click',
+        () => {
+          const image = gallery.find(
+            (item) =>
+              String(item.id) ===
+              String(
+                button.dataset.editGallery
+              )
+          );
+
+          if (!image) {
+            return;
+          }
+
+          document.getElementById(
+            'galleryFormHeading'
+          ).textContent =
+            'Edit gallery image';
+
+          document.getElementById(
+            'm-gallery-id'
+          ).value = image.id;
+
+          document.getElementById(
+            'm-gallery-existing-url'
+          ).value =
+            image.image_url || '';
+
+          document.getElementById(
+            'm-gallery-caption'
+          ).value =
+            image.caption || '';
+
+          document.getElementById(
+            'm-gallery-alt'
+          ).value =
+            image.alt_text || '';
+
+          document.getElementById(
+            'm-gallery-order'
+          ).value =
+            image.sort_order || 0;
+
+          document.getElementById(
+            'm-gallery-active'
+          ).value =
+            Number(image.is_active)
+              ? '1'
+              : '0';
+
+          const fileInput =
+            document.getElementById(
+              'm-gallery-file'
+            );
+
+          fileInput.value = '';
+
+          const preview =
+            document.getElementById(
+              'm-gallery-preview'
+            );
+
+          preview.src =
+            resolveImageUrl(
+              image.image_url
+            );
+
+          preview.alt =
+            image.alt_text ||
+            image.caption ||
+            'Gallery preview';
+
+          preview.classList.remove(
+            'hidden'
+          );
+
+          document.getElementById(
+            'gallerySaveButton'
+          ).textContent =
+            'Save changes';
+
+          document
+            .getElementById(
+              'galleryFormHeading'
+            )
+            .scrollIntoView({
+              behavior: 'smooth',
+              block: 'start',
+            });
+
+          document
+            .getElementById(
+              'm-gallery-caption'
+            )
+            .focus();
+        }
+      );
     });
+
+  document
+    .querySelectorAll(
+      '[data-delete-gallery]'
+    )
+    .forEach((button) => {
+      button.addEventListener(
+        'click',
+        async () => {
+          const confirmed = confirm(
+            'Delete this gallery image?'
+          );
+
+          if (!confirmed) {
+            return;
+          }
+
+          try {
+            await authedApi.deleteGalleryItem(
+              button.dataset.deleteGallery
+            );
+
+            await openGalleryManager(
+              service.id
+            );
+          } catch (error) {
+            if (!handleAuthError(error)) {
+              alert(
+                `Unable to delete gallery image: ${error.message}`
+              );
+            }
+          }
+        }
+      );
+    });
+}
+
+function clearGalleryForm() {
+  const heading =
+    document.getElementById(
+      'galleryFormHeading'
+    );
+
+  const saveButton =
+    document.getElementById(
+      'gallerySaveButton'
+    );
+
+  if (heading) {
+    heading.textContent =
+      'Add gallery image';
+  }
+
+  if (saveButton) {
+    saveButton.textContent =
+      'Upload image';
+  }
+
+  [
+    'm-gallery-id',
+    'm-gallery-existing-url',
+    'm-gallery-caption',
+    'm-gallery-alt',
+  ].forEach((id) => {
+    const element =
+      document.getElementById(id);
+
+    if (element) {
+      element.value = '';
+    }
   });
+
+  const fileInput =
+    document.getElementById(
+      'm-gallery-file'
+    );
+
+  if (fileInput) {
+    fileInput.value = '';
+  }
+
+  const order =
+    document.getElementById(
+      'm-gallery-order'
+    );
+
+  if (order) {
+    order.value = '0';
+  }
+
+  const active =
+    document.getElementById(
+      'm-gallery-active'
+    );
+
+  if (active) {
+    active.value = '1';
+  }
+
+  const preview =
+    document.getElementById(
+      'm-gallery-preview'
+    );
+
+  if (preview) {
+    preview.removeAttribute('src');
+    preview.alt = 'Gallery preview';
+    preview.classList.add('hidden');
+  }
+
+  setMessage(
+    document.getElementById(
+      'modalFormMessage'
+    ),
+    ''
+  );
 }
 
 // -----------------------------------------------------------------------------

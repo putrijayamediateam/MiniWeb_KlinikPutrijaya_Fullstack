@@ -1,175 +1,850 @@
 'use strict';
 
-// Public Services page.
-// Every service card deliberately uses that service record's own
-// hero_image_url, which is also used on its service detail page.
+document.addEventListener(
+  'DOMContentLoaded',
+  initServicesV2Page
+);
 
-document.addEventListener('DOMContentLoaded', initServicesPage);
+const serviceState = {
+  categories: [],
+  subcategories: [],
+  services: [],
+  selectedCategoryId: null,
+  selectedSubcategoryId: null,
+  query: '',
+};
 
-let allServices = [];
+async function initServicesV2Page() {
+  const categoryContainer =
+    document.getElementById(
+      'serviceCategoryCards'
+    );
 
-async function initServicesPage() {
-  const grid = document.getElementById('servicesGrid');
-  if (!grid) return;
+  const servicesGrid =
+    document.getElementById('servicesGrid');
 
-  try {
-    const response = await KPApi.getServices();
-    allServices = Array.isArray(response) ? response : [];
-    populateCategoryFilter(allServices);
-    renderServices(allServices);
-  } catch (error) {
-    grid.innerHTML = `
-      <div class="services-empty error">
-        Could not load services. Please confirm the backend is running on port 4000.
-      </div>
-    `;
-  }
-
-  document.getElementById('serviceSearch')?.addEventListener('input', applyFilters);
-  document.getElementById('serviceCategory')?.addEventListener('change', applyFilters);
-}
-
-function populateCategoryFilter(services) {
-  const select = document.getElementById('serviceCategory');
-  if (!select) return;
-
-  const categories = [...new Set(
-    services
-      .map((service) => String(service.category_key || '').trim())
-      .filter(Boolean)
-  )].sort((a, b) => formatCategory(a).localeCompare(formatCategory(b)));
-
-  select.innerHTML = [
-    '<option value="">All categories</option>',
-    ...categories.map((category) => (
-      `<option value="${escapeAttribute(category)}">${escapeHtml(formatCategory(category))}</option>`
-    )),
-  ].join('');
-}
-
-function applyFilters() {
-  const query = document.getElementById('serviceSearch')?.value.trim().toLowerCase() || '';
-  const category = document.getElementById('serviceCategory')?.value || '';
-
-  const filtered = allServices.filter((service) => {
-    const matchesCategory = !category || service.category_key === category;
-    const searchable = [
-      service.title,
-      service.kicker,
-      service.description,
-      service.category_key,
-    ]
-      .filter(Boolean)
-      .join(' ')
-      .toLowerCase();
-
-    return matchesCategory && (!query || searchable.includes(query));
-  });
-
-  renderServices(filtered);
-}
-
-function renderServices(services) {
-  const grid = document.getElementById('servicesGrid');
-  if (!grid) return;
-
-  if (!services.length) {
-    grid.innerHTML = '<div class="services-empty">No services match your search.</div>';
+  if (!categoryContainer || !servicesGrid) {
     return;
   }
 
-  grid.innerHTML = services.map((service) => {
-    const heroImage = resolveImageUrl(service.hero_image_url);
-    const price = service.starting_price == null
-      ? 'View price list'
-      : `From ${formatMoney(service.starting_price)}`;
+  bindServicePageEvents();
 
-    const media = heroImage
-      ? `
-        <div class="service-card-media">
-          <img
-            src="${escapeAttribute(heroImage)}"
-            alt="${escapeAttribute(`${service.title} at Klinik Putrijaya`)}"
-            loading="lazy"
-            data-service-card-image
-          >
-          <span class="service-category">${escapeHtml(formatCategory(service.category_key))}</span>
-        </div>
-      `
-      : `
-        <div class="service-card-media placeholder">
-          <span class="service-category">${escapeHtml(formatCategory(service.category_key))}</span>
-        </div>
-      `;
+  try {
+    const [
+      categoriesResponse,
+      subcategoriesResponse,
+      servicesResponse,
+    ] = await Promise.all([
+      KPApi.getServiceCategories(),
+      KPApi.getServiceSubcategories(),
+      KPApi.getServiceCatalog(),
+    ]);
 
-    return `
-      <article class="service-card">
-        <a
-          class="service-card-link"
-          href="service-detail.html?slug=${encodeURIComponent(service.slug)}"
-          aria-label="View ${escapeAttribute(service.title)} service details"
-        >
-          ${media}
+    serviceState.categories =
+      Array.isArray(categoriesResponse)
+        ? categoriesResponse.filter(
+            (category) =>
+              Number(category.is_active) === 1
+          )
+        : [];
 
-          <div class="service-card-body">
-            ${service.kicker ? `<p class="service-kicker">${escapeHtml(service.kicker)}</p>` : ''}
-            <h3>${escapeHtml(service.title)}</h3>
-            <p class="service-card-description">
-              ${escapeHtml(service.description || 'View detailed information about this service.')}
-            </p>
+    serviceState.subcategories =
+      Array.isArray(subcategoriesResponse)
+        ? subcategoriesResponse.filter(
+            (subcategory) =>
+              Number(subcategory.is_active) === 1
+          )
+        : [];
 
-            <div class="service-card-footer">
-              <span class="service-price">${escapeHtml(price)}</span>
-              <span class="service-more">View details →</span>
-            </div>
-          </div>
-        </a>
-      </article>
+    serviceState.services =
+      Array.isArray(servicesResponse)
+        ? servicesResponse.filter(
+            (service) =>
+              Number(service.is_active) === 1
+          )
+        : [];
+
+    serviceState.selectedCategoryId =
+      getInitialCategoryId();
+
+    renderServicesV2Page();
+  } catch (error) {
+    console.error(
+      'Unable to load Services V2:',
+      error
+    );
+
+    categoryContainer.innerHTML = `
+      <div class="services-empty error">
+        Service categories could not be loaded.
+        Please confirm the backend is running.
+      </div>
     `;
-  }).join('');
+
+    servicesGrid.innerHTML = `
+      <div class="services-empty error">
+        The service catalogue is temporarily
+        unavailable.
+      </div>
+    `;
+
+    setText(
+      'serviceCount',
+      'Unable to load services'
+    );
+  }
+}
+
+function bindServicePageEvents() {
+  document
+    .getElementById('serviceCategoryCards')
+    ?.addEventListener('click', (event) => {
+      const button = event.target.closest(
+        '[data-category-id]'
+      );
+
+      if (!button) {
+        return;
+      }
+
+      const categoryId = Number(
+        button.dataset.categoryId
+      );
+
+      if (!Number.isInteger(categoryId)) {
+        return;
+      }
+
+      serviceState.selectedCategoryId =
+        categoryId;
+
+      serviceState.selectedSubcategoryId =
+        null;
+
+      renderServicesV2Page();
+
+      document
+        .getElementById(
+          'selectedServiceCategoryTitle'
+        )
+        ?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center',
+        });
+    });
+
+  document
+    .getElementById(
+      'serviceSubcategories'
+    )
+    ?.addEventListener('click', (event) => {
+      const button = event.target.closest(
+        '[data-subcategory-id]'
+      );
+
+      if (!button) {
+        return;
+      }
+
+      const value =
+        button.dataset.subcategoryId;
+
+      serviceState.selectedSubcategoryId =
+        value === ''
+          ? null
+          : Number(value);
+
+      renderSubcategoryFilters();
+      applyServiceFilters();
+    });
+
+  document
+    .getElementById('serviceSearch')
+    ?.addEventListener('input', (event) => {
+      serviceState.query =
+        String(event.target.value || '')
+          .trim()
+          .toLowerCase();
+
+      applyServiceFilters();
+    });
+
+  document
+    .getElementById(
+      'clearServiceFilters'
+    )
+    ?.addEventListener('click', () => {
+      clearServiceFilters();
+    });
+
+  document
+    .getElementById('servicesGrid')
+    ?.addEventListener('click', (event) => {
+      const resetButton = event.target.closest(
+        '[data-reset-service-filters]'
+      );
+
+      if (!resetButton) {
+        return;
+      }
+
+      clearServiceFilters();
+    });
+}
+
+function getInitialCategoryId() {
+  const firstService =
+    serviceState.services[0];
+
+  if (
+    firstService &&
+    Number(firstService.category_id)
+  ) {
+    return Number(firstService.category_id);
+  }
+
+  const firstCategory =
+    serviceState.categories[0];
+
+  return firstCategory
+    ? Number(firstCategory.id)
+    : null;
+}
+
+function renderServicesV2Page() {
+  renderCategoryCards();
+  renderSelectedCategory();
+  renderSubcategoryFilters();
+  applyServiceFilters();
+}
+
+function renderCategoryCards() {
+  const container =
+    document.getElementById(
+      'serviceCategoryCards'
+    );
+
+  if (!container) {
+    return;
+  }
+
+  if (!serviceState.categories.length) {
+    container.innerHTML = `
+      <div class="services-empty">
+        No service categories are currently
+        available.
+      </div>
+    `;
+
+    return;
+  }
+
+  container.innerHTML =
+    serviceState.categories
+      .map((category, index) => {
+        const categoryId =
+          Number(category.id);
+
+        const serviceCount =
+          getCategoryServiceCount(
+            categoryId
+          );
+
+        const isSelected =
+          categoryId ===
+          Number(
+            serviceState.selectedCategoryId
+          );
+
+        return `
+          <button
+            class="service-category-card ${
+              isSelected ? 'is-active' : ''
+            }"
+            type="button"
+            data-category-id="${categoryId}"
+            data-category-slug="${escapeAttribute(
+              category.slug
+            )}"
+            aria-pressed="${
+              isSelected ? 'true' : 'false'
+            }"
+          >
+            <span
+              class="service-category-card-number"
+              aria-hidden="true"
+            >
+              ${String(index + 1).padStart(
+                2,
+                '0'
+              )}
+            </span>
+
+            <span class="service-category-card-copy">
+              <strong>
+                ${escapeHtml(category.name)}
+              </strong>
+
+              <span>
+                ${escapeHtml(
+                  category.short_description ||
+                    'Explore the available services in this category.'
+                )}
+              </span>
+            </span>
+
+            <span class="service-category-card-footer">
+              <span>
+                ${serviceCount}
+                ${
+                  serviceCount === 1
+                    ? 'service'
+                    : 'services'
+                }
+              </span>
+
+              <span aria-hidden="true">
+                &rarr;
+              </span>
+            </span>
+          </button>
+        `;
+      })
+      .join('');
+}
+
+function renderSelectedCategory() {
+  const category =
+    getSelectedCategory();
+
+  if (!category) {
+    setText(
+      'selectedServiceCategoryTitle',
+      'No category selected'
+    );
+
+    setText(
+      'servicesCategoryDescription',
+      'Choose a service category to continue.'
+    );
+
+    return;
+  }
+
+  setText(
+    'servicesCategoryEyebrow',
+    'Selected category'
+  );
+
+  setText(
+    'selectedServiceCategoryTitle',
+    category.name
+  );
+
+  setText(
+    'servicesCategoryDescription',
+    category.short_description ||
+      'Explore the services available in this category.'
+  );
+}
+
+function renderSubcategoryFilters() {
+  const container =
+    document.getElementById(
+      'serviceSubcategories'
+    );
+
+  if (!container) {
+    return;
+  }
+
+  const categoryId = Number(
+    serviceState.selectedCategoryId
+  );
+
+  const subcategories =
+    serviceState.subcategories.filter(
+      (subcategory) =>
+        Number(subcategory.category_id) ===
+        categoryId
+    );
+
+  const allCount =
+    getCategoryServiceCount(categoryId);
+
+  const allIsActive =
+    serviceState.selectedSubcategoryId ===
+    null;
+
+  const buttons = [
+    `
+      <button
+        type="button"
+        class="service-subcategory-button ${
+          allIsActive ? 'is-active' : ''
+        }"
+        data-subcategory-id=""
+        aria-pressed="${
+          allIsActive ? 'true' : 'false'
+        }"
+      >
+        <span>All services</span>
+        <small>${allCount}</small>
+      </button>
+    `,
+    ...subcategories.map(
+      (subcategory) => {
+        const subcategoryId =
+          Number(subcategory.id);
+
+        const isActive =
+          subcategoryId ===
+          Number(
+            serviceState.selectedSubcategoryId
+          );
+
+        const count =
+          getSubcategoryServiceCount(
+            subcategoryId
+          );
+
+        return `
+          <button
+            type="button"
+            class="service-subcategory-button ${
+              isActive ? 'is-active' : ''
+            }"
+            data-subcategory-id="${subcategoryId}"
+            aria-pressed="${
+              isActive ? 'true' : 'false'
+            }"
+          >
+            <span>
+              ${escapeHtml(
+                subcategory.name
+              )}
+            </span>
+
+            <small>${count}</small>
+          </button>
+        `;
+      }
+    ),
+  ];
+
+  container.innerHTML =
+    buttons.join('');
+}
+
+function applyServiceFilters() {
+  const categoryId = Number(
+    serviceState.selectedCategoryId
+  );
+
+  const subcategoryId =
+    serviceState.selectedSubcategoryId;
+
+  const query = serviceState.query;
+
+  const filteredServices =
+    serviceState.services.filter(
+      (service) => {
+        const matchesCategory =
+          Number(service.category_id) ===
+          categoryId;
+
+        const matchesSubcategory =
+          subcategoryId === null ||
+          Number(service.subcategory_id) ===
+            Number(subcategoryId);
+
+        const searchableText = [
+          service.title,
+          service.kicker,
+          service.description,
+          service.keywords,
+          service.result_time,
+          service.category_name,
+          service.subcategory_name,
+          ...(Array.isArray(
+            service.branches
+          )
+            ? service.branches.map(
+                (branch) => branch.name
+              )
+            : []),
+        ]
+          .filter(Boolean)
+          .join(' ')
+          .toLowerCase();
+
+        const matchesSearch =
+          !query ||
+          searchableText.includes(query);
+
+        return (
+          matchesCategory &&
+          matchesSubcategory &&
+          matchesSearch
+        );
+      }
+    );
+
+  renderServiceCards(filteredServices);
+
+  setText(
+    'serviceCount',
+    `${filteredServices.length} ${
+      filteredServices.length === 1
+        ? 'service'
+        : 'services'
+    } found`
+  );
+}
+
+function renderServiceCards(services) {
+  const grid =
+    document.getElementById('servicesGrid');
+
+  if (!grid) {
+    return;
+  }
+
+  if (!services.length) {
+    grid.innerHTML = `
+      <div class="services-empty">
+        <strong>
+          No matching services found.
+        </strong>
+
+        <p>
+          Try another subcategory or clear the
+          current search.
+        </p>
+
+        <button
+          type="button"
+          class="services-empty-reset"
+          data-reset-service-filters
+        >
+          Clear filters
+        </button>
+      </div>
+    `;
+
+    return;
+  }
+
+  grid.innerHTML = services
+    .map((service) => {
+      const heroImage =
+        resolveImageUrl(
+          service.hero_image_url
+        );
+
+      const branches =
+        Array.isArray(service.branches)
+          ? service.branches
+          : [];
+
+      const branchTags =
+        branches.length
+          ? branches
+              .map(
+                (branch) => `
+                  <span class="service-branch-tag">
+                    ${escapeHtml(
+                      formatBranchName(
+                        branch.name
+                      )
+                    )}
+                  </span>
+                `
+              )
+              .join('')
+          : `
+              <span class="service-branch-tag muted">
+                Contact clinic for availability
+              </span>
+            `;
+
+      const media = heroImage
+        ? `
+            <img
+              src="${escapeAttribute(
+                heroImage
+              )}"
+              alt="${escapeAttribute(
+                `${service.title} at Klinik Putrijaya`
+              )}"
+              loading="lazy"
+              data-service-card-image
+            >
+          `
+        : `
+            <div
+              class="service-v2-placeholder-mark"
+              aria-hidden="true"
+            >
+              KP
+            </div>
+          `;
+
+      return `
+        <article class="service-v2-card">
+          <a
+            class="service-v2-card-link"
+            href="service-detail.html?slug=${encodeURIComponent(
+              service.slug
+            )}"
+            aria-label="View ${escapeAttribute(
+              service.title
+            )} details"
+          >
+            <div
+              class="service-v2-card-media ${
+                heroImage
+                  ? ''
+                  : 'is-placeholder'
+              }"
+            >
+              ${media}
+
+              <div class="service-v2-card-badges">
+                <span class="service-v2-category-badge">
+                  ${escapeHtml(
+                    service.subcategory_name ||
+                      service.category_name
+                  )}
+                </span>
+
+                ${
+                  Number(service.is_featured)
+                    ? `
+                        <span class="service-featured-badge">
+                          Featured
+                        </span>
+                      `
+                    : ''
+                }
+              </div>
+            </div>
+
+            <div class="service-v2-card-body">
+              ${
+                service.kicker
+                  ? `
+                      <p class="service-v2-kicker">
+                        ${escapeHtml(
+                          service.kicker
+                        )}
+                      </p>
+                    `
+                  : ''
+              }
+
+              <h3>
+                ${escapeHtml(service.title)}
+              </h3>
+
+              <p class="service-v2-description">
+                ${escapeHtml(
+                  service.description ||
+                    'View more information about this Klinik Putrijaya service.'
+                )}
+              </p>
+
+              <div class="service-v2-meta">
+                ${
+                  service.result_time
+                    ? `
+                        <span>
+                          <small>Result time</small>
+                          <strong>
+                            ${escapeHtml(
+                              service.result_time
+                            )}
+                          </strong>
+                        </span>
+                      `
+                    : ''
+                }
+
+                <span>
+                  <small>Availability</small>
+                  <strong>
+                    ${branches.length}
+                    ${
+                      branches.length === 1
+                        ? 'branch'
+                        : 'branches'
+                    }
+                  </strong>
+                </span>
+              </div>
+
+              <div class="service-v2-branches">
+                <small>Available at</small>
+
+                <div>
+                  ${branchTags}
+                </div>
+              </div>
+
+              <div class="service-v2-card-footer">
+                <span>View service</span>
+                <span aria-hidden="true">
+                  &rarr;
+                </span>
+              </div>
+            </div>
+          </a>
+        </article>
+      `;
+    })
+    .join('');
 
   installCardImageFallbacks();
 }
 
+function clearServiceFilters() {
+  serviceState.selectedSubcategoryId =
+    null;
+
+  serviceState.query = '';
+
+  const searchInput =
+    document.getElementById(
+      'serviceSearch'
+    );
+
+  if (searchInput) {
+    searchInput.value = '';
+  }
+
+  renderSubcategoryFilters();
+  applyServiceFilters();
+}
+
+function getSelectedCategory() {
+  return (
+    serviceState.categories.find(
+      (category) =>
+        Number(category.id) ===
+        Number(
+          serviceState.selectedCategoryId
+        )
+    ) || null
+  );
+}
+
+function getCategoryServiceCount(
+  categoryId
+) {
+  return serviceState.services.filter(
+    (service) =>
+      Number(service.category_id) ===
+      Number(categoryId)
+  ).length;
+}
+
+function getSubcategoryServiceCount(
+  subcategoryId
+) {
+  return serviceState.services.filter(
+    (service) =>
+      Number(service.subcategory_id) ===
+      Number(subcategoryId)
+  ).length;
+}
+
 function installCardImageFallbacks() {
-  document.querySelectorAll('[data-service-card-image]').forEach((image) => {
-    image.addEventListener('error', () => {
-      const media = image.closest('.service-card-media');
-      media?.classList.add('placeholder');
-      image.remove();
-    }, { once: true });
-  });
+  document
+    .querySelectorAll(
+      '[data-service-card-image]'
+    )
+    .forEach((image) => {
+      image.addEventListener(
+        'error',
+        () => {
+          const media = image.closest(
+            '.service-v2-card-media'
+          );
+
+          if (!media) {
+            return;
+          }
+
+          media.classList.add(
+            'is-placeholder'
+          );
+
+          media.insertAdjacentHTML(
+            'afterbegin',
+            `
+              <div
+                class="service-v2-placeholder-mark"
+                aria-hidden="true"
+              >
+                KP
+              </div>
+            `
+          );
+
+          image.remove();
+        },
+        { once: true }
+      );
+    });
+}
+
+function formatBranchName(value) {
+  return String(value || '')
+    .replace(
+      /^Klinik Putrijaya\s*/i,
+      ''
+    )
+    .trim();
 }
 
 function resolveImageUrl(url) {
-  if (!url) return '';
-  if (/^https?:\/\//i.test(url)) return url;
+  if (!url) {
+    return '';
+  }
+
+  if (/^https?:\/\//i.test(url)) {
+    return url;
+  }
 
   try {
-    const backendOrigin = new URL(KPApi.baseUrl).origin;
-    return `${backendOrigin}${url.startsWith('/') ? '' : '/'}${url}`;
+    const backendOrigin =
+      new URL(KPApi.baseUrl).origin;
+
+    return `${backendOrigin}${
+      url.startsWith('/') ? '' : '/'
+    }${url}`;
   } catch (error) {
     return url;
   }
 }
 
-function formatMoney(value) {
-  return new Intl.NumberFormat('en-MY', {
-    style: 'currency',
-    currency: 'MYR',
-    minimumFractionDigits: Number(value) % 1 === 0 ? 0 : 2,
-  }).format(Number(value));
-}
+function setText(id, value) {
+  const element =
+    document.getElementById(id);
 
-function formatCategory(value) {
-  return String(value || 'General')
-    .replace(/[-_]+/g, ' ')
-    .replace(/\b\w/g, (letter) => letter.toUpperCase());
+  if (element) {
+    element.textContent =
+      value == null ? '' : String(value);
+  }
 }
 
 function escapeHtml(value) {
-  const div = document.createElement('div');
-  div.textContent = value == null ? '' : String(value);
+  const div =
+    document.createElement('div');
+
+  div.textContent =
+    value == null ? '' : String(value);
+
   return div.innerHTML;
 }
 
