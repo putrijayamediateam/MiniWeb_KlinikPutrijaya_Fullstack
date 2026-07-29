@@ -86,6 +86,18 @@
       return apiRequest('/branches');
     },
 
+    getServiceCategories(params = {}) {
+      return apiRequest(
+        `/service-categories${buildQuery(params)}`
+      );
+    },
+
+    getServiceSubcategories(params = {}) {
+      return apiRequest(
+        `/service-subcategories${buildQuery(params)}`
+      );
+    },
+
     getDoctors(params = {}) {
       return apiRequest(`/doctors${buildQuery(params)}`);
     },
