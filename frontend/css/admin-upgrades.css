@@ -777,6 +777,305 @@ body.admin-modal-open {
   justify-content: center;
 }
 
+/* ============================================================
+   ADMIN TYPOGRAPHY
+   Input, dropdown, multiple choice and action buttons
+   ============================================================ */
+
+input,
+select,
+textarea,
+button,
+option {
+  font-family:
+    "Inter",
+    "Segoe UI",
+    Arial,
+    sans-serif;
+  text-rendering: optimizeLegibility;
+}
+
+/* Input, textarea and dropdown */
+input,
+select,
+textarea {
+  font-size: 0.94rem;
+  font-weight: 500;
+  line-height: 1.45;
+  letter-spacing: 0;
+}
+
+/* Placeholder text */
+input::placeholder,
+textarea::placeholder {
+  color: #9a8790;
+  font-family:
+    "Inter",
+    "Segoe UI",
+    Arial,
+    sans-serif;
+  font-weight: 400;
+  opacity: 1;
+}
+
+/* Normal dropdown options */
+select option {
+  font-family:
+    "Inter",
+    "Segoe UI",
+    Arial,
+    sans-serif;
+  font-size: 0.92rem;
+  font-weight: 500;
+}
+
+/* Multiple choice dropdown */
+select[multiple] {
+  padding: 8px;
+  line-height: 1.5;
+}
+
+select[multiple] option {
+  padding: 9px 11px;
+  border-radius: 7px;
+  font-family:
+    "Inter",
+    "Segoe UI",
+    Arial,
+    sans-serif;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+/* Selected multiple-choice item */
+select[multiple] option:checked {
+  background: linear-gradient(
+    135deg,
+    #e31c79,
+    #fb6f92
+  );
+  color: #fff;
+}
+
+/* Form labels */
+label,
+label span,
+.admin-upload-field label {
+  font-family:
+    "Inter",
+    "Segoe UI",
+    Arial,
+    sans-serif;
+}
+
+label > span,
+.admin-upload-field > label {
+  font-size: 0.84rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+/* Admin action buttons */
+.btn-small,
+.btn-primary,
+.btn-secondary,
+.btn-ghost,
+.btn-danger,
+.modal-actions button,
+.table-action-stack button,
+.table-action-stack a {
+  font-family:
+    "Inter",
+    "Segoe UI",
+    Arial,
+    sans-serif;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+/* Edit Details, Prices, Gallery and Preview */
+.table-action-stack .btn-small {
+  font-size: 0.78rem;
+  line-height: 1.2;
+}
+
+/* Modal headings */
+.modal-content h2,
+.modal-content h3,
+.admin-modal h2,
+.admin-modal h3 {
+  font-family:
+    "Poppins",
+    "Inter",
+    sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+/* Help and description text */
+.upload-help,
+.cell-subtext,
+.form-message,
+.manager-row small,
+.gallery-manager-card small {
+  font-family:
+    "Inter",
+    "Segoe UI",
+    Arial,
+    sans-serif;
+}
+
+/* ============================================================
+   FORCE CLEAN ADMIN FONT
+   Must remain at the very bottom of this file.
+   ============================================================ */
+
+html body,
+html body input,
+html body select,
+html body textarea,
+html body button,
+html body option,
+html body label,
+html body table,
+html body td,
+html body th,
+html body a {
+  font-family:
+    "Inter",
+    "Segoe UI",
+    Arial,
+    sans-serif !important;
+}
+
+/* All text inputs and dropdowns */
+html body input[type="text"],
+html body input[type="email"],
+html body input[type="password"],
+html body input[type="tel"],
+html body input[type="number"],
+html body input[type="date"],
+html body input[type="time"],
+html body input[type="url"],
+html body input[type="search"],
+html body input[type="file"],
+html body select,
+html body textarea {
+  font-family:
+    "Inter",
+    "Segoe UI",
+    Arial,
+    sans-serif !important;
+
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  letter-spacing: 0 !important;
+  line-height: 1.5 !important;
+}
+
+/* Dropdown and multiple-choice items */
+html body select option,
+html body select[multiple],
+html body select[multiple] option {
+  font-family:
+    "Inter",
+    "Segoe UI",
+    Arial,
+    sans-serif !important;
+
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  letter-spacing: 0 !important;
+}
+
+/* Textarea */
+html body textarea {
+  line-height: 1.65 !important;
+}
+
+/* Placeholder */
+html body input::placeholder,
+html body textarea::placeholder {
+  font-family:
+    "Inter",
+    "Segoe UI",
+    Arial,
+    sans-serif !important;
+
+  font-weight: 400 !important;
+  letter-spacing: 0 !important;
+}
+
+/* Form labels */
+html body label,
+html body label span,
+html body .admin-upload-field label {
+  font-family:
+    "Inter",
+    "Segoe UI",
+    Arial,
+    sans-serif !important;
+}
+
+html body label > span,
+html body .admin-upload-field > label {
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.01em !important;
+}
+
+/* Edit details, Prices, Gallery, Preview and Delete */
+html body .btn-small,
+html body .btn-primary,
+html body .btn-secondary,
+html body .btn-ghost,
+html body .btn-danger,
+html body .table-action-stack button,
+html body .table-action-stack a,
+html body .modal-actions button {
+  font-family:
+    "Inter",
+    "Segoe UI",
+    Arial,
+    sans-serif !important;
+
+  font-weight: 600 !important;
+  letter-spacing: 0 !important;
+}
+
+/* Modal headings */
+html body .modal-content h1,
+html body .modal-content h2,
+html body .modal-content h3,
+html body .admin-modal h1,
+html body .admin-modal h2,
+html body .admin-modal h3 {
+  font-family:
+    "Poppins",
+    "Inter",
+    sans-serif !important;
+
+  font-weight: 700 !important;
+  letter-spacing: -0.01em !important;
+}
+
+/* Table and supporting text */
+html body .cell-subtext,
+html body .upload-help,
+html body .form-message,
+html body .manager-row,
+html body .manager-row small,
+html body .gallery-manager-card,
+html body .gallery-manager-card small {
+  font-family:
+    "Inter",
+    "Segoe UI",
+    Arial,
+    sans-serif !important;
+
+  letter-spacing: 0 !important;
+}
+
 @media (max-width: 700px) {
   .admin-action-buttons {
     align-items: flex-end;
