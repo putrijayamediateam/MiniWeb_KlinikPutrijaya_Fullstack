@@ -765,6 +765,18 @@ body.admin-modal-open {
   box-shadow: none;
 }
 
+.gallery-manager-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.gallery-manager-actions .btn-small {
+  flex: 1;
+  justify-content: center;
+}
+
 @media (max-width: 700px) {
   .admin-action-buttons {
     align-items: flex-end;

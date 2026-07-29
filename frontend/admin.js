@@ -1608,85 +1608,564 @@ function clearPriceForm() {
 
 async function openGalleryManager(serviceId) {
   try {
-    const service = await authedApi.getAdminService(serviceId);
+    const service =
+      await authedApi.getAdminService(
+        serviceId
+      );
+
     renderGalleryManager(service);
   } catch (error) {
-    if (!handleAuthError(error)) alert(`Unable to load gallery: ${error.message}`);
+    if (!handleAuthError(error)) {
+      alert(
+        `Unable to load gallery: ${error.message}`
+      );
+    }
   }
 }
 
 function renderGalleryManager(service) {
-  showModal(`Gallery · ${service.title}`, `
-    <div class="gallery-manager-grid">
-      ${(service.gallery || []).length ? service.gallery.map((image) => `
-        <article class="gallery-manager-card">
-          <img src="${escapeAttribute(resolveImageUrl(image.image_url))}" alt="${escapeAttribute(image.alt_text || '')}">
-          <div>
-            <strong>${escapeHtml(image.caption || 'No caption')}</strong>
-            <small>${Number(image.is_active) ? 'Active' : 'Inactive'} · Order ${Number(image.sort_order || 0)}</small>
-            <button class="btn-small danger" type="button" data-delete-gallery="${image.id}">Delete</button>
-          </div>
-        </article>
-      `).join('') : '<div class="manager-empty">No gallery images added yet.</div>'}
-    </div>
+  const gallery = Array.isArray(
+    service.gallery
+  )
+    ? service.gallery
+    : [];
 
-    <hr class="modal-divider">
-    <h3>Add gallery image</h3>
+  showModal(
+    `Gallery · ${service.title}`,
+    `
+      <div class="gallery-manager-grid">
+        ${
+          gallery.length
+            ? gallery
+                .map(
+                  (image) => `
+                    <article class="gallery-manager-card">
+                      <img
+                        src="${escapeAttribute(
+                          resolveImageUrl(
+                            image.image_url
+                          )
+                        )}"
+                        alt="${escapeAttribute(
+                          image.alt_text ||
+                            image.caption ||
+                            'Service gallery image'
+                        )}"
+                      >
 
-    <div class="admin-upload-field">
-      <label for="m-gallery-file">Image</label>
-      <input id="m-gallery-file" type="file" accept="image/jpeg,image/png,image/webp" required>
-      <img id="m-gallery-preview" class="admin-image-preview landscape hidden" src="" alt="Gallery preview">
-    </div>
+                      <div>
+                        <strong>
+                          ${escapeHtml(
+                            image.caption ||
+                              'No caption'
+                          )}
+                        </strong>
 
-    <label><span>Caption</span><input id="m-gallery-caption" type="text"></label>
-    <label><span>Alternative text</span><input id="m-gallery-alt" type="text" placeholder="Describe the image for accessibility"></label>
+                        <small>
+                          ${
+                            Number(
+                              image.is_active
+                            )
+                              ? 'Active'
+                              : 'Inactive'
+                          }
+                          · Order
+                          ${Number(
+                            image.sort_order || 0
+                          )}
+                        </small>
 
-    <div class="admin-form-grid two-column">
-      <label><span>Order</span><input id="m-gallery-order" type="number" value="0"></label>
-      <label><span>Active</span><select id="m-gallery-active"><option value="1">Yes</option><option value="0">No</option></select></label>
-    </div>
+                        <div class="gallery-manager-actions">
+                          <button
+                            class="btn-small"
+                            type="button"
+                            data-edit-gallery="${image.id}"
+                          >
+                            Edit
+                          </button>
 
-    <div id="modalFormMessage" class="form-message"></div>
-    <div class="modal-actions"><button class="btn-primary" type="submit">Upload image</button></div>
-  `, async (event) => {
-    event.preventDefault();
-    const message = document.getElementById('modalFormMessage');
-    const file = document.getElementById('m-gallery-file').files[0];
+                          <button
+                            class="btn-small danger"
+                            type="button"
+                            data-delete-gallery="${image.id}"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </div>
+                    </article>
+                  `
+                )
+                .join('')
+            : `
+                <div class="manager-empty">
+                  No gallery images added yet.
+                </div>
+              `
+        }
+      </div>
 
-    if (!file) {
-      setMessage(message, 'Please select an image.', 'error');
-      return;
-    }
+      <hr class="modal-divider">
 
-    try {
-      const upload = await authedApi.uploadImage(file, 'services');
-      await authedApi.createGalleryItem(service.id, {
-        image_url: upload.url,
-        caption: document.getElementById('m-gallery-caption').value.trim() || null,
-        alt_text: document.getElementById('m-gallery-alt').value.trim() || null,
-        sort_order: Number(document.getElementById('m-gallery-order').value || 0),
-        is_active: Number(document.getElementById('m-gallery-active').value),
-      });
-      await openGalleryManager(service.id);
-    } catch (error) {
-      if (!handleAuthError(error)) setMessage(message, error.message, 'error');
-    }
-  });
+      <h3 id="galleryFormHeading">
+        Add gallery image
+      </h3>
 
-  bindImagePreview('m-gallery-file', 'm-gallery-preview');
+      <input
+        id="m-gallery-id"
+        type="hidden"
+      >
 
-  document.querySelectorAll('[data-delete-gallery]').forEach((button) => {
-    button.addEventListener('click', async () => {
-      if (!confirm('Delete this gallery image?')) return;
-      try {
-        await authedApi.deleteGalleryItem(button.dataset.deleteGallery);
-        await openGalleryManager(service.id);
-      } catch (error) {
-        if (!handleAuthError(error)) alert(`Unable to delete gallery image: ${error.message}`);
+      <input
+        id="m-gallery-existing-url"
+        type="hidden"
+      >
+
+      <div class="admin-upload-field">
+        <label for="m-gallery-file">
+          Image
+        </label>
+
+        <input
+          id="m-gallery-file"
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+        >
+
+        <div class="upload-help">
+          Select an image when adding a new item.
+          When editing, leave this empty to keep
+          the existing image.
+        </div>
+
+        <img
+          id="m-gallery-preview"
+          class="admin-image-preview landscape hidden"
+          src=""
+          alt="Gallery preview"
+        >
+      </div>
+
+      <label>
+        <span>Caption</span>
+
+        <input
+          id="m-gallery-caption"
+          type="text"
+          placeholder="Optional image caption"
+        >
+      </label>
+
+      <label>
+        <span>Alternative text</span>
+
+        <input
+          id="m-gallery-alt"
+          type="text"
+          placeholder="Describe the image for accessibility"
+        >
+      </label>
+
+      <div class="admin-form-grid two-column">
+        <label>
+          <span>Display order</span>
+
+          <input
+            id="m-gallery-order"
+            type="number"
+            value="0"
+          >
+        </label>
+
+        <label>
+          <span>Active</span>
+
+          <select id="m-gallery-active">
+            <option value="1">
+              Yes
+            </option>
+
+            <option value="0">
+              No
+            </option>
+          </select>
+        </label>
+      </div>
+
+      <div
+        id="modalFormMessage"
+        class="form-message"
+      ></div>
+
+      <div class="modal-actions">
+        <button
+          class="btn-ghost"
+          id="galleryFormCancel"
+          type="button"
+        >
+          Clear form
+        </button>
+
+        <button
+          class="btn-primary"
+          id="gallerySaveButton"
+          type="submit"
+        >
+          Upload image
+        </button>
+      </div>
+    `,
+    async (event) => {
+      event.preventDefault();
+
+      const message =
+        document.getElementById(
+          'modalFormMessage'
+        );
+
+      const galleryId =
+        document.getElementById(
+          'm-gallery-id'
+        ).value;
+
+      const existingImageUrl =
+        document.getElementById(
+          'm-gallery-existing-url'
+        ).value;
+
+      const file =
+        document.getElementById(
+          'm-gallery-file'
+        ).files[0];
+
+      if (!galleryId && !file) {
+        setMessage(
+          message,
+          'Please select an image.',
+          'error'
+        );
+
+        return;
       }
+
+      let imageUrl =
+        existingImageUrl || '';
+
+      try {
+        setMessage(message, '');
+
+        if (file) {
+          const upload =
+            await authedApi.uploadImage(
+              file,
+              'services'
+            );
+
+          imageUrl = upload.url;
+        }
+
+        if (!imageUrl) {
+          setMessage(
+            message,
+            'A gallery image is required.',
+            'error'
+          );
+
+          return;
+        }
+
+        const payload = {
+          image_url: imageUrl,
+
+          caption:
+            document
+              .getElementById(
+                'm-gallery-caption'
+              )
+              .value.trim() || null,
+
+          alt_text:
+            document
+              .getElementById(
+                'm-gallery-alt'
+              )
+              .value.trim() || null,
+
+          sort_order: Number(
+            document.getElementById(
+              'm-gallery-order'
+            ).value || 0
+          ),
+
+          is_active: Number(
+            document.getElementById(
+              'm-gallery-active'
+            ).value
+          ),
+        };
+
+        if (galleryId) {
+          await authedApi.updateGalleryItem(
+            galleryId,
+            payload
+          );
+        } else {
+          await authedApi.createGalleryItem(
+            service.id,
+            payload
+          );
+        }
+
+        await openGalleryManager(
+          service.id
+        );
+      } catch (error) {
+        if (!handleAuthError(error)) {
+          setMessage(
+            message,
+            error.message ||
+              'Unable to save gallery image.',
+            'error'
+          );
+        }
+      }
+    }
+  );
+
+  bindImagePreview(
+    'm-gallery-file',
+    'm-gallery-preview'
+  );
+
+  document
+    .getElementById(
+      'galleryFormCancel'
+    )
+    ?.addEventListener(
+      'click',
+      clearGalleryForm
+    );
+
+  document
+    .querySelectorAll(
+      '[data-edit-gallery]'
+    )
+    .forEach((button) => {
+      button.addEventListener(
+        'click',
+        () => {
+          const image = gallery.find(
+            (item) =>
+              String(item.id) ===
+              String(
+                button.dataset.editGallery
+              )
+          );
+
+          if (!image) {
+            return;
+          }
+
+          document.getElementById(
+            'galleryFormHeading'
+          ).textContent =
+            'Edit gallery image';
+
+          document.getElementById(
+            'm-gallery-id'
+          ).value = image.id;
+
+          document.getElementById(
+            'm-gallery-existing-url'
+          ).value =
+            image.image_url || '';
+
+          document.getElementById(
+            'm-gallery-caption'
+          ).value =
+            image.caption || '';
+
+          document.getElementById(
+            'm-gallery-alt'
+          ).value =
+            image.alt_text || '';
+
+          document.getElementById(
+            'm-gallery-order'
+          ).value =
+            image.sort_order || 0;
+
+          document.getElementById(
+            'm-gallery-active'
+          ).value =
+            Number(image.is_active)
+              ? '1'
+              : '0';
+
+          const fileInput =
+            document.getElementById(
+              'm-gallery-file'
+            );
+
+          fileInput.value = '';
+
+          const preview =
+            document.getElementById(
+              'm-gallery-preview'
+            );
+
+          preview.src =
+            resolveImageUrl(
+              image.image_url
+            );
+
+          preview.alt =
+            image.alt_text ||
+            image.caption ||
+            'Gallery preview';
+
+          preview.classList.remove(
+            'hidden'
+          );
+
+          document.getElementById(
+            'gallerySaveButton'
+          ).textContent =
+            'Save changes';
+
+          document
+            .getElementById(
+              'galleryFormHeading'
+            )
+            .scrollIntoView({
+              behavior: 'smooth',
+              block: 'start',
+            });
+
+          document
+            .getElementById(
+              'm-gallery-caption'
+            )
+            .focus();
+        }
+      );
     });
+
+  document
+    .querySelectorAll(
+      '[data-delete-gallery]'
+    )
+    .forEach((button) => {
+      button.addEventListener(
+        'click',
+        async () => {
+          const confirmed = confirm(
+            'Delete this gallery image?'
+          );
+
+          if (!confirmed) {
+            return;
+          }
+
+          try {
+            await authedApi.deleteGalleryItem(
+              button.dataset.deleteGallery
+            );
+
+            await openGalleryManager(
+              service.id
+            );
+          } catch (error) {
+            if (!handleAuthError(error)) {
+              alert(
+                `Unable to delete gallery image: ${error.message}`
+              );
+            }
+          }
+        }
+      );
+    });
+}
+
+function clearGalleryForm() {
+  const heading =
+    document.getElementById(
+      'galleryFormHeading'
+    );
+
+  const saveButton =
+    document.getElementById(
+      'gallerySaveButton'
+    );
+
+  if (heading) {
+    heading.textContent =
+      'Add gallery image';
+  }
+
+  if (saveButton) {
+    saveButton.textContent =
+      'Upload image';
+  }
+
+  [
+    'm-gallery-id',
+    'm-gallery-existing-url',
+    'm-gallery-caption',
+    'm-gallery-alt',
+  ].forEach((id) => {
+    const element =
+      document.getElementById(id);
+
+    if (element) {
+      element.value = '';
+    }
   });
+
+  const fileInput =
+    document.getElementById(
+      'm-gallery-file'
+    );
+
+  if (fileInput) {
+    fileInput.value = '';
+  }
+
+  const order =
+    document.getElementById(
+      'm-gallery-order'
+    );
+
+  if (order) {
+    order.value = '0';
+  }
+
+  const active =
+    document.getElementById(
+      'm-gallery-active'
+    );
+
+  if (active) {
+    active.value = '1';
+  }
+
+  const preview =
+    document.getElementById(
+      'm-gallery-preview'
+    );
+
+  if (preview) {
+    preview.removeAttribute('src');
+    preview.alt = 'Gallery preview';
+    preview.classList.add('hidden');
+  }
+
+  setMessage(
+    document.getElementById(
+      'modalFormMessage'
+    ),
+    ''
+  );
 }
 
 // -----------------------------------------------------------------------------
