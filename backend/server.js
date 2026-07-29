@@ -264,7 +264,13 @@ app.use(
   require('./routes/serviceSubcategories')
 );
 
+app.use(
+  '/api/service-catalog',
+  require('./routes/serviceCatalog')
+);
+
 app.use('/api/services', require('./routes/services'));
+
 app.use('/api/bookings', require('./routes/bookings'));
 app.use('/api/feedback', require('./routes/feedback'));
 
