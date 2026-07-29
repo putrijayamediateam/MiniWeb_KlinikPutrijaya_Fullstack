@@ -526,6 +526,7 @@ router.get('/', async (req, res) => {
 
     const conditions = [
       's.is_active = 1',
+      's.subcategory_id IS NULL',
     ];
 
     const params = [];
