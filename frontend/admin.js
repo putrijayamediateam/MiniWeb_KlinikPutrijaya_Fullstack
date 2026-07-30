@@ -12,6 +12,9 @@ let branchesCache = [];
 let doctorsCache = [];
 let servicesCache = [];
 let promotionsCache = [];
+let performanceReportCache = null;
+let performanceTrendChartInstance = null;
+let performanceDeviceChartInstance = null;
 
 const bookingState = {
   page: 1,
@@ -45,6 +48,31 @@ function bindCoreEvents() {
   document.querySelectorAll('.tab-btn').forEach((button) => {
     button.addEventListener('click', () => switchTab(button.dataset.tab));
   });
+
+  document
+  .getElementById('performancePresetFilter')
+  ?.addEventListener('change', (event) => {
+    applyPerformancePreset(event.target.value);
+
+    if (event.target.value !== 'custom') {
+      loadPerformance();
+    }
+  });
+
+document
+  .getElementById('performanceBranchFilter')
+  ?.addEventListener('change', loadPerformance);
+
+document
+  .getElementById('performanceApplyBtn')
+  ?.addEventListener('click', loadPerformance);
+
+  document
+  .getElementById('exportPerformanceBtn')
+  ?.addEventListener(
+    'click',
+    exportPerformanceWorkbook
+  );
 
   document.getElementById('bookingStatusFilter')?.addEventListener('change', () => {
     bookingState.page = 1;
@@ -139,19 +167,24 @@ async function enterDashboard(token, username, role = 'admin') {
   document.getElementById('dashboard')?.classList.remove('hidden');
 
   try {
-    branchesCache = await KPApi.getBranches();
-    populateBookingBranchFilter();
-  } catch (error) {
-    console.warn('Could not load branches:', error);
-  }
+  branchesCache = await KPApi.getBranches();
 
-  await Promise.allSettled([
-    loadBookings(),
-    loadFeedback(),
-    loadDoctors(),
-    loadServices(),
-    loadPromotions(),
-  ]);
+  populateBookingBranchFilter();
+  populatePerformanceBranchFilter();
+} catch (error) {
+  console.warn('Could not load branches:', error);
+}
+
+initialisePerformanceDates();
+
+await Promise.allSettled([
+  loadBookings(),
+  loadPerformance(),
+  loadFeedback(),
+  loadDoctors(),
+  loadServices(),
+  loadPromotions(),
+]);
 }
 
 
@@ -188,13 +221,28 @@ function getRoleFromToken(token) {
 }
 
 function switchTab(tab) {
-  document.querySelectorAll('.tab-btn').forEach((button) => {
-    button.classList.toggle('active', button.dataset.tab === tab);
-  });
+  document
+    .querySelectorAll('.tab-btn')
+    .forEach((button) => {
+      button.classList.toggle(
+        'active',
+        button.dataset.tab === tab
+      );
+    });
 
-  document.querySelectorAll('.tab-panel').forEach((panel) => {
-    panel.classList.toggle('active', panel.id === `tab-${tab}`);
-  });
+  document
+    .querySelectorAll('.tab-panel')
+    .forEach((panel) => {
+      panel.classList.toggle(
+        'active',
+        panel.id === `tab-${tab}`
+      );
+    });
+
+  if (tab === 'performance') {
+    initialisePerformanceDates();
+    loadPerformance();
+  }
 }
 
 function handleAuthError(error) {
@@ -216,6 +264,1186 @@ function populateBookingBranchFilter() {
       `<option value="${branch.id}">${escapeHtml(branch.name)}</option>`
     )),
   ].join('');
+}
+
+// -----------------------------------------------------------------------------
+// WEBSITE PERFORMANCE
+// -----------------------------------------------------------------------------
+
+function populatePerformanceBranchFilter() {
+  const select =
+    document.getElementById(
+      'performanceBranchFilter'
+    );
+
+  if (!select) return;
+
+  const currentValue = select.value;
+
+  select.innerHTML = [
+    '<option value="">All branches</option>',
+
+    ...branchesCache.map(
+      (branch) => `
+        <option value="${Number(branch.id)}">
+          ${escapeHtml(branch.name)}
+        </option>
+      `
+    ),
+  ].join('');
+
+  if (
+    branchesCache.some(
+      (branch) =>
+        String(branch.id) ===
+        String(currentValue)
+    )
+  ) {
+    select.value = currentValue;
+  }
+}
+
+function localDateInputValue(date) {
+  const timezoneOffset =
+    date.getTimezoneOffset() *
+    60000;
+
+  return new Date(
+    date.getTime() -
+      timezoneOffset
+  )
+    .toISOString()
+    .slice(0, 10);
+}
+
+function initialisePerformanceDates() {
+  const startInput =
+    document.getElementById(
+      'performanceStartDate'
+    );
+
+  const endInput =
+    document.getElementById(
+      'performanceEndDate'
+    );
+
+  if (
+    !startInput ||
+    !endInput
+  ) {
+    return;
+  }
+
+  if (
+    startInput.value &&
+    endInput.value
+  ) {
+    return;
+  }
+
+  applyPerformancePreset('30');
+}
+
+function applyPerformancePreset(
+  preset
+) {
+  const startInput =
+    document.getElementById(
+      'performanceStartDate'
+    );
+
+  const endInput =
+    document.getElementById(
+      'performanceEndDate'
+    );
+
+  if (
+    !startInput ||
+    !endInput ||
+    preset === 'custom'
+  ) {
+    return;
+  }
+
+  const today = new Date();
+  const startDate =
+    new Date(today);
+
+  if (preset === 'today') {
+    // Today only.
+  } else if (preset === '7') {
+    startDate.setDate(
+      startDate.getDate() - 6
+    );
+  } else if (
+    preset === 'month'
+  ) {
+    startDate.setDate(1);
+  } else {
+    startDate.setDate(
+      startDate.getDate() - 29
+    );
+  }
+
+  startInput.value =
+    localDateInputValue(
+      startDate
+    );
+
+  endInput.value =
+    localDateInputValue(today);
+}
+
+async function loadPerformance() {
+  if (
+    !authedApi
+      ?.getPerformanceOverview
+  ) {
+    return;
+  }
+
+  const startDate =
+    document.getElementById(
+      'performanceStartDate'
+    )?.value || '';
+
+  const endDate =
+    document.getElementById(
+      'performanceEndDate'
+    )?.value || '';
+
+  const branchId =
+    document.getElementById(
+      'performanceBranchFilter'
+    )?.value || '';
+
+  const trendContainer =
+    document.getElementById(
+      'performanceTrendChart'
+    );
+
+  const deviceContainer =
+    document.getElementById(
+      'performanceDeviceChart'
+    );
+
+  const branchBody =
+    document.getElementById(
+      'performanceBranchTableBody'
+    );
+
+  if (trendContainer) {
+    trendContainer.innerHTML = `
+      <div class="performance-empty">
+        Loading performance...
+      </div>
+    `;
+  }
+
+  if (deviceContainer) {
+    deviceContainer.innerHTML = `
+      <div class="performance-empty">
+        Loading device data...
+      </div>
+    `;
+  }
+
+  if (branchBody) {
+    branchBody.innerHTML = `
+      <tr>
+        <td
+          colspan="6"
+          class="loading-row"
+        >
+          Loading...
+        </td>
+      </tr>
+    `;
+  }
+
+  try {
+    const response =
+      await authedApi
+        .getPerformanceOverview({
+          start_date:
+            startDate,
+
+          end_date:
+            endDate,
+
+          branch_id:
+            branchId,
+        });
+
+    performanceReportCache =
+      response;
+
+    renderPerformanceSummary(
+      response.summary || {}
+    );
+
+    renderPerformanceTrend(
+      response.daily || []
+    );
+
+    renderPerformanceDevices(
+      response.devices || []
+    );
+
+    renderPerformanceBranches(
+      response.branches || []
+    );
+  } catch (error) {
+    performanceReportCache = null;
+
+    if (
+      handleAuthError(error)
+    ) {
+      return;
+    }
+
+    const message = escapeHtml(
+      error.message ||
+        'Unable to load performance.'
+    );
+
+    if (trendContainer) {
+      trendContainer.innerHTML = `
+        <div
+          class="performance-empty error"
+        >
+          ${message}
+        </div>
+      `;
+    }
+
+    if (deviceContainer) {
+      deviceContainer.innerHTML = `
+        <div
+          class="performance-empty error"
+        >
+          ${message}
+        </div>
+      `;
+    }
+
+    if (branchBody) {
+      branchBody.innerHTML = `
+        <tr>
+          <td
+            colspan="6"
+            class="empty-row"
+          >
+            ${message}
+          </td>
+        </tr>
+      `;
+    }
+  }
+}
+
+function performanceNumber(value) {
+  return new Intl.NumberFormat(
+    'en-MY'
+  ).format(
+    Number(value || 0)
+  );
+}
+
+function renderPerformanceSummary(
+  summary
+) {
+  setText(
+    'performanceTotalInteractions',
+    performanceNumber(
+      summary.total_interactions
+    )
+  );
+
+  setText(
+    'performanceWebsiteVisits',
+    performanceNumber(
+      summary.website_visits
+    )
+  );
+
+  setText(
+    'performanceCalls',
+    performanceNumber(
+      summary.calls
+    )
+  );
+
+  setText(
+    'performanceBookings',
+    performanceNumber(
+      summary.bookings
+    )
+  );
+
+  setText(
+    'performanceDirections',
+    performanceNumber(
+      summary.directions
+    )
+  );
+
+  setText(
+    'performanceWhatsApp',
+    performanceNumber(
+      summary.whatsapp_clicks
+    )
+  );
+}
+
+function shortPerformanceDate(
+  dateString
+) {
+  const date = new Date(
+    `${dateString}T00:00:00`
+  );
+
+  if (
+    Number.isNaN(
+      date.getTime()
+    )
+  ) {
+    return dateString;
+  }
+
+  return new Intl.DateTimeFormat(
+    'en-MY',
+    {
+      day: '2-digit',
+      month: 'short',
+    }
+  ).format(date);
+}
+
+function renderPerformanceTrend(
+  daily
+) {
+  const container =
+    document.getElementById(
+      'performanceTrendChart'
+    );
+
+  if (!container) return;
+
+  if (
+    performanceTrendChartInstance
+  ) {
+    performanceTrendChartInstance
+      .destroy();
+
+    performanceTrendChartInstance =
+      null;
+  }
+
+  if (!daily.length) {
+    container.innerHTML = `
+      <div class="performance-empty">
+        No website activity recorded
+        for this period.
+      </div>
+    `;
+
+    return;
+  }
+
+  if (
+    typeof Chart ===
+    'undefined'
+  ) {
+    container.innerHTML = `
+      <div
+        class="performance-empty error"
+      >
+        Chart library could not
+        be loaded.
+      </div>
+    `;
+
+    return;
+  }
+
+  container.innerHTML = `
+    <canvas
+      aria-label="
+        Website performance
+        trend chart
+      "
+    ></canvas>
+  `;
+
+  const canvas =
+    container.querySelector(
+      'canvas'
+    );
+
+  performanceTrendChartInstance =
+    new Chart(
+      canvas,
+      {
+        type: 'bar',
+
+        data: {
+          labels:
+            daily.map(
+              (item) =>
+                shortPerformanceDate(
+                  item.date
+                )
+            ),
+
+          datasets: [
+            {
+              type: 'bar',
+
+              label:
+                'Website visits',
+
+              data:
+                daily.map(
+                  (item) =>
+                    Number(
+                      item
+                        .website_visits ||
+                      0
+                    )
+                ),
+
+              backgroundColor:
+                'rgba(227, 28, 121, 0.24)',
+
+              borderColor:
+                '#e31c79',
+
+              borderWidth: 1,
+              borderRadius: 7,
+              maxBarThickness: 34,
+            },
+
+            {
+              type: 'line',
+
+              label:
+                'Total interactions',
+
+              data:
+                daily.map(
+                  (item) =>
+                    Number(
+                      item
+                        .total_interactions ||
+                      0
+                    )
+                ),
+
+              borderColor:
+                '#24141c',
+
+              backgroundColor:
+                '#24141c',
+
+              borderWidth: 2.5,
+              pointRadius: 3,
+              pointHoverRadius: 5,
+
+              pointBackgroundColor:
+                '#ffffff',
+
+              pointBorderColor:
+                '#24141c',
+
+              pointBorderWidth: 2,
+              tension: 0.32,
+              fill: false,
+            },
+          ],
+        },
+
+        options: {
+          responsive: true,
+
+          maintainAspectRatio:
+            false,
+
+          interaction: {
+            mode: 'index',
+            intersect: false,
+          },
+
+          plugins: {
+            legend: {
+              position:
+                'bottom',
+
+              labels: {
+                usePointStyle:
+                  true,
+
+                boxWidth: 8,
+                padding: 18,
+              },
+            },
+          },
+
+          scales: {
+            x: {
+              grid: {
+                display: false,
+              },
+
+              ticks: {
+                maxRotation: 0,
+                autoSkip: true,
+
+                maxTicksLimit:
+                  10,
+              },
+            },
+
+            y: {
+              beginAtZero: true,
+
+              ticks: {
+                precision: 0,
+              },
+
+              grid: {
+                color:
+                  'rgba(36, 20, 28, 0.08)',
+              },
+            },
+          },
+        },
+      }
+    );
+}
+
+function renderPerformanceDevices(
+  devices
+) {
+  const container =
+    document.getElementById(
+      'performanceDeviceChart'
+    );
+
+  if (!container) return;
+
+  if (
+    performanceDeviceChartInstance
+  ) {
+    performanceDeviceChartInstance
+      .destroy();
+
+    performanceDeviceChartInstance =
+      null;
+  }
+
+  const mobileUsers =
+    Number(
+      devices.find(
+        (item) =>
+          item.device_type ===
+          'mobile'
+      )?.users || 0
+    );
+
+  const desktopUsers =
+    Number(
+      devices.find(
+        (item) =>
+          item.device_type ===
+          'desktop'
+      )?.users || 0
+    );
+
+  if (
+    !mobileUsers &&
+    !desktopUsers
+  ) {
+    container.innerHTML = `
+      <div class="performance-empty">
+        No device data yet.
+        New visits will be classified
+        after this update.
+      </div>
+    `;
+
+    return;
+  }
+
+  if (
+    typeof Chart ===
+    'undefined'
+  ) {
+    container.innerHTML = `
+      <div
+        class="performance-empty error"
+      >
+        Chart library could not
+        be loaded.
+      </div>
+    `;
+
+    return;
+  }
+
+  container.innerHTML = `
+    <canvas
+      aria-label="
+        Device access pie chart
+      "
+    ></canvas>
+  `;
+
+  const canvas =
+    container.querySelector(
+      'canvas'
+    );
+
+  performanceDeviceChartInstance =
+    new Chart(
+      canvas,
+      {
+        type: 'pie',
+
+        data: {
+          labels: [
+            'Phone / tablet',
+            'Desktop',
+          ],
+
+          datasets: [
+            {
+              data: [
+                mobileUsers,
+                desktopUsers,
+              ],
+
+              backgroundColor: [
+                '#e31c79',
+                '#24141c',
+              ],
+
+              borderColor:
+                '#ffffff',
+
+              borderWidth: 4,
+              hoverOffset: 7,
+            },
+          ],
+        },
+
+        options: {
+          responsive: true,
+
+          maintainAspectRatio:
+            false,
+
+          plugins: {
+            legend: {
+              position:
+                'bottom',
+
+              labels: {
+                usePointStyle:
+                  true,
+
+                boxWidth: 8,
+                padding: 18,
+              },
+            },
+
+            tooltip: {
+              callbacks: {
+                label(context) {
+                  const values =
+                    context
+                      .dataset
+                      .data
+                      .map(Number);
+
+                  const total =
+                    values.reduce(
+                      (
+                        sum,
+                        value
+                      ) =>
+                        sum +
+                        value,
+                      0
+                    );
+
+                  const percentage =
+                    total
+                      ? (
+                          (
+                            Number(
+                              context.raw
+                            ) /
+                            total
+                          ) *
+                          100
+                        ).toFixed(1)
+                      : '0.0';
+
+                  return (
+                    `${context.label}: ` +
+                    `${performanceNumber(
+                      context.raw
+                    )} ` +
+                    `(${percentage}%)`
+                  );
+                },
+              },
+            },
+          },
+        },
+      }
+    );
+}
+
+function renderPerformanceBranches(
+  branches
+) {
+  const body =
+    document.getElementById(
+      'performanceBranchTableBody'
+    );
+
+  if (!body) return;
+
+  if (!branches.length) {
+    body.innerHTML = `
+      <tr>
+        <td
+          colspan="6"
+          class="empty-row"
+        >
+          No branch activity recorded.
+        </td>
+      </tr>
+    `;
+
+    return;
+  }
+
+  body.innerHTML =
+    branches
+      .map(
+        (branch) => `
+          <tr>
+            <td>
+              <strong>
+                ${escapeHtml(
+                  branch.branch_name
+                )}
+              </strong>
+            </td>
+
+            <td>
+              ${performanceNumber(
+                branch.calls
+              )}
+            </td>
+
+            <td>
+              ${performanceNumber(
+                branch.bookings
+              )}
+            </td>
+
+            <td>
+              ${performanceNumber(
+                branch.directions
+              )}
+            </td>
+
+            <td>
+              ${performanceNumber(
+                branch
+                  .whatsapp_clicks
+              )}
+            </td>
+
+            <td>
+              <strong>
+                ${performanceNumber(
+                  branch
+                    .total_interactions
+                )}
+              </strong>
+            </td>
+          </tr>
+        `
+      )
+      .join('');
+}
+
+function performanceExportFilterRows(
+  report
+) {
+  const branchSelect =
+    document.getElementById(
+      'performanceBranchFilter'
+    );
+
+  return [
+    [
+      'Start date',
+      report.filters
+        ?.start_date || '',
+    ],
+
+    [
+      'End date',
+      report.filters
+        ?.end_date || '',
+    ],
+
+    [
+      'Branch',
+
+      branchSelect
+        ?.selectedOptions?.[0]
+        ?.textContent
+        ?.trim() ||
+        'All branches',
+    ],
+
+    [
+      'Exported at',
+
+      new Date()
+        .toLocaleString(
+          'en-MY'
+        ),
+    ],
+  ];
+}
+
+function appendPerformanceMetricSheet(
+  workbook,
+  sheetName,
+  metricLabel,
+  metricValue,
+  filterRows
+) {
+  const worksheet =
+    XLSX.utils
+      .aoa_to_sheet([
+        [
+          'Website Performance Report',
+        ],
+
+        [],
+
+        [
+          'Metric',
+          metricLabel,
+        ],
+
+        [
+          'Value',
+          Number(
+            metricValue || 0
+          ),
+        ],
+
+        [],
+
+        ...filterRows,
+      ]);
+
+  worksheet['!cols'] = [
+    {
+      wch: 24,
+    },
+
+    {
+      wch: 28,
+    },
+  ];
+
+  XLSX.utils
+    .book_append_sheet(
+      workbook,
+      worksheet,
+      sheetName
+    );
+}
+
+function exportPerformanceWorkbook() {
+  if (
+    !performanceReportCache
+  ) {
+    alert(
+      'Load the performance report before exporting.'
+    );
+
+    return;
+  }
+
+  if (
+    typeof XLSX ===
+    'undefined'
+  ) {
+    alert(
+      'Excel export library could not be loaded.'
+    );
+
+    return;
+  }
+
+  const report =
+    performanceReportCache;
+
+  const summary =
+    report.summary || {};
+
+  const filterRows =
+    performanceExportFilterRows(
+      report
+    );
+
+  const workbook =
+    XLSX.utils.book_new();
+
+  appendPerformanceMetricSheet(
+    workbook,
+    'Total Interactions',
+    'Total interactions',
+    summary.total_interactions,
+    filterRows
+  );
+
+  appendPerformanceMetricSheet(
+    workbook,
+    'Website Visits',
+    'Website visits',
+    summary.website_visits,
+    filterRows
+  );
+
+  appendPerformanceMetricSheet(
+    workbook,
+    'Calls',
+    'Call clicks',
+    summary.calls,
+    filterRows
+  );
+
+  appendPerformanceMetricSheet(
+    workbook,
+    'Bookings',
+    'Successful bookings',
+    summary.bookings,
+    filterRows
+  );
+
+  appendPerformanceMetricSheet(
+    workbook,
+    'Directions',
+    'Direction clicks',
+    summary.directions,
+    filterRows
+  );
+
+  appendPerformanceMetricSheet(
+    workbook,
+    'WhatsApp',
+    'WhatsApp clicks',
+    summary.whatsapp_clicks,
+    filterRows
+  );
+
+  const dailySheet =
+    XLSX.utils
+      .json_to_sheet(
+        (
+          report.daily ||
+          []
+        ).map(
+          (item) => ({
+            Date:
+              item.date,
+
+            'Website Visits':
+              Number(
+                item
+                  .website_visits ||
+                0
+              ),
+
+            'Total Interactions':
+              Number(
+                item
+                  .total_interactions ||
+                0
+              ),
+          })
+        )
+      );
+
+  dailySheet['!cols'] = [
+    {
+      wch: 16,
+    },
+
+    {
+      wch: 18,
+    },
+
+    {
+      wch: 20,
+    },
+  ];
+
+  XLSX.utils
+    .book_append_sheet(
+      workbook,
+      dailySheet,
+      'Daily Trend'
+    );
+
+  const branchSheet =
+    XLSX.utils
+      .json_to_sheet(
+        (
+          report.branches ||
+          []
+        ).map(
+          (branch) => ({
+            Branch:
+              branch.branch_name,
+
+            Calls:
+              Number(
+                branch.calls ||
+                0
+              ),
+
+            Bookings:
+              Number(
+                branch.bookings ||
+                0
+              ),
+
+            Directions:
+              Number(
+                branch.directions ||
+                0
+              ),
+
+            WhatsApp:
+              Number(
+                branch
+                  .whatsapp_clicks ||
+                0
+              ),
+
+            'Total Interactions':
+              Number(
+                branch
+                  .total_interactions ||
+                0
+              ),
+          })
+        )
+      );
+
+  branchSheet['!cols'] = [
+    {
+      wch: 28,
+    },
+
+    {
+      wch: 12,
+    },
+
+    {
+      wch: 12,
+    },
+
+    {
+      wch: 14,
+    },
+
+    {
+      wch: 14,
+    },
+
+    {
+      wch: 20,
+    },
+  ];
+
+  XLSX.utils
+    .book_append_sheet(
+      workbook,
+      branchSheet,
+      'Branches'
+    );
+
+  const deviceSheet =
+    XLSX.utils
+      .json_to_sheet(
+        (
+          report.devices ||
+          []
+        ).map(
+          (device) => ({
+            Device:
+              device
+                .device_type ===
+              'mobile'
+                ? 'Phone / tablet'
+                : 'Desktop',
+
+            'Unique Sessions':
+              Number(
+                device.users ||
+                0
+              ),
+          })
+        )
+      );
+
+  deviceSheet['!cols'] = [
+    {
+      wch: 22,
+    },
+
+    {
+      wch: 18,
+    },
+  ];
+
+  XLSX.utils
+    .book_append_sheet(
+      workbook,
+      deviceSheet,
+      'Device Access'
+    );
+
+  const startDate =
+    report.filters
+      ?.start_date ||
+    'start';
+
+  const endDate =
+    report.filters
+      ?.end_date ||
+    'end';
+
+  XLSX.writeFile(
+    workbook,
+
+    `website-performance-${startDate}-to-${endDate}.xlsx`
+  );
 }
 
 // -----------------------------------------------------------------------------

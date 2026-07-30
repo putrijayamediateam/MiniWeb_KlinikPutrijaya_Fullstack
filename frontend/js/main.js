@@ -378,6 +378,37 @@
     );
   }
 
+  /* =========================================================
+   Website performance tracker
+   ========================================================= */
+
+(function loadPerformanceTracker() {
+  if (
+    document.querySelector(
+      'script[data-kp-performance]'
+    )
+  ) {
+    return;
+  }
+
+  const script =
+    document.createElement(
+      'script'
+    );
+
+  script.src =
+  'js/analytics.js?v=20260729-2';
+
+  script.defer = true;
+
+  script.dataset.kpPerformance =
+    'true';
+
+  document.head.appendChild(
+    script
+  );
+})();
+
   setActiveNavigation();
   initNavigation();
   initBranchModal();

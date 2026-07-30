@@ -511,7 +511,15 @@ function renderBranchCard(
     )}`;
 
   return `
-    <article class="service-branch-item">
+    <article
+  class="service-branch-item"
+  data-branch-id="${Number(
+    branch.id
+  )}"
+  data-service-id="${Number(
+    service.id
+  )}"
+>
       <div class="service-branch-item-heading">
         <div>
           <small>

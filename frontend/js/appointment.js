@@ -319,6 +319,43 @@ async function initAppointmentForm() {
             payload
           );
 
+          if (window.KPAnalytics) {
+  window.KPAnalytics.track(
+    'booking_success',
+    {
+      branch_id:
+        payload.branch_id,
+
+      service_id:
+        payload.service_id,
+
+      event_key:
+        response.reference
+          ? `booking_success:${response.reference}`
+          : null,
+    }
+  );
+} else {
+  KPApi.trackPerformance({
+    event_type:
+      'booking_success',
+
+    branch_id:
+      payload.branch_id,
+
+    service_id:
+      payload.service_id,
+
+    event_key:
+      response.reference
+        ? `booking_success:${response.reference}`
+        : null,
+
+    page_path:
+      window.location.pathname,
+  }).catch(() => {});
+}
+
         setFormMessage(
           messageBox,
           `${response.message} Reference: ${response.reference}`,
