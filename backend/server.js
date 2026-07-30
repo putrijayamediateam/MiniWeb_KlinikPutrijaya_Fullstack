@@ -271,6 +271,11 @@ app.use(
 
 app.use('/api/services', require('./routes/services'));
 
+app.use(
+  '/api/performance',
+  require('./routes/performance')
+);
+
 app.use('/api/bookings', require('./routes/bookings'));
 app.use('/api/feedback', require('./routes/feedback'));
 

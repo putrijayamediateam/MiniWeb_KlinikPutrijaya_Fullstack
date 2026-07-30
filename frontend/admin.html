@@ -13,7 +13,7 @@
 <link rel="stylesheet" href="css/admin-login.css">
 <link
   rel="stylesheet"
-  href="css/admin-upgrades.css?v=20260729-3"
+  href="css/admin-upgrades.css?v=20260729-5"
 >
 </head>
 <body>
@@ -129,6 +129,12 @@
 
     <nav class="admin-tabs">
       <button class="tab-btn active" data-tab="bookings">Bookings</button>
+      <button
+  class="tab-btn"
+  data-tab="performance"
+>
+  Performance
+</button>
       <button class="tab-btn" data-tab="feedback">Feedback</button>
       <button class="tab-btn" data-tab="doctors">Doctors</button>
       <button class="tab-btn" data-tab="services">Services</button>
@@ -136,6 +142,276 @@
     </nav>
 
     <main class="admin-main">
+
+      <!-- PERFORMANCE TAB -->
+<section
+  class="tab-panel"
+  id="tab-performance"
+>
+  <div class="panel-head">
+    <div>
+      <h2>Website performance</h2>
+
+      <p class="panel-subtitle">
+        Monitor website visits, interactions,
+        branch activity and device access.
+      </p>
+    </div>
+
+    <button
+      type="button"
+      class="btn-primary"
+      id="exportPerformanceBtn"
+    >
+      Export Excel
+    </button>
+  </div>
+
+  <!-- PERFORMANCE FILTERS -->
+  <div
+    class="booking-toolbar performance-toolbar"
+    id="performanceFilters"
+  >
+    <label class="performance-filter-field">
+      <span>Date range</span>
+
+      <select
+        id="performancePresetFilter"
+        aria-label="Select performance date range"
+      >
+        <option value="today">
+          Today
+        </option>
+
+        <option value="7">
+          Last 7 days
+        </option>
+
+        <option value="30" selected>
+          Last 30 days
+        </option>
+
+        <option value="month">
+          This month
+        </option>
+
+        <option value="custom">
+          Custom range
+        </option>
+      </select>
+    </label>
+
+    <label class="performance-filter-field">
+      <span>Branch</span>
+
+      <select
+        id="performanceBranchFilter"
+        aria-label="Filter performance by branch"
+      >
+        <option value="">
+          All branches
+        </option>
+      </select>
+    </label>
+
+    <label class="performance-filter-field">
+      <span>Start date</span>
+
+      <input
+        type="date"
+        id="performanceStartDate"
+        aria-label="Performance start date"
+      >
+    </label>
+
+    <label class="performance-filter-field">
+      <span>End date</span>
+
+      <input
+        type="date"
+        id="performanceEndDate"
+        aria-label="Performance end date"
+      >
+    </label>
+
+    <button
+      type="button"
+      class="btn-primary performance-apply-button"
+      id="performanceApplyBtn"
+    >
+      Apply
+    </button>
+  </div>
+
+  <!-- PERFORMANCE HIGHLIGHTS -->
+  <div class="performance-summary-grid">
+    <article class="performance-summary-card highlight">
+      <span>Total interactions</span>
+
+      <strong id="performanceTotalInteractions">
+        0
+      </strong>
+
+      <small>
+        Calls, bookings, directions and WhatsApp
+      </small>
+    </article>
+
+    <article class="performance-summary-card">
+      <span>Website visits</span>
+
+      <strong id="performanceWebsiteVisits">
+        0
+      </strong>
+
+      <small>
+        Unique browser sessions
+      </small>
+    </article>
+
+    <article class="performance-summary-card">
+      <span>Calls</span>
+
+      <strong id="performanceCalls">
+        0
+      </strong>
+
+      <small>
+        Telephone link clicks
+      </small>
+    </article>
+
+    <article class="performance-summary-card">
+      <span>Bookings</span>
+
+      <strong id="performanceBookings">
+        0
+      </strong>
+
+      <small>
+        Successful appointment submissions
+      </small>
+    </article>
+
+    <article class="performance-summary-card">
+      <span>Directions</span>
+
+      <strong id="performanceDirections">
+        0
+      </strong>
+
+      <small>
+        Google Maps direction clicks
+      </small>
+    </article>
+
+    <article class="performance-summary-card">
+      <span>WhatsApp</span>
+
+      <strong id="performanceWhatsApp">
+        0
+      </strong>
+
+      <small>
+        WhatsApp contact clicks
+      </small>
+    </article>
+  </div>
+
+  <!-- PERFORMANCE CHARTS -->
+  <div class="performance-visual-grid">
+    <article class="performance-card performance-trend-card">
+      <div class="performance-card-head">
+        <div>
+          <h3>Daily progression</h3>
+
+          <p>
+            Website visits shown as bars and
+            total interactions shown as a line.
+          </p>
+        </div>
+      </div>
+
+      <div
+        class="performance-chart performance-trend-chart"
+        id="performanceTrendChart"
+      >
+        <div class="performance-empty">
+          Loading performance...
+        </div>
+      </div>
+    </article>
+
+    <article class="performance-card performance-device-card">
+      <div class="performance-card-head">
+        <div>
+          <h3>Device access</h3>
+
+          <p>
+            Unique sessions from phone,
+            tablet or desktop.
+          </p>
+        </div>
+      </div>
+
+      <div
+        class="performance-chart performance-device-chart"
+        id="performanceDeviceChart"
+      >
+        <div class="performance-empty">
+          Loading device data...
+        </div>
+      </div>
+    </article>
+  </div>
+
+  <!-- BRANCH PERFORMANCE -->
+  <article class="performance-card">
+    <div class="performance-card-head">
+      <div>
+        <h3>Branch performance</h3>
+
+        <p>
+          Interaction activity recorded for
+          each Klinik Putrijaya branch.
+        </p>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table class="performance-branch-table">
+        <thead>
+          <tr>
+            <th>Branch</th>
+            <th>Calls</th>
+            <th>Bookings</th>
+            <th>Directions</th>
+            <th>WhatsApp</th>
+            <th>Total interactions</th>
+          </tr>
+        </thead>
+
+        <tbody id="performanceBranchTableBody">
+          <tr>
+            <td
+              colspan="6"
+              class="loading-row"
+            >
+              Loading...
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </article>
+
+  <!-- PERFORMANCE PRIVACY NOTE -->
+  <p class="performance-privacy-note">
+    This report contains anonymous event totals only.
+    Patient names, phone numbers, IC numbers and medical
+    information are not stored in performance analytics.
+  </p>
+</section>
 
       <!-- BOOKINGS TAB -->
 <section class="tab-panel active" id="tab-bookings">
@@ -363,7 +639,24 @@
     </div>
   </div>
 
-<script src="js/api.js" defer></script>
-<script src="admin.js" defer></script>
+<script
+  src="js/api.js?v=20260730-1"
+  defer
+></script>
+
+<script
+  src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"
+  defer
+></script>
+
+<script
+  src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"
+  defer
+></script>
+
+<script
+  src="admin.js?v=20260730-1"
+  defer
+></script>
 </body>
 </html>
