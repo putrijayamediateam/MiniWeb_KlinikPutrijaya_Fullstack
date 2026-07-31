@@ -269,46 +269,61 @@ function renderDoctors(doctors) {
   images/uploads/doctors/dr-fatin.png
 */
 function resolveDoctorPhotoUrl(photoUrl) {
-  if (!photoUrl) {
-    return '/images/logoklinik.png';
+  let value = String(photoUrl || '').trim();
+
+  if (!value) {
+    value = 'images/logoklinik.png';
   }
 
-  const cleanedUrl = String(photoUrl)
-    .trim()
-    .replace(/\\/g, '/');
-
-  /*
-    Do not modify the URL when the database already contains
-    a complete http or https URL.
-  */
-  if (/^https?:\/\//i.test(cleanedUrl)) {
-    return cleanedUrl;
+  // URL lengkap tidak perlu diubah
+  if (/^https?:\/\//i.test(value)) {
+    return value;
   }
 
-  /*
-    Uploaded images are served by the Railway backend.
-  */
-  if (
-    cleanedUrl.startsWith('/images/uploads/') ||
-    cleanedUrl.startsWith('images/uploads/')
-  ) {
-    const relativePath =
-      cleanedUrl.replace(/^\/+/, '');
+  value = value
+    .replaceAll('\\', '/')
+    .replace(/^\/+/, '');
 
-    return `${DOCTOR_IMAGE_ORIGIN}/${relativePath}`;
+  // Buang frontend/ jika tersimpan dalam database
+  value = value.replace(
+    /^frontend\//i,
+    ''
+  );
+
+  // uploads/doctors/file.png
+  // menjadi images/uploads/doctors/file.png
+  if (value.startsWith('uploads/')) {
+    value = `images/${value}`;
   }
 
-  /*
-    Other images remain inside Firebase Hosting.
-  */
-  return cleanedUrl.startsWith('/')
-    ? cleanedUrl
-    : `/${cleanedUrl}`;
+  // Nama fail sahaja
+  if (!value.startsWith('images/')) {
+    value = `images/${value}`;
+  }
+
+  try {
+    const backendOrigin =
+      new URL(KPApi.baseUrl).origin;
+
+    return `${backendOrigin}/${value}`;
+  } catch (error) {
+    console.error(
+      'Unable to resolve doctor photo:',
+      error
+    );
+
+    return 'images/logoklinik.png';
+  }
 }
 
 function renderDoctorCard(doctor) {
   const photoUrl =
     resolveDoctorPhotoUrl(doctor.photo_url);
+
+  const fallbackUrl =
+    resolveDoctorPhotoUrl(
+      'images/logoklinik.png'
+    );
 
   return `
     <article class="doctor-detail">
@@ -319,27 +334,36 @@ function renderDoctorCard(doctor) {
             doctor.name || 'Doctor'
           )}"
           loading="lazy"
+          data-fallback-url="${escapeAttribute(
+            fallbackUrl
+          )}"
           onerror="
             this.onerror=null;
-            this.src='/images/logoklinik.png';
+            this.src=this.dataset.fallbackUrl;
           "
         >
       </div>
 
       <div class="doctor-info">
         <h5>
-          ${escapeHtml(doctor.name || 'Doctor')}
+          ${escapeHtml(
+            doctor.name || 'Doctor'
+          )}
         </h5>
 
         <p>
-          ${escapeHtml(doctor.qualification || '')}
+          ${escapeHtml(
+            doctor.qualification || ''
+          )}
         </p>
 
         ${
           doctor.reg_no
             ? `
               <p class="reg">
-                ${escapeHtml(doctor.reg_no)}
+                ${escapeHtml(
+                  doctor.reg_no
+                )}
               </p>
             `
             : ''

@@ -16,6 +16,26 @@ const {
 } = require('./config/uploadStorage');
 
 const app = express();
+const frontendImagesDirectory = path.resolve(
+  __dirname,
+  '..',
+  'frontend',
+  'images'
+);
+
+console.log(
+  'Serving images from:',
+  frontendImagesDirectory
+);
+
+app.use(
+  '/images',
+  express.static(frontendImagesDirectory)
+);
+
+app.use(express.json());
+
+
 const port = Number(process.env.PORT || 4000);
 const isProduction = process.env.NODE_ENV === 'production';
 
