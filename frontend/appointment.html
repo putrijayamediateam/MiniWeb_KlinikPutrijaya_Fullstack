@@ -8,16 +8,16 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/global.css">
+  <link rel="stylesheet" href="css/global.css?v=20260731-4">
   <link rel="stylesheet" href="css/forms.css">
   <script
   src="js/api.js?v=20260729-2"
   defer
 ></script>
   <script src="js/utils.js" defer></script>
-  <script src="js/main.js" defer></script>
+  <script src="js/main.js?v=20260731-4" defer></script>
   <script
-  src="js/appointment.js?v=20260729-1"
+  src="js/appointment.js?v=20260731-1"
   defer
 ></script>
 </head>
@@ -61,19 +61,97 @@
           </select>
         </div>
         <div>
-          <label for="bk-name">Full name *</label>
-          <input type="text" id="bk-name" name="patient_name" required>
-        </div>
+  <label for="bk-name">Full name *</label>
+  <input
+    type="text"
+    id="bk-name"
+    name="patient_name"
+    autocomplete="name"
+    required
+  >
+</div>
 
-        <div>
-          <label for="bk-phone">Phone number *</label>
-          <input type="tel" id="bk-phone" name="phone" placeholder="012-3456789" required>
-        </div>
-        
-        <div>
-          <label for="bk-ic">IC number</label>
-          <input type="text" id="bk-ic" name="ic_number" placeholder="Optional">
-        </div>
+<fieldset class="booking-choice-field">
+  <legend>Gender *</legend>
+
+  <div class="booking-radio-group">
+    <label class="booking-radio-option">
+      <input
+        type="radio"
+        name="gender"
+        value="female"
+        required
+      >
+      <span>Female</span>
+    </label>
+
+    <label class="booking-radio-option">
+      <input
+        type="radio"
+        name="gender"
+        value="male"
+        required
+      >
+      <span>Male</span>
+    </label>
+  </div>
+</fieldset>
+
+<div>
+  <label for="bk-phone">Phone number *</label>
+  <input
+    type="tel"
+    id="bk-phone"
+    name="phone"
+    placeholder="012-3456789"
+    autocomplete="tel"
+    required
+  >
+</div>
+
+<div>
+  <label for="bk-identity-type">
+    Identification type *
+  </label>
+
+  <select
+    id="bk-identity-type"
+    name="identity_type"
+    required
+  >
+    <option value="">
+      Select identification type
+    </option>
+
+    <option value="ic">
+      Malaysian IC
+    </option>
+
+    <option value="passport">
+      Passport
+    </option>
+  </select>
+</div>
+
+<div>
+  <label
+    for="bk-identity-number"
+    id="bk-identity-number-label"
+  >
+    IC / Passport number *
+  </label>
+
+  <input
+    type="text"
+    id="bk-identity-number"
+    name="identity_number"
+    placeholder="Select identification type first"
+    autocomplete="off"
+    maxlength="50"
+    disabled
+    required
+  >
+</div>
 
         <div>
           <label for="bk-date">Preferred date *</label>

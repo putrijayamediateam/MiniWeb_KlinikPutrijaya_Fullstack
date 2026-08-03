@@ -121,6 +121,10 @@ function bindServicePageEvents() {
       serviceState.selectedSubcategoryId =
         null;
 
+        updateSelectedCategoryUrl(
+  categoryId
+);
+
       renderServicesV2Page();
 
       document
@@ -193,6 +197,35 @@ function bindServicePageEvents() {
 }
 
 function getInitialCategoryId() {
+  const params =
+    new URLSearchParams(
+      window.location.search
+    );
+
+  const requestedCategorySlug =
+    String(
+      params.get('category') || ''
+    )
+      .trim()
+      .toLowerCase();
+
+  if (requestedCategorySlug) {
+    const matchedCategory =
+      serviceState.categories.find(
+        (category) =>
+          String(category.slug || '')
+            .trim()
+            .toLowerCase() ===
+          requestedCategorySlug
+      );
+
+    if (matchedCategory) {
+      return Number(
+        matchedCategory.id
+      );
+    }
+  }
+
   const firstService =
     serviceState.services[0];
 
@@ -200,7 +233,9 @@ function getInitialCategoryId() {
     firstService &&
     Number(firstService.category_id)
   ) {
-    return Number(firstService.category_id);
+    return Number(
+      firstService.category_id
+    );
   }
 
   const firstCategory =
@@ -209,6 +244,39 @@ function getInitialCategoryId() {
   return firstCategory
     ? Number(firstCategory.id)
     : null;
+}
+
+function updateSelectedCategoryUrl(
+  categoryId
+) {
+  const category =
+    serviceState.categories.find(
+      (item) =>
+        Number(item.id) ===
+        Number(categoryId)
+    );
+
+  const url =
+    new URL(
+      window.location.href
+    );
+
+  if (category?.slug) {
+    url.searchParams.set(
+      'category',
+      category.slug
+    );
+  } else {
+    url.searchParams.delete(
+      'category'
+    );
+  }
+
+  window.history.replaceState(
+    {},
+    '',
+    url
+  );
 }
 
 function renderServicesV2Page() {

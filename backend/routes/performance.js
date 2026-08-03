@@ -306,6 +306,42 @@ router.get(
         )}
       `;
 
+      const bookingConditions = [
+  `
+    bk.created_at >=
+    CONCAT(?, ' 00:00:00')
+  `,
+  `
+    bk.created_at <
+    DATE_ADD(
+      CONCAT(?, ' 00:00:00'),
+      INTERVAL 1 DAY
+    )
+  `,
+];
+
+const bookingParameters = [
+  startDate,
+  endDate,
+];
+
+if (branchId) {
+  bookingConditions.push(
+    'bk.branch_id = ?'
+  );
+
+  bookingParameters.push(
+    branchId
+  );
+}
+
+const bookingWhereSql = `
+  WHERE
+  ${bookingConditions.join(
+    ' AND '
+  )}
+`;
+
       const summarySql = `
         SELECT
           COALESCE(
@@ -576,11 +612,34 @@ router.get(
     e.device_type ASC
 `;
 
+const gendersSql = `
+  SELECT
+    bk.gender,
+    COUNT(*) AS bookings
+
+  FROM
+    bookings bk
+
+  ${bookingWhereSql}
+
+  AND bk.gender IN (
+    'male',
+    'female'
+  )
+
+  GROUP BY
+    bk.gender
+
+  ORDER BY
+    bk.gender ASC
+`;
+
       const [
   summaryResult,
   dailyResult,
   branchesResult,
   devicesResult,
+  gendersResult,
 ] = await Promise.all([
   db.query(
     summarySql,
@@ -601,6 +660,11 @@ router.get(
     devicesSql,
     eventParameters
   ),
+
+  db.query(
+  gendersSql,
+  bookingParameters
+),
 ]);
 
       const summaryRows =
@@ -713,6 +777,19 @@ router.get(
     })
   );
 
+const genders =
+  gendersResult[0].map(
+    (row) => ({
+      gender:
+        row.gender,
+
+      bookings:
+        numberValue(
+          row.bookings
+        ),
+    })
+  );
+
       return res.json({
         filters: {
           start_date: startDate,
@@ -725,6 +802,7 @@ router.get(
         daily,
         branches,
         devices,
+        genders,
       });
     } catch (error) {
       console.error(

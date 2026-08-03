@@ -13,10 +13,21 @@ const allowedStatuses = new Set([
   'cancelled',
 ]);
 
+const allowedGenders = new Set([
+  'male',
+  'female',
+]);
+
+const allowedIdentityTypes =
+  new Set([
+    'ic',
+    'passport',
+  ]);
+
 function parsePagination(query) {
   const page = Math.max(Number(query.page) || 1, 1);
   const limit = Math.min(
-    Math.max(Number(query.limit) || 20, 1),
+    Math.max(Number(query.limit) || 10, 1),
     500
   );
 
@@ -60,15 +71,30 @@ function buildAdminFilters(query) {
     const q = `%${String(query.q).trim()}%`;
 
     conditions.push(`(
-      bk.patient_name LIKE ? OR
-      bk.phone LIKE ? OR
-      bk.reason LIKE ? OR
-      b.name LIKE ? OR
-      d.name LIKE ? OR
-      s.title LIKE ?
-    )`);
+  bk.patient_name LIKE ? OR
+  bk.phone LIKE ? OR
+  bk.ic_number LIKE ? OR
+  bk.identity_number LIKE ? OR
+  bk.identity_type LIKE ? OR
+  bk.gender LIKE ? OR
+  bk.reason LIKE ? OR
+  b.name LIKE ? OR
+  d.name LIKE ? OR
+  s.title LIKE ?
+)`);
 
-    params.push(q, q, q, q, q, q);
+params.push(
+  q,
+  q,
+  q,
+  q,
+  q,
+  q,
+  q,
+  q,
+  q,
+  q
+);
   }
 
   return {
@@ -103,7 +129,27 @@ router.post('/', async (req, res) => {
       req.body.phone || ''
     ).trim();
 
-    const icNumber = cleanText(req.body.ic_number);
+    const gender = String(
+  req.body.gender || ''
+)
+  .trim()
+  .toLowerCase();
+
+const identityType = String(
+  req.body.identity_type || ''
+)
+  .trim()
+  .toLowerCase();
+
+const identityNumber =
+  cleanText(
+    req.body.identity_number
+  );
+
+const legacyIcNumber =
+  identityType === 'ic'
+    ? identityNumber
+    : null;
 
     const preferredDate = String(
       req.body.preferred_date || ''
@@ -116,45 +162,86 @@ router.post('/', async (req, res) => {
     const reason = cleanText(req.body.reason);
 
     if (
-      !branchId ||
-      !patientName ||
-      !phone ||
-      !preferredDate ||
-      !preferredTime
-    ) {
-      return res.status(400).json({
-        message:
-          'Branch, patient name, phone, preferred date ' +
-          'and preferred time are required.',
-      });
-    }
+  !branchId ||
+  !patientName ||
+  !phone ||
+  !gender ||
+  !identityType ||
+  !identityNumber ||
+  !preferredDate ||
+  !preferredTime
+) {
+  return res.status(400).json({
+    message:
+      'Branch, patient name, gender, phone, ' +
+      'identification, preferred date and ' +
+      'preferred time are required.',
+  });
+}
+
+if (!allowedGenders.has(gender)) {
+  return res.status(400).json({
+    message:
+      'Gender must be male or female.',
+  });
+}
+
+if (
+  !allowedIdentityTypes.has(
+    identityType
+  )
+) {
+  return res.status(400).json({
+    message:
+      'Identification type must be IC or Passport.',
+  });
+}
+
+if (
+  identityNumber.length < 4 ||
+  identityNumber.length > 50
+) {
+  return res.status(400).json({
+    message:
+      'Please enter a valid IC or Passport number.',
+  });
+}
 
     const [result] = await db.query(
-      `INSERT INTO bookings (
-        branch_id,
-        doctor_id,
-        service_id,
-        patient_name,
-        phone,
-        ic_number,
-        preferred_date,
-        preferred_time,
-        reason,
-        status
-      )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')`,
-      [
-        branchId,
-        doctorId,
-        serviceId,
-        patientName,
-        phone,
-        icNumber,
-        preferredDate,
-        preferredTime,
-        reason,
-      ]
-    );
+  `INSERT INTO bookings (
+    branch_id,
+    doctor_id,
+    service_id,
+    patient_name,
+    gender,
+    phone,
+    ic_number,
+    identity_type,
+    identity_number,
+    preferred_date,
+    preferred_time,
+    reason,
+    status
+  )
+  VALUES (
+    ?, ?, ?, ?, ?, ?, ?,
+    ?, ?, ?, ?, ?, 'pending'
+  )`,
+  [
+    branchId,
+    doctorId,
+    serviceId,
+    patientName,
+    gender,
+    phone,
+    legacyIcNumber,
+    identityType,
+    identityNumber,
+    preferredDate,
+    preferredTime,
+    reason,
+  ]
+);
 
     return res.status(201).json({
       message: 'Appointment request sent successfully.',
@@ -195,8 +282,11 @@ router.get('/', requireAdmin, async (req, res) => {
         bk.doctor_id,
         bk.service_id,
         bk.patient_name,
+        bk.gender,
         bk.phone,
         bk.ic_number,
+        bk.identity_type,
+        bk.identity_number,
         bk.preferred_date,
         bk.preferred_time,
         bk.reason,

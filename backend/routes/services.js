@@ -21,6 +21,37 @@ function nullableText(value) {
   return text || null;
 }
 
+function hasOwn(object, key) {
+  return Object.prototype.hasOwnProperty.call(
+    object,
+    key
+  );
+}
+
+function editableNullableText(
+  body,
+  current,
+  key
+) {
+  /*
+    Jika frontend menghantar field tersebut,
+    termasuk null atau string kosong,
+    gunakan nilai baharu.
+
+    Jika field langsung tidak dihantar,
+    barulah kekalkan nilai database lama.
+  */
+  if (hasOwn(body, key)) {
+    return nullableText(
+      body[key]
+    );
+  }
+
+  return nullableText(
+    current[key]
+  );
+}
+
 function toActive(value, fallback = 1) {
   if (
     value === undefined ||
@@ -98,101 +129,179 @@ function createPlaceholders(count) {
   ).join(', ');
 }
 
-function servicePayload(body, current = {}) {
-  const title = String(
-    body.title ?? current.title ?? ''
-  ).trim();
+function servicePayload(
+  body,
+  current = {}
+) {
+  const title = hasOwn(
+    body,
+    'title'
+  )
+    ? String(
+        body.title ?? ''
+      ).trim()
+    : String(
+        current.title ?? ''
+      ).trim();
 
-  const requestedSlug = String(
-    body.slug ?? current.slug ?? ''
-  ).trim();
+  const requestedSlug = hasOwn(
+    body,
+    'slug'
+  )
+    ? String(
+        body.slug ?? ''
+      ).trim()
+    : String(
+        current.slug ?? ''
+      ).trim();
 
   const subcategorySource =
-    body.subcategory_id !== undefined
+    hasOwn(
+      body,
+      'subcategory_id'
+    )
       ? body.subcategory_id
       : current.subcategory_id;
 
-  return {
-    category_key: String(
-      body.category_key ??
-      current.category_key ??
-      'general'
+  const categoryKey =
+    hasOwn(
+      body,
+      'category_key'
     )
-      .trim()
-      .toLowerCase(),
+      ? String(
+          body.category_key ?? ''
+        )
+          .trim()
+          .toLowerCase()
+      : String(
+          current.category_key ??
+          'general'
+        )
+          .trim()
+          .toLowerCase();
+
+  return {
+    category_key:
+      categoryKey,
 
     subcategory_id:
       parseNullablePositiveInteger(
         subcategorySource
       ),
 
-    slug: slugify(requestedSlug || title),
-
-    kicker: nullableText(
-      body.kicker ?? current.kicker
+    /*
+      Slug masih wajib.
+      Jika field slug kosong,
+      ia dijana daripada title.
+    */
+    slug: slugify(
+      requestedSlug ||
+      title
     ),
 
     title,
 
-    description: nullableText(
-      body.description ?? current.description
-    ),
+    kicker:
+      editableNullableText(
+        body,
+        current,
+        'kicker'
+      ),
 
-    full_description: nullableText(
-      body.full_description ??
-      current.full_description
-    ),
+    description:
+      editableNullableText(
+        body,
+        current,
+        'description'
+      ),
 
-    suitable_for: nullableText(
-      body.suitable_for ?? current.suitable_for
-    ),
+    full_description:
+      editableNullableText(
+        body,
+        current,
+        'full_description'
+      ),
 
-    included_items: nullableText(
-      body.included_items ??
-      current.included_items
-    ),
+    suitable_for:
+      editableNullableText(
+        body,
+        current,
+        'suitable_for'
+      ),
 
-    preparation: nullableText(
-      body.preparation ?? current.preparation
-    ),
+    included_items:
+      editableNullableText(
+        body,
+        current,
+        'included_items'
+      ),
 
-    aftercare: nullableText(
-      body.aftercare ?? current.aftercare
-    ),
+    preparation:
+      editableNullableText(
+        body,
+        current,
+        'preparation'
+      ),
 
-    hero_image_url: nullableText(
-      body.hero_image_url ??
-      current.hero_image_url
-    ),
+    aftercare:
+      editableNullableText(
+        body,
+        current,
+        'aftercare'
+      ),
 
-    keywords: nullableText(
-      body.keywords ?? current.keywords
-    ),
+    hero_image_url:
+      editableNullableText(
+        body,
+        current,
+        'hero_image_url'
+      ),
 
-    result_time: nullableText(
-      body.result_time ?? current.result_time
-    ),
+    keywords:
+      editableNullableText(
+        body,
+        current,
+        'keywords'
+      ),
 
-    is_featured: toActive(
-      body.is_featured,
-      current.is_featured === undefined
-        ? 0
-        : Number(current.is_featured)
-    ),
+    result_time:
+      editableNullableText(
+        body,
+        current,
+        'result_time'
+      ),
+
+    is_featured:
+      toActive(
+        body.is_featured,
+        current.is_featured ===
+          undefined
+          ? 0
+          : Number(
+              current.is_featured
+            )
+      ),
 
     sort_order:
       Number(
-        body.sort_order ??
-        current.sort_order ??
-        0
+        hasOwn(
+          body,
+          'sort_order'
+        )
+          ? body.sort_order
+          : current.sort_order ?? 0
       ) || 0,
 
-    is_active: toActive(
-      body.is_active,
-      current.is_active === undefined
-        ? 1
-        : Number(current.is_active)
-    ),
+    is_active:
+      toActive(
+        body.is_active,
+        current.is_active ===
+          undefined
+          ? 1
+          : Number(
+              current.is_active
+            )
+      ),
   };
 }
 

@@ -33,8 +33,6 @@ app.use(
   express.static(frontendImagesDirectory)
 );
 
-app.use(express.json());
-
 
 const port = Number(process.env.PORT || 4000);
 const isProduction = process.env.NODE_ENV === 'production';
@@ -324,6 +322,11 @@ mountOptional('/api/branches', './routes/branches');
 mountOptional(
   '/api/promotions',
   './routes/promotions'
+);
+
+mountOptional(
+  '/api/activities',
+  './routes/activities'
 );
 
 /* =========================================================

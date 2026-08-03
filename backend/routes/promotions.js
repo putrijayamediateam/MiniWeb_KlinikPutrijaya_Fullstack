@@ -4,6 +4,39 @@ const { requireAdmin } = require('../middleware/auth');
 
 const router = express.Router();
 
+function normaliseActive(
+  value,
+  defaultValue = 1
+) {
+  if (
+    value === undefined ||
+    value === null ||
+    value === ''
+  ) {
+    return defaultValue;
+  }
+
+  if (
+    value === true ||
+    value === 1 ||
+    value === '1' ||
+    value === 'true'
+  ) {
+    return 1;
+  }
+
+  if (
+    value === false ||
+    value === 0 ||
+    value === '0' ||
+    value === 'false'
+  ) {
+    return 0;
+  }
+
+  return defaultValue;
+}
+
 // GET /api/promotions - public promotion carousel
 router.get('/', async (req, res) => {
   try {
@@ -68,7 +101,7 @@ router.post('/', requireAdmin, async (req, res) => {
         cta_link || null,
         image_url || null,
         sort_order ?? 0,
-        typeof is_active === 'boolean' ? (is_active ? 1 : 0) : 1,
+        normaliseActive(is_active, 1),
       ]
     );
 
@@ -119,7 +152,7 @@ router.put('/:id', requireAdmin, async (req, res) => {
         cta_link || null,
         image_url || null,
         sort_order ?? 0,
-        typeof is_active === 'boolean' ? (is_active ? 1 : 0) : 1,
+        normaliseActive(is_active, 1),
         req.params.id,
       ]
     );

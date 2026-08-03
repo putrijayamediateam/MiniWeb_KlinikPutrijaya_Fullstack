@@ -23,6 +23,21 @@ async function initAppointmentForm() {
   const serviceSelect =
     document.getElementById('bk-service');
 
+    const identityTypeSelect =
+  document.getElementById(
+    'bk-identity-type'
+  );
+
+const identityNumberInput =
+  document.getElementById(
+    'bk-identity-number'
+  );
+
+const identityNumberLabel =
+  document.getElementById(
+    'bk-identity-number-label'
+  );
+
   const messageBox =
     document.getElementById(
       'bookingMessage'
@@ -46,6 +61,23 @@ async function initAppointmentForm() {
 
   let branchesCache = [];
   let servicesCache = [];
+
+  updateIdentityField(
+  identityTypeSelect,
+  identityNumberInput,
+  identityNumberLabel
+);
+
+identityTypeSelect.addEventListener(
+  'change',
+  () => {
+    updateIdentityField(
+      identityTypeSelect,
+      identityNumberInput,
+      identityNumberLabel
+    );
+  }
+);
 
   branchSelect.disabled = true;
   branchSelect.innerHTML = `
@@ -253,61 +285,110 @@ async function initAppointmentForm() {
       );
 
       const payload = {
-        branch_id:
-          Number(
-            form.branch_id.value
-          ) || null,
+  branch_id:
+    Number(
+      form.branch_id.value
+    ) || null,
 
-        doctor_id:
+  doctor_id:
+    form.doctor_id.value
+      ? Number(
           form.doctor_id.value
-            ? Number(
-                form.doctor_id.value
-              )
-            : null,
+        )
+      : null,
 
-        service_id:
+  service_id:
+    form.service_id.value
+      ? Number(
           form.service_id.value
-            ? Number(
-                form.service_id.value
-              )
-            : null,
+        )
+      : null,
 
-        patient_name:
-          form.patient_name.value.trim(),
+  patient_name:
+    form.patient_name.value.trim(),
 
-        phone:
-          form.phone.value.trim(),
+  gender:
+    form.elements.gender.value,
 
-        ic_number:
-          form.ic_number?.value.trim() ||
-          null,
+  phone:
+    form.phone.value.trim(),
 
-        preferred_date:
-          form.preferred_date.value,
+  identity_type:
+    form.identity_type.value,
 
-        preferred_time:
-          form.preferred_time.value,
+  identity_number:
+    form.identity_number.value.trim(),
 
-        reason:
-          form.reason?.value.trim() ||
-          null,
-      };
+  preferred_date:
+    form.preferred_date.value,
+
+  preferred_time:
+    form.preferred_time.value,
+
+  reason:
+    form.reason?.value.trim() ||
+    null,
+};
 
       if (
-        !payload.branch_id ||
-        !payload.patient_name ||
-        !payload.phone ||
-        !payload.preferred_date ||
-        !payload.preferred_time
-      ) {
-        setFormMessage(
-          messageBox,
-          'Please fill in all required fields (*).',
-          'error'
-        );
+  !payload.branch_id ||
+  !payload.patient_name ||
+  !payload.gender ||
+  !payload.phone ||
+  !payload.identity_type ||
+  !payload.identity_number ||
+  !payload.preferred_date ||
+  !payload.preferred_time
+) {
+  setFormMessage(
+    messageBox,
+    'Please fill in all required fields (*).',
+    'error'
+  );
 
-        return;
-      }
+  return;
+}
+
+if (
+  !['male', 'female'].includes(
+    payload.gender
+  )
+) {
+  setFormMessage(
+    messageBox,
+    'Please select a valid gender.',
+    'error'
+  );
+
+  return;
+}
+
+if (
+  !['ic', 'passport'].includes(
+    payload.identity_type
+  )
+) {
+  setFormMessage(
+    messageBox,
+    'Please select IC or Passport.',
+    'error'
+  );
+
+  return;
+}
+
+if (
+  payload.identity_number.length < 4 ||
+  payload.identity_number.length > 50
+) {
+  setFormMessage(
+    messageBox,
+    'Please enter a valid IC or Passport number.',
+    'error'
+  );
+
+  return;
+}
 
       submitButton.disabled = true;
       submitButton.textContent =
@@ -363,7 +444,14 @@ async function initAppointmentForm() {
         );
 
         form.reset();
-        resetDoctorSelect();
+
+updateIdentityField(
+  identityTypeSelect,
+  identityNumberInput,
+  identityNumberLabel
+);
+
+resetDoctorSelect();
       } catch (error) {
         setFormMessage(
           messageBox,
@@ -378,6 +466,66 @@ async function initAppointmentForm() {
       }
     }
   );
+}
+
+function updateIdentityField(
+  typeSelect,
+  numberInput,
+  numberLabel
+) {
+  if (
+    !typeSelect ||
+    !numberInput ||
+    !numberLabel
+  ) {
+    return;
+  }
+
+  const identityType =
+    String(
+      typeSelect.value || ''
+    ).trim();
+
+  numberInput.value = '';
+
+  if (identityType === 'ic') {
+    numberLabel.textContent =
+      'Malaysian IC number *';
+
+    numberInput.placeholder =
+      'Example: 990101-14-5678';
+
+    numberInput.inputMode =
+      'numeric';
+
+    numberInput.disabled = false;
+    return;
+  }
+
+  if (identityType === 'passport') {
+    numberLabel.textContent =
+      'Passport number *';
+
+    numberInput.placeholder =
+      'Enter passport number';
+
+    numberInput.inputMode =
+      'text';
+
+    numberInput.disabled = false;
+    return;
+  }
+
+  numberLabel.textContent =
+    'IC / Passport number *';
+
+  numberInput.placeholder =
+    'Select identification type first';
+
+  numberInput.inputMode =
+    'text';
+
+  numberInput.disabled = true;
 }
 
 function renderBranchOptions(

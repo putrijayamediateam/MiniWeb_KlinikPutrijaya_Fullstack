@@ -13,10 +13,10 @@
 <link rel="stylesheet" href="css/admin-login.css">
 <link
   rel="stylesheet"
-  href="css/admin-upgrades.css?v=20260729-5"
+  href="css/admin-upgrades.css?v=20260731-6"
 >
 </head>
-<body>
+<body class="admin-page">
 
   <!-- LOGIN SCREEN -->
   <div id="loginScreen" class="login-screen admin-login-screen">
@@ -38,7 +38,7 @@
       <h1 id="loginTitle">Staff Login</h1>
 
       <p class="login-sub admin-login-intro">
-        Sign in to manage bookings, feedback, doctors and services.
+        Sign in to manage bookings, doctors, services, promotions and community activities.
       </p>
 
       <form id="loginForm" class="admin-login-form" novalidate>
@@ -137,8 +137,17 @@
 </button>
       <button class="tab-btn" data-tab="feedback">Feedback</button>
       <button class="tab-btn" data-tab="doctors">Doctors</button>
-      <button class="tab-btn" data-tab="services">Services</button>
-      <button class="tab-btn" data-tab="promotions">Promotions</button>
+      <button class="tab-btn" data-tab="services">
+  Services
+</button>
+
+<button class="tab-btn" data-tab="promotions">
+  Promotions
+</button>
+
+<button class="tab-btn" data-tab="activities">
+  Activities &amp; CSR
+</button>
     </nav>
 
     <main class="admin-main">
@@ -363,6 +372,28 @@
         </div>
       </div>
     </article>
+
+    <article class="performance-card performance-gender-card">
+  <div class="performance-card-head">
+    <div>
+      <h3>Booking gender</h3>
+
+      <p>
+        Gender distribution from successfully
+        submitted appointment requests.
+      </p>
+    </div>
+  </div>
+
+  <div
+    class="performance-chart performance-gender-chart"
+    id="performanceGenderChart"
+  >
+    <div class="performance-empty">
+      Loading booking gender data...
+    </div>
+  </div>
+</article>
   </div>
 
   <!-- BRANCH PERFORMANCE -->
@@ -470,7 +501,7 @@
 
 <select id="bookingStatusFilter" aria-label="Filter bookings by status">
   <option value="">All statuses</option>
-  <option value="pending">Pending Review</option>
+  <option value="pending">Pending</option>
   <option value="confirmed">Confirmed</option>
   <option value="completed">Completed</option>
   <option value="cancelled">Cancelled</option>
@@ -627,6 +658,58 @@
         </div>
       </section>
 
+      <!-- ACTIVITIES & CSR TAB -->
+<section
+  class="tab-panel"
+  id="tab-activities"
+>
+  <div class="panel-head">
+    <div>
+      <h2>Activities &amp; CSR</h2>
+
+      <p class="panel-subtitle">
+        Add and manage completed community,
+        CSR, sponsorship and staff activities.
+      </p>
+    </div>
+
+    <button
+      type="button"
+      class="btn-primary"
+      id="addActivityBtn"
+    >
+      + Add activity
+    </button>
+  </div>
+
+  <div class="table-wrap">
+    <table class="activities-admin-table">
+      <thead>
+        <tr>
+          <th>Category</th>
+          <th>Activity</th>
+          <th>Date / Meta</th>
+          <th>Gallery</th>
+          <th>Order</th>
+          <th>Active</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+
+      <tbody id="activitiesTableBody">
+        <tr>
+          <td
+            colspan="7"
+            class="loading-row"
+          >
+            Loading…
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
     </main>
   </div>
 
@@ -655,7 +738,7 @@
 ></script>
 
 <script
-  src="admin.js?v=20260730-1"
+  src="admin.js?v=20260731-1"
   defer
 ></script>
 </body>

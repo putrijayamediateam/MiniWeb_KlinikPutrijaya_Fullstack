@@ -325,54 +325,100 @@ section[id],
 
 /* ============================================================
    HEADER DROPDOWNS
-   Opens ONLY when a JS click toggles the `.is-open` class on
-   `.nav-dropdown` (see JS snippet). Hover no longer opens it.
+   Desktop: hover / keyboard focus
+   Mobile: tap / click through .is-open
    ============================================================ */
+
+.nav-dropdown {
+  position: relative;
+}
 
 .nav-dropdown-menu {
   position: absolute;
   top: calc(100% + 8px);
   left: 50%;
   z-index: 50;
+
   width: 220px;
   padding: 10px;
+
   border: 1px solid var(--line);
   border-radius: 12px;
+
   background: #fff;
-  box-shadow: 0 18px 50px rgba(36, 20, 28, 0.13);
+
+  box-shadow:
+    0 18px 50px
+    rgba(36, 20, 28, 0.13);
+
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
-  transform: translate(-50%, 8px);
+
+  transform:
+    translate(-50%, 10px);
+
   transition:
-    opacity 0.18s ease,
-    visibility 0.18s ease,
-    transform 0.18s ease;
+    opacity 0.2s ease,
+    visibility 0.2s ease,
+    transform 0.2s ease;
+}
+
+/*
+  Invisible bridge between the button and dropdown.
+  This prevents the menu from disappearing while
+  the cursor moves down into the list.
+*/
+.nav-dropdown-menu::before {
+  content: "";
+
+  position: absolute;
+  right: 0;
+  bottom: 100%;
+  left: 0;
+
+  height: 12px;
+}
+
+.nav-services-menu {
+  width: 285px;
 }
 
 .nav-dropdown-menu a {
   display: block;
+
   padding: 10px 12px;
+
   border: 1px solid transparent;
   border-radius: 7px;
+
   color: var(--ink-soft);
+
   font-size: 0.86rem;
   line-height: 1.35;
+
   text-decoration: none;
-  white-space: nowrap;
+  white-space: normal;
+
   transition:
     color 0.2s ease,
     background-color 0.2s ease,
-    border-color 0.2s ease;
+    border-color 0.2s ease,
+    transform 0.2s ease;
 }
 
 .nav-dropdown-menu a:hover,
 .nav-dropdown-menu a:focus-visible {
-  border-color: rgba(227, 28, 121, 0.16);
+  border-color:
+    rgba(227, 28, 121, 0.16);
+
   background: var(--pink-tint);
   color: var(--primary-deep);
+
+  transform: translateX(2px);
 }
 
+/* Selected dropdown item */
 .nav-dropdown-menu a.is-active,
 .nav-dropdown-menu a[aria-current="page"] {
   border-color: var(--primary);
@@ -380,18 +426,71 @@ section[id],
   color: #fff;
 }
 
+.nav-dropdown-menu a.is-active:hover,
+.nav-dropdown-menu a[aria-current="page"]:hover,
+.nav-dropdown-menu a.is-active:focus-visible,
+.nav-dropdown-menu a[aria-current="page"]:focus-visible {
+  border-color: var(--primary-deep);
+  background: var(--primary-deep);
+  color: #fff;
+}
+
+/* Smooth arrow animation */
+.nav-chevron {
+  display: inline-block;
+
+  font-size: 0.54rem;
+  line-height: 1;
+
+  transform: translateY(1px);
+
+  transition:
+    transform 0.2s ease;
+}
+
+/* ============================================================
+   DESKTOP / LAPTOP DROPDOWN
+   ============================================================ */
+
 @media (min-width: 881px) {
-  /* Only .is-open (set by a click handler in JS) reveals the menu now.
-     :hover / :focus-within triggers have been removed on purpose. */
-  .nav-dropdown.is-open .nav-dropdown-menu {
+  .nav-dropdown.is-open
+  > .nav-dropdown-menu {
     opacity: 1;
     visibility: visible;
     pointer-events: auto;
-    transform: translate(-50%, 0);
+
+    transform:
+      translate(-50%, 0);
   }
 
-  .nav-dropdown.is-open .nav-chevron {
-    transform: translateY(1px) rotate(180deg);
+  .nav-dropdown.is-open
+  > .nav-dropdown-toggle {
+    border-color:
+      rgba(227, 28, 121, 0.2);
+
+    background: var(--pink-tint);
+    color: var(--primary);
+
+    transform: translateY(-1px);
+
+    box-shadow:
+      0 4px 10px
+      rgba(227, 28, 121, 0.12);
+  }
+
+  .nav-dropdown.is-open
+  > .nav-dropdown-toggle
+  .nav-chevron {
+    transform:
+      translateY(1px)
+      rotate(180deg);
+  }
+
+  .nav-dropdown.has-active-child.is-open
+  > .nav-dropdown-toggle {
+    border-color: var(--primary-deep);
+    background: var(--primary-deep);
+    color: #fff;
   }
 }
 
@@ -841,31 +940,51 @@ footer a:focus-visible {
     padding: 10px 12px;
   }
 
-  .nav-dropdown-menu {
+    .nav-dropdown-menu {
     position: static;
-    width: 100%;
+
     display: none;
+
+    width: 100%;
+    margin-top: 4px;
     padding: 5px 0 5px 12px;
+
     border: 0;
     border-radius: 0;
+
     background: transparent;
     box-shadow: none;
+
     opacity: 1;
     visibility: visible;
     pointer-events: auto;
+
     transform: none;
   }
 
-  .nav-dropdown.is-open .nav-dropdown-menu {
+  .nav-dropdown-menu::before {
+    display: none;
+  }
+
+  .nav-services-menu {
+    width: 100%;
+  }
+
+  .nav-dropdown.is-open
+  .nav-dropdown-menu {
     display: block;
   }
 
-  .nav-dropdown.is-open .nav-chevron {
-    transform: translateY(1px) rotate(180deg);
+  .nav-dropdown.is-open
+  .nav-chevron {
+    transform:
+      translateY(1px)
+      rotate(180deg);
   }
 
   .nav-dropdown-menu a {
     padding: 10px 12px;
+    white-space: normal;
   }
 
   .site-nav .nav-cta {

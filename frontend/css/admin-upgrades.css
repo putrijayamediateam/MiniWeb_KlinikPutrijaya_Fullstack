@@ -1555,6 +1555,795 @@ html body .gallery-manager-card small {
   min-width: 210px;
 }
 
+/* ============================================================
+   BOOKING TABLE ONLY — WIDER THAN NORMAL ADMIN CONTENT
+   ============================================================ */
+
+/*
+  Hanya table booking dilebarkan.
+  Tajuk, summary cards, filter dan Export CSV
+  kekal menggunakan lebar asal admin.
+*/
+@media (min-width: 1200px) {
+  .admin-page #tab-bookings .table-wrap {
+    position: relative;
+
+    width: min(
+      1800px,
+      calc(100vw - 32px)
+    );
+
+    max-width: none;
+
+    margin-left: 50%;
+    transform: translateX(-50%);
+
+    overflow-x: visible;
+  }
+
+  /*
+    Gunakan keseluruhan ruang table yang telah dilebarkan.
+    Tidak mengubah font, padding atau saiz button.
+  */
+  .admin-page #tab-bookings .table-wrap table {
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+  }
+
+  /*
+    Teks panjang boleh turun ke baris kedua.
+    Font dan jarak asal masih dikekalkan.
+  */
+  .admin-page #tab-bookings .table-wrap th,
+  .admin-page #tab-bookings .table-wrap td {
+    white-space: normal;
+  }
+
+  /*
+    Maklumat ringkas ini dikekalkan satu baris.
+  */
+  .admin-page #tab-bookings .table-wrap th:nth-child(1),
+  .admin-page #tab-bookings .table-wrap td:nth-child(1),
+  .admin-page #tab-bookings .table-wrap th:nth-child(3),
+  .admin-page #tab-bookings .table-wrap td:nth-child(3),
+  .admin-page #tab-bookings .table-wrap th:nth-child(7),
+  .admin-page #tab-bookings .table-wrap td:nth-child(7),
+  .admin-page #tab-bookings .table-wrap th:nth-child(8),
+  .admin-page #tab-bookings .table-wrap td:nth-child(8),
+  .admin-page #tab-bookings .table-wrap th:nth-child(10),
+  .admin-page #tab-bookings .table-wrap td:nth-child(10),
+  .admin-page #tab-bookings .table-wrap th:nth-child(11),
+  .admin-page #tab-bookings .table-wrap td:nth-child(11) {
+    white-space: nowrap;
+  }
+}
+
+/*
+  Skrin kecil masih boleh scroll supaya table tidak rosak.
+*/
+@media (max-width: 1199px) {
+  .admin-page #tab-bookings .table-wrap {
+    overflow-x: auto;
+  }
+}
+
+/* ============================================================
+   BOOKING REASON — FIXED ROW WITH READ POPUP
+   ============================================================ */
+
+/*
+  Kolum dan row tidak berubah saiz.
+*/
+#tab-bookings .reason-col {
+  position: relative;
+}
+
+/*
+  Kekalkan reason pada satu baris.
+*/
+#tab-bookings .reason-preview {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  height: 22px;
+  line-height: 22px;
+}
+
+/*
+  Sediakan sedikit ruang dalam kolum Reason sahaja
+  supaya teks tidak berada di bawah butang View.
+  Ia tidak mengubah lebar table atau kedudukan kolum lain.
+*/
+#tab-bookings .reason-text {
+  display: block;
+  width: 100%;
+  min-width: 0;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/*
+  Ruang untuk Read hanya diberikan apabila
+  teks betul-betul terpotong.
+*/
+#tab-bookings
+.reason-preview.has-read-button
+.reason-text {
+  padding-right: 48px;
+}
+
+#tab-bookings
+.reason-view-btn[hidden] {
+  display: none;
+}
+
+/*
+  Butang terapung dalam kolum Reason.
+  Absolute positioning memastikan ia tidak menolak item lain.
+*/
+#tab-bookings .reason-view-btn {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  z-index: 2;
+
+  height: 22px;
+  min-height: 22px;
+  padding: 0 7px;
+
+  transform: translateY(-50%);
+
+  border: 1px solid rgba(227, 28, 121, 0.28);
+  border-radius: 6px;
+
+  background: #fff;
+  color: #d91470;
+
+  font: inherit;
+  font-size: 0.68rem;
+  font-weight: 700;
+  line-height: 1;
+
+  cursor: pointer;
+}
+
+#tab-bookings .reason-view-btn:hover {
+  border-color: #e31c79;
+  background: #fff2f8;
+}
+
+#tab-bookings .reason-view-btn:focus-visible {
+  outline: 2px solid rgba(227, 28, 121, 0.35);
+  outline-offset: 2px;
+}
+
+/* Popup content */
+.booking-reason-popup {
+  display: grid;
+  gap: 18px;
+}
+
+.booking-reason-details {
+  display: grid;
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.booking-reason-details > div {
+  padding: 12px;
+  border: 1px solid #f0dce6;
+  border-radius: 10px;
+  background: #fff8fb;
+}
+
+.booking-reason-details span,
+.booking-reason-content > span {
+  display: block;
+  margin-bottom: 5px;
+  color: #806d77;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.035em;
+}
+
+.booking-reason-details strong {
+  display: block;
+  color: #2b1822;
+  font-size: 0.88rem;
+  overflow-wrap: anywhere;
+}
+
+.booking-reason-content {
+  padding: 16px;
+  border: 1px solid #ead5df;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.booking-reason-content p {
+  max-height: 320px;
+  margin: 0;
+  overflow-y: auto;
+
+  color: #2b1822;
+  font-size: 0.92rem;
+  line-height: 1.65;
+
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* Booking reference opens details without changing table size */
+#tab-bookings
+.booking-details-trigger {
+  display: inline;
+  width: auto;
+  min-width: 0;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+
+  color: inherit;
+  font: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+  text-align: inherit;
+
+  cursor: pointer;
+}
+
+#tab-bookings
+.booking-details-trigger:hover {
+  color: #d91470;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+#tab-bookings
+.booking-details-trigger:focus-visible {
+  outline: 2px solid
+    rgba(227, 28, 121, 0.4);
+  outline-offset: 3px;
+  border-radius: 3px;
+}
+
+/* ============================================================
+   KLINIK PUTRIJAYA — VERTICAL BOOKING TICKET
+   ============================================================ */
+
+.booking-ticket-shell {
+  width: 100%;
+  max-width: 460px;
+  margin: 0 auto;
+}
+
+.kp-ticket {
+  --ticket-accent: #c9447f;
+  --ticket-accent-dark: #9f2f63;
+  --ticket-soft: #fff2f7;
+  --ticket-pale: #fff9fb;
+  --ticket-border: #ead7e0;
+  --ticket-text: #272129;
+  --ticket-muted: #776972;
+
+  position: relative;
+
+  width: 100%;
+  max-width: 430px;
+  margin: 0 auto;
+
+  overflow: hidden;
+
+  color: var(--ticket-text);
+  background: #fff;
+
+  border: 1px solid var(--ticket-border);
+  border-radius: 20px;
+
+  box-shadow:
+    0 18px 48px
+    rgba(49, 35, 42, 0.14);
+}
+
+/* Potongan ticket kiri dan kanan */
+.kp-ticket::before,
+.kp-ticket::after {
+  content: "";
+
+  position: absolute;
+  top: 168px;
+  z-index: 3;
+
+  width: 26px;
+  height: 50px;
+
+  background: #eee9ec;
+  border-radius: 50%;
+}
+
+.kp-ticket::before {
+  left: -14px;
+}
+
+.kp-ticket::after {
+  right: -14px;
+}
+
+.kp-ticket-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  padding: 24px 28px 12px;
+}
+
+.kp-ticket-logo {
+  display: block;
+
+  width: 88px;
+  height: auto;
+
+  object-fit: contain;
+}
+
+.kp-ticket-brand-text {
+  display: grid;
+  gap: 2px;
+}
+
+.kp-ticket-brand-text strong {
+  color: var(--ticket-accent-dark);
+  font-size: 0.76rem;
+  letter-spacing: 0.045em;
+}
+
+.kp-ticket-brand-text span {
+  color: var(--ticket-muted);
+  font-size: 0.64rem;
+}
+
+.kp-ticket-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 11px;
+
+  padding: 15px 28px 19px;
+}
+
+.kp-ticket-title span {
+  width: 7px;
+  height: 7px;
+
+  border-radius: 50%;
+  background: var(--ticket-accent);
+}
+
+.kp-ticket-title h2 {
+  margin: 0;
+
+  color: var(--ticket-accent-dark);
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.kp-ticket-cut-line {
+  margin: 0 28px;
+
+  border-top: 1px dashed
+    rgba(183, 145, 164, 0.65);
+}
+
+.kp-ticket-reference {
+  display: block;
+  padding: 25px 28px 22px;
+}
+
+.kp-ticket-reference > div:first-child {
+  min-width: 0;
+}
+
+.kp-ticket-reference span {
+  display: block;
+  margin-bottom: 6px;
+
+  color: var(--ticket-muted);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.kp-ticket-reference strong {
+  display: block;
+
+  color: var(--ticket-text);
+  font-size: 1.3rem;
+  font-weight: 800;
+  letter-spacing: 0.025em;
+
+  overflow-wrap: anywhere;
+}
+
+/* QR dekoratif */
+.kp-ticket-qr {
+  display: grid;
+  grid-template-columns:
+    repeat(3, 9px);
+  grid-template-rows:
+    repeat(3, 9px);
+  gap: 3px;
+
+  flex: 0 0 auto;
+
+  padding: 5px;
+
+  border: 2px solid #252125;
+}
+
+.kp-ticket-qr span {
+  display: block;
+  margin: 0;
+
+  background: #252125;
+}
+
+.kp-ticket-qr span:nth-child(2),
+.kp-ticket-qr span:nth-child(4),
+.kp-ticket-qr span:nth-child(8) {
+  background: transparent;
+}
+
+.kp-ticket-section,
+.kp-ticket-reason {
+  margin: 0 28px 20px;
+  padding-top: 16px;
+
+  border-top: 1px solid
+    #eee3e8;
+}
+
+.kp-ticket-section-heading {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+
+  margin-bottom: 11px;
+}
+
+.kp-ticket-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 27px;
+  height: 27px;
+
+  border-radius: 50%;
+
+  color: var(--ticket-accent-dark);
+  background: var(--ticket-soft);
+
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.kp-ticket-section-heading h3 {
+  margin: 0;
+
+  color: var(--ticket-accent-dark);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.055em;
+  text-transform: uppercase;
+}
+
+.kp-ticket-list {
+  display: grid;
+}
+
+.kp-ticket-row {
+  display: grid;
+  grid-template-columns:
+    18px
+    minmax(115px, 0.85fr)
+    minmax(0, 1.15fr);
+
+  align-items: start;
+  gap: 8px;
+
+  min-width: 0;
+  padding: 8px 0;
+
+  border-bottom: 1px solid
+    #f1e9ed;
+}
+
+.kp-ticket-row:last-child {
+  border-bottom: 0;
+}
+
+.kp-ticket-row-icon {
+  color: var(--ticket-accent-dark);
+  font-size: 0.78rem;
+}
+
+.kp-ticket-row-label {
+  color: var(--ticket-muted);
+  font-size: 0.69rem;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.kp-ticket-row strong {
+  min-width: 0;
+
+  color: var(--ticket-text);
+  font-size: 0.73rem;
+  font-weight: 700;
+  line-height: 1.45;
+
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+.kp-ticket-status {
+  display: inline-flex;
+
+  width: fit-content;
+  padding: 4px 10px;
+
+  border-radius: 999px;
+}
+
+.kp-ticket-status-pending {
+  color: #8a5d16;
+  background: #fff0c9;
+}
+
+.kp-ticket-status-confirmed {
+  color: #196178;
+  background: #dff4fa;
+}
+
+.kp-ticket-status-completed {
+  color: #276f50;
+  background: #e1f2e8;
+}
+
+.kp-ticket-status-cancelled {
+  color: #9a3c50;
+  background: #f9e2e8;
+}
+
+.kp-ticket-reason p {
+  margin: 0;
+  padding: 4px 0 20px;
+
+  color: var(--ticket-text);
+  font-size: 0.74rem;
+  line-height: 1.65;
+
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+.kp-ticket-footer {
+  padding: 25px 24px 28px;
+
+  text-align: center;
+
+  background:
+    linear-gradient(
+      180deg,
+      #fdebf2 0%,
+      #f8dce8 100%
+    );
+}
+
+.kp-ticket-footer strong {
+  display: block;
+
+  color: var(--ticket-accent-dark);
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.kp-ticket-footer span {
+  display: block;
+  margin-top: 5px;
+
+  color: var(--ticket-muted);
+  font-size: 0.63rem;
+}
+
+/* Button di luar ticket */
+.booking-ticket-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+
+  margin-top: 16px;
+}
+
+.booking-ticket-download,
+.booking-ticket-close {
+  min-width: 150px;
+  padding: 11px 20px;
+
+  border-radius: 10px;
+
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+
+  cursor: pointer;
+}
+
+.booking-ticket-download {
+  border: 1px solid
+    var(--ticket-accent, #c9447f);
+
+  color: #fff;
+  background: #c9447f;
+}
+
+.booking-ticket-close {
+  border: 1px solid
+    rgba(159, 47, 99, 0.35);
+
+  color: #9f2f63;
+  background: #fff;
+}
+
+.modal-content:has(
+  .booking-ticket-shell
+) {
+  width: min(
+    calc(100vw - 30px),
+    510px
+  );
+
+  max-height: calc(100vh - 30px);
+  padding: 18px;
+
+  overflow-y: auto;
+
+  background: transparent;
+  box-shadow: none;
+}
+
+.modal-content:has(
+  .booking-ticket-shell
+)
+.modal-title {
+  display: none;
+}
+
+/* ============================================================
+   PERFORMANCE — GENDER CHART
+   ============================================================ */
+
+.performance-gender-chart {
+  min-height: 310px;
+}
+
+@media (min-width: 1350px) {
+  #tab-performance
+  .performance-visual-grid {
+    grid-template-columns:
+      minmax(0, 2fr)
+      minmax(260px, 1fr)
+      minmax(260px, 1fr);
+  }
+}
+
+@media (
+  min-width: 850px
+) and (
+  max-width: 1349px
+) {
+  #tab-performance
+  .performance-trend-card {
+    grid-column: 1 / -1;
+  }
+
+  #tab-performance
+  .performance-device-card,
+  #tab-performance
+  .performance-gender-card {
+    min-width: 0;
+  }
+}
+
+@media (max-width: 500px) {
+  .kp-ticket-header,
+  .kp-ticket-title,
+  .kp-ticket-reference {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .kp-ticket-section,
+  .kp-ticket-reason {
+    margin-left: 20px;
+    margin-right: 20px;
+  }
+
+  .kp-ticket-row {
+    grid-template-columns:
+      15px
+      105px
+      minmax(0, 1fr);
+  }
+
+  .booking-ticket-actions {
+    flex-direction: column;
+  }
+
+  .booking-ticket-download,
+  .booking-ticket-close {
+    width: 100%;
+  }
+}
+
+.modal-content:has(.booking-ticket-shell) {
+  width: min(calc(100vw - 32px), 820px);
+  max-height: calc(100vh - 40px);
+  padding: 0;
+  overflow-y: auto;
+  background: transparent;
+  box-shadow: none;
+}
+
+.modal-content:has(.booking-ticket-shell) .modal-title {
+  display: none;
+}
+
+@media (max-width: 700px) {
+  .booking-ticket {
+    padding: 20px;
+    border-radius: 18px;
+  }
+
+  .booking-ticket-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .booking-ticket-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .booking-ticket-logo {
+    width: 120px;
+  }
+
+  .booking-ticket-brand h2 {
+    font-size: 1.55rem;
+  }
+}
+
+@media (max-width: 680px) {
+  .booking-reason-details {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 1100px) {
   #tab-performance .performance-toolbar {
     grid-template-columns: repeat(2, minmax(0, 1fr));

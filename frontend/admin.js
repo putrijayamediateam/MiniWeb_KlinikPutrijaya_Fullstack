@@ -12,18 +12,20 @@ let branchesCache = [];
 let doctorsCache = [];
 let servicesCache = [];
 let promotionsCache = [];
+let activitiesCache = [];
 let performanceReportCache = null;
 let performanceTrendChartInstance = null;
 let performanceDeviceChartInstance = null;
+let performanceGenderChartInstance = null;
 
 const bookingState = {
   page: 1,
-  limit: 20,
+  limit: 10,
 };
 
 const feedbackState = {
   page: 1,
-  limit: 20,
+  limit: 10,
 };
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -103,6 +105,7 @@ document
   document.getElementById('addDoctorBtn')?.addEventListener('click', () => openDoctorModal());
   document.getElementById('addServiceBtn')?.addEventListener('click', () => openServiceModal());
   document.getElementById('addPromotionBtn')?.addEventListener('click', () => openPromotionModal());
+  document.getElementById('addActivityBtn')?.addEventListener('click',() => openActivityModal());
   document.getElementById('modalCloseBtn')?.addEventListener('click', closeModal);
 
   document.getElementById('modalBackdrop')?.addEventListener('click', (event) => {
@@ -112,6 +115,22 @@ document
   document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') closeModal();
   });
+
+  window.addEventListener(
+  'resize',
+  debounce(() => {
+    const tbody =
+      document.getElementById(
+        'bookingsTableBody'
+      );
+
+    if (tbody) {
+      updateReasonReadButtons(
+        tbody
+      );
+    }
+  }, 150)
+);
 }
 
 
@@ -184,6 +203,7 @@ await Promise.allSettled([
   loadDoctors(),
   loadServices(),
   loadPromotions(),
+  loadActivities(),
 ]);
 }
 
@@ -427,6 +447,11 @@ async function loadPerformance() {
       'performanceDeviceChart'
     );
 
+    const genderContainer =
+  document.getElementById(
+    'performanceGenderChart'
+  );
+
   const branchBody =
     document.getElementById(
       'performanceBranchTableBody'
@@ -447,6 +472,14 @@ async function loadPerformance() {
       </div>
     `;
   }
+
+  if (genderContainer) {
+  genderContainer.innerHTML = `
+    <div class="performance-empty">
+      Loading booking gender data...
+    </div>
+  `;
+}
 
   if (branchBody) {
     branchBody.innerHTML = `
@@ -490,6 +523,10 @@ async function loadPerformance() {
       response.devices || []
     );
 
+    renderPerformanceGenders(
+  response.genders || []
+);
+
     renderPerformanceBranches(
       response.branches || []
     );
@@ -526,6 +563,16 @@ async function loadPerformance() {
         </div>
       `;
     }
+
+    if (genderContainer) {
+  genderContainer.innerHTML = `
+    <div
+      class="performance-empty error"
+    >
+      ${message}
+    </div>
+  `;
+}
 
     if (branchBody) {
       branchBody.innerHTML = `
@@ -926,6 +973,191 @@ function renderPerformanceDevices(
               backgroundColor: [
                 '#e31c79',
                 '#24141c',
+              ],
+
+              borderColor:
+                '#ffffff',
+
+              borderWidth: 4,
+              hoverOffset: 7,
+            },
+          ],
+        },
+
+        options: {
+          responsive: true,
+
+          maintainAspectRatio:
+            false,
+
+          plugins: {
+            legend: {
+              position:
+                'bottom',
+
+              labels: {
+                usePointStyle:
+                  true,
+
+                boxWidth: 8,
+                padding: 18,
+              },
+            },
+
+            tooltip: {
+              callbacks: {
+                label(context) {
+                  const values =
+                    context
+                      .dataset
+                      .data
+                      .map(Number);
+
+                  const total =
+                    values.reduce(
+                      (
+                        sum,
+                        value
+                      ) =>
+                        sum +
+                        value,
+                      0
+                    );
+
+                  const percentage =
+                    total
+                      ? (
+                          (
+                            Number(
+                              context.raw
+                            ) /
+                            total
+                          ) *
+                          100
+                        ).toFixed(1)
+                      : '0.0';
+
+                  return (
+                    `${context.label}: ` +
+                    `${performanceNumber(
+                      context.raw
+                    )} ` +
+                    `(${percentage}%)`
+                  );
+                },
+              },
+            },
+          },
+        },
+      }
+    );
+}
+
+function renderPerformanceGenders(
+  genders
+) {
+  const container =
+    document.getElementById(
+      'performanceGenderChart'
+    );
+
+  if (!container) {
+    return;
+  }
+
+  if (
+    performanceGenderChartInstance
+  ) {
+    performanceGenderChartInstance
+      .destroy();
+
+    performanceGenderChartInstance =
+      null;
+  }
+
+  const femaleBookings =
+    Number(
+      genders.find(
+        (item) =>
+          item.gender ===
+          'female'
+      )?.bookings || 0
+    );
+
+  const maleBookings =
+    Number(
+      genders.find(
+        (item) =>
+          item.gender ===
+          'male'
+      )?.bookings || 0
+    );
+
+  if (
+    !femaleBookings &&
+    !maleBookings
+  ) {
+    container.innerHTML = `
+      <div class="performance-empty">
+        No booking gender data
+        recorded for this period.
+      </div>
+    `;
+
+    return;
+  }
+
+  if (
+    typeof Chart ===
+    'undefined'
+  ) {
+    container.innerHTML = `
+      <div
+        class="performance-empty error"
+      >
+        Chart library could not
+        be loaded.
+      </div>
+    `;
+
+    return;
+  }
+
+  container.innerHTML = `
+    <canvas
+      aria-label="
+        Booking gender pie chart
+      "
+    ></canvas>
+  `;
+
+  const canvas =
+    container.querySelector(
+      'canvas'
+    );
+
+  performanceGenderChartInstance =
+    new Chart(
+      canvas,
+      {
+        type: 'pie',
+
+        data: {
+          labels: [
+            'Female',
+            'Male',
+          ],
+
+          datasets: [
+            {
+              data: [
+                femaleBookings,
+                maleBookings,
+              ],
+
+              backgroundColor: [
+                '#e98ab3',
+                '#536b86',
               ],
 
               borderColor:
@@ -1429,6 +1661,46 @@ function exportPerformanceWorkbook() {
       'Device Access'
     );
 
+    const genderSheet =
+  XLSX.utils
+    .json_to_sheet(
+      (
+        report.genders ||
+        []
+      ).map(
+        (item) => ({
+          Gender:
+            item.gender ===
+            'female'
+              ? 'Female'
+              : 'Male',
+
+          Bookings:
+            Number(
+              item.bookings ||
+              0
+            ),
+        })
+      )
+    );
+
+genderSheet['!cols'] = [
+  {
+    wch: 18,
+  },
+
+  {
+    wch: 14,
+  },
+];
+
+XLSX.utils
+  .book_append_sheet(
+    workbook,
+    genderSheet,
+    'Booking Gender'
+  );
+
   const startDate =
     report.filters
       ?.start_date ||
@@ -1501,11 +1773,26 @@ function renderBookings(bookings) {
   }
 
   tbody.innerHTML = bookings.map((booking) => {
-    const whatsappLink = buildWhatsappLink(booking);
+      const whatsappLink = buildWhatsappLink(booking);
 
     return `
       <tr data-id="${booking.id}">
-        <td><span class="booking-ref">${formatBookingRef(booking.id)}</span></td>
+        <td>
+  <button
+    class="booking-ref booking-details-trigger"
+    type="button"
+    data-action="view-booking-details"
+    data-id="${booking.id}"
+    title="View booking details"
+    aria-label="View booking details for ${escapeAttribute(
+      formatBookingRef(booking.id)
+    )}"
+  >
+    ${escapeHtml(
+      formatBookingRef(booking.id)
+    )}
+  </button>
+</td>
         <td>
           <strong>${escapeHtml(booking.patient_name)}</strong>
         </td>
@@ -1516,11 +1803,33 @@ function renderBookings(bookings) {
         <td>${formatDate(booking.preferred_date)}</td>
         <td>${escapeHtml(booking.preferred_time || '—')}</td>
         <td class="reason-col">
-          <div class="reason-text">${escapeHtml(booking.reason || '—')}</div>
-        </td>
+  <div class="reason-preview">
+    <span class="reason-text">
+      ${escapeHtml(booking.reason || '—')}
+    </span>
+
+    ${
+      booking.reason
+        ? `
+          <button
+            class="reason-view-btn"
+            type="button"
+            data-action="view-booking-reason"
+            data-id="${booking.id}"
+            title="Read full reason"
+            aria-label="Read full booking reason"
+            hidden
+          >
+            Read
+          </button>
+        `
+        : ''
+    }
+  </div>
+</td>
         <td>
           <select class="status-select status-${escapeAttribute(booking.status)}" data-id="${booking.id}">
-            ${statusOption('pending', booking.status, 'Pending Review')}
+            ${statusOption('pending', booking.status, 'Pending')}
             ${statusOption('confirmed', booking.status, 'Confirmed')}
             ${statusOption('completed', booking.status, 'Completed')}
             ${statusOption('cancelled', booking.status, 'Cancelled')}
@@ -1575,6 +1884,62 @@ function renderBookings(bookings) {
     `;
   }).join('');
 
+  requestAnimationFrame(() => {
+  updateReasonReadButtons(tbody);
+});
+
+tbody
+  .querySelectorAll(
+    '[data-action="view-booking-details"]'
+  )
+  .forEach((button) => {
+    button.addEventListener(
+      'click',
+      () => {
+        const booking =
+          bookings.find(
+            (item) =>
+              String(item.id) ===
+              String(
+                button.dataset.id
+              )
+          );
+
+        if (!booking) {
+          return;
+        }
+
+        openBookingDetailsModal(
+          booking
+        );
+      }
+    );
+  });
+
+  tbody
+  .querySelectorAll(
+    '[data-action="view-booking-reason"]'
+  )
+  .forEach((button) => {
+    button.addEventListener(
+      'click',
+      () => {
+        const booking =
+          bookings.find(
+            (item) =>
+              String(item.id) ===
+              String(button.dataset.id)
+          );
+
+        if (!booking) {
+          return;
+        }
+
+        openBookingDetailsModal(booking);
+      }
+    );
+  });
+
   tbody.querySelectorAll('.status-select').forEach((select) => {
     select.addEventListener('change', async () => {
       const previous = select.dataset.previous || '';
@@ -1610,6 +1975,934 @@ function renderBookings(bookings) {
       }
     });
   });
+}
+
+function updateReasonReadButtons(
+  container = document
+) {
+  container
+    .querySelectorAll(
+      '.reason-preview'
+    )
+    .forEach((preview) => {
+      const text =
+        preview.querySelector(
+          '.reason-text'
+        );
+
+      const button =
+        preview.querySelector(
+          '.reason-view-btn'
+        );
+
+      if (!text || !button) {
+        return;
+      }
+
+      /*
+        Reset dahulu supaya ukuran dibuat
+        menggunakan ruang penuh kolum Reason.
+      */
+      preview.classList.remove(
+        'has-read-button'
+      );
+
+      button.hidden = true;
+
+      const isOverflowing =
+        text.scrollWidth >
+        text.clientWidth + 1;
+
+      if (isOverflowing) {
+        preview.classList.add(
+          'has-read-button'
+        );
+
+        button.hidden = false;
+      }
+    });
+}
+
+function openBookingDetailsModal(
+  booking
+) {
+  const ticketHtml =
+    buildBookingTicketMarkup(
+      booking
+    );
+
+  showModal(
+    '',
+    `
+      <div class="booking-ticket-shell">
+        ${ticketHtml}
+
+        <div class="booking-ticket-actions">
+          <button
+            class="booking-ticket-download"
+            id="downloadBookingTicketBtn"
+            type="button"
+          >
+            Download Ticket
+          </button>
+
+          <button
+            class="booking-ticket-close"
+            id="closeBookingDetailsBtn"
+            type="button"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    `,
+    (event) => {
+      event.preventDefault();
+    }
+  );
+
+  document
+    .getElementById(
+      'closeBookingDetailsBtn'
+    )
+    ?.addEventListener(
+      'click',
+      closeModal
+    );
+
+  document
+    .getElementById(
+      'downloadBookingTicketBtn'
+    )
+    ?.addEventListener(
+      'click',
+      () =>
+        downloadBookingTicket(
+          booking
+        )
+    );
+}
+
+function buildBookingTicketMarkup(
+  booking
+) {
+  const reason =
+    String(
+      booking.reason || ''
+    ).trim() ||
+    'No reason provided.';
+
+  const gender =
+    formatBookingGender(
+      booking.gender
+    );
+
+  const resolvedIdentityType =
+    booking.identity_type ||
+    (
+      booking.ic_number
+        ? 'ic'
+        : ''
+    );
+
+  const identityType =
+    formatBookingIdentityType(
+      resolvedIdentityType
+    );
+
+  const identityNumber =
+    String(
+      booking.identity_number ||
+      booking.ic_number ||
+      ''
+    ).trim() ||
+    'Not recorded';
+
+  const statusLabel =
+    formatBookingStatusLabel(
+      booking.status
+    );
+
+  const statusClass =
+    String(
+      booking.status || 'pending'
+    )
+      .trim()
+      .toLowerCase();
+
+  return `
+    <article class="kp-ticket">
+
+      <header class="kp-ticket-header">
+        <img
+          src="images/logoklinik.png"
+          alt="Klinik Putrijaya"
+          class="kp-ticket-logo"
+        >
+
+        <div class="kp-ticket-brand-text">
+          <strong>KLINIK PUTRIJAYA</strong>
+          <span>Appointment Booking</span>
+        </div>
+      </header>
+
+      <div class="kp-ticket-title">
+        <span></span>
+        <h2>Booking Details</h2>
+        <span></span>
+      </div>
+
+      <div class="kp-ticket-cut-line"></div>
+
+      <section class="kp-ticket-reference">
+        <div>
+          <span>Reference</span>
+
+          <strong>
+            ${escapeHtml(
+              formatBookingRef(
+                booking.id
+              )
+            )}
+          </strong>
+        </div>
+      </section>
+
+      <section class="kp-ticket-section">
+        <div class="kp-ticket-section-heading">
+          <span class="kp-ticket-icon">
+            ♙
+          </span>
+
+          <h3>Patient Information</h3>
+        </div>
+
+        <div class="kp-ticket-list">
+          ${renderTicketRow(
+            'Patient',
+            booking.patient_name ||
+              'Not recorded'
+          )}
+
+          ${renderTicketRow(
+            'Gender',
+            gender
+          )}
+
+          ${renderTicketRow(
+            'Phone',
+            booking.phone ||
+              'Not recorded'
+          )}
+
+          ${renderTicketRow(
+            'Identification Type',
+            identityType
+          )}
+
+          ${renderTicketRow(
+            'Identification Number',
+            identityNumber
+          )}
+        </div>
+      </section>
+
+      <section class="kp-ticket-section">
+        <div class="kp-ticket-section-heading">
+          <span class="kp-ticket-icon">
+            ◫
+          </span>
+
+          <h3>Appointment Information</h3>
+        </div>
+
+        <div class="kp-ticket-list">
+          ${renderTicketRow(
+            'Branch',
+            booking.branch_name ||
+              'Not recorded'
+          )}
+
+          ${renderTicketRow(
+            'Doctor',
+            booking.doctor_name ||
+              'Any available doctor'
+          )}
+
+          ${renderTicketRow(
+            'Service',
+            booking.service_title ||
+              'General consultation'
+          )}
+
+          ${renderTicketRow(
+            'Preferred Date',
+            formatDate(
+              booking.preferred_date
+            )
+          )}
+
+          ${renderTicketRow(
+            'Preferred Time',
+            booking.preferred_time ||
+              'Not recorded'
+          )}
+
+          ${renderTicketRow(
+            'Status',
+            statusLabel,
+            `
+              kp-ticket-status
+              kp-ticket-status-${escapeAttribute(
+                statusClass
+              )}
+            `
+          )}
+        </div>
+      </section>
+
+      <section class="kp-ticket-reason">
+        <div class="kp-ticket-section-heading">
+          <span class="kp-ticket-icon">
+            □
+          </span>
+
+          <h3>Reason Provided</h3>
+        </div>
+
+        <p>${escapeHtml(reason)}</p>
+      </section>
+
+      <footer class="kp-ticket-footer">
+        <strong>Thank You</strong>
+        <span>Your health, our priority.</span>
+      </footer>
+
+    </article>
+  `;
+}
+
+function renderTicketRow(
+  label,
+  value,
+  customClass = ''
+) {
+  return `
+    <div class="kp-ticket-row">
+      <span class="kp-ticket-row-icon">
+        •
+      </span>
+
+      <span class="kp-ticket-row-label">
+        ${escapeHtml(label)}
+      </span>
+
+      <strong
+        class="${escapeAttribute(
+          customClass
+        )}"
+      >
+        ${escapeHtml(
+          value || 'Not recorded'
+        )}
+      </strong>
+    </div>
+  `;
+}
+
+function renderBookingTicketItem(
+  label,
+  value,
+  customClass = ''
+) {
+  return `
+    <div class="booking-ticket-item">
+      <span>${escapeHtml(label)}</span>
+
+      <strong class="${escapeAttribute(customClass)}">
+        ${escapeHtml(
+          value || 'Not recorded'
+        )}
+      </strong>
+    </div>
+  `;
+}
+
+function downloadBookingTicket(
+  booking
+) {
+  const ticketMarkup =
+    buildBookingTicketMarkup(
+      booking
+    );
+
+  const ticketWindow =
+    window.open(
+      '',
+      '_blank',
+      'width=820,height=1050'
+    );
+
+  if (!ticketWindow) {
+    alert(
+      'Popup blocked. Please allow popups to download the ticket.'
+    );
+    return;
+  }
+
+  const reference =
+    formatBookingRef(
+      booking.id
+    );
+
+  ticketWindow.document.open();
+
+  ticketWindow.document.write(`
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+
+      <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+      >
+
+      <title>${escapeHtml(
+        reference
+      )} Booking Ticket</title>
+
+      <style>
+        @page {
+          size: A4 portrait;
+          margin: 0;
+        }
+
+        * {
+          box-sizing: border-box;
+        }
+
+        html,
+        body {
+          width: 100%;
+          min-height: 100%;
+          margin: 0;
+          padding: 0;
+        }
+
+        body {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+
+          min-height: 100vh;
+          padding: 12mm;
+
+          color: #272129;
+          background: #f7f3f5;
+
+          font-family:
+            Arial,
+            Helvetica,
+            sans-serif;
+
+          -webkit-print-color-adjust:
+            exact;
+
+          print-color-adjust:
+            exact;
+        }
+
+        .kp-ticket {
+          --ticket-accent: #c9447f;
+          --ticket-accent-dark: #9f2f63;
+          --ticket-soft: #fff2f7;
+          --ticket-border: #ead7e0;
+          --ticket-text: #272129;
+          --ticket-muted: #776972;
+
+          position: relative;
+
+          width: 108mm;
+          max-width: 100%;
+          margin: 0 auto;
+
+          overflow: hidden;
+
+          color: var(--ticket-text);
+          background: #fff;
+
+          border: 1px solid
+            var(--ticket-border);
+
+          border-radius: 5mm;
+
+          box-shadow:
+            0 4mm 12mm
+            rgba(49, 35, 42, 0.12);
+        }
+
+        .kp-ticket::before,
+        .kp-ticket::after {
+          content: "";
+
+          position: absolute;
+          top: 42mm;
+          z-index: 3;
+
+          width: 7mm;
+          height: 13mm;
+
+          background: #f7f3f5;
+          border-radius: 50%;
+        }
+
+        .kp-ticket::before {
+          left: -3.8mm;
+        }
+
+        .kp-ticket::after {
+          right: -3.8mm;
+        }
+
+        .kp-ticket-header {
+          display: flex;
+          align-items: center;
+          gap: 3mm;
+
+          padding:
+            6mm
+            7mm
+            3mm;
+        }
+
+        .kp-ticket-logo {
+          display: block;
+
+          width: 27mm;
+          max-height: 11mm;
+
+          object-fit: contain;
+          object-position: left center;
+        }
+
+        .kp-ticket-brand-text {
+          display: grid;
+          gap: 0.6mm;
+        }
+
+        .kp-ticket-brand-text strong {
+          color:
+            var(--ticket-accent-dark);
+
+          font-size: 8pt;
+          letter-spacing: 0.04em;
+        }
+
+        .kp-ticket-brand-text span {
+          color: var(--ticket-muted);
+          font-size: 6.5pt;
+        }
+
+        .kp-ticket-title {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 2.5mm;
+
+          padding:
+            3mm
+            7mm
+            4mm;
+        }
+
+        .kp-ticket-title span {
+          width: 1.5mm;
+          height: 1.5mm;
+
+          border-radius: 50%;
+          background:
+            var(--ticket-accent);
+        }
+
+        .kp-ticket-title h2 {
+          margin: 0;
+
+          color:
+            var(--ticket-accent-dark);
+
+          font-size: 10pt;
+          font-weight: 800;
+
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+        }
+
+        .kp-ticket-cut-line {
+          margin: 0 7mm;
+
+          border-top:
+            1px dashed
+            rgba(
+              183,
+              145,
+              164,
+              0.65
+            );
+        }
+
+        .kp-ticket-reference {
+          display: flex;
+          align-items: center;
+          justify-content:
+            space-between;
+
+          gap: 5mm;
+
+          padding:
+            5mm
+            7mm
+            4mm;
+        }
+
+        .kp-ticket-reference span {
+          display: block;
+          margin-bottom: 1.3mm;
+
+          color: var(--ticket-muted);
+
+          font-size: 6.5pt;
+          font-weight: 700;
+
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+        }
+
+        .kp-ticket-reference strong {
+          display: block;
+
+          color: var(--ticket-text);
+
+          font-size: 14pt;
+          font-weight: 800;
+
+          letter-spacing: 0.025em;
+        }
+
+        /*
+          Jangan papar QR palsu dalam PDF.
+        */
+        .kp-ticket-qr {
+          display: none !important;
+        }
+
+        .kp-ticket-section,
+        .kp-ticket-reason {
+          margin:
+            0
+            7mm
+            3.5mm;
+
+          padding-top: 3.5mm;
+
+          border-top:
+            1px solid
+            #eee3e8;
+        }
+
+        .kp-ticket-section-heading {
+          display: flex;
+          align-items: center;
+          gap: 2.2mm;
+
+          margin-bottom: 2mm;
+        }
+
+        .kp-ticket-icon {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+
+          width: 6.5mm;
+          height: 6.5mm;
+
+          border-radius: 50%;
+
+          color:
+            var(--ticket-accent-dark);
+
+          background:
+            var(--ticket-soft);
+
+          font-size: 7pt;
+          font-weight: 700;
+        }
+
+        .kp-ticket-section-heading h3 {
+          margin: 0;
+
+          color:
+            var(--ticket-accent-dark);
+
+          font-size: 7pt;
+          font-weight: 800;
+
+          letter-spacing: 0.055em;
+          text-transform: uppercase;
+        }
+
+        .kp-ticket-list {
+          display: grid;
+        }
+
+        .kp-ticket-row {
+          display: grid;
+
+          grid-template-columns:
+            4mm
+            34mm
+            minmax(0, 1fr);
+
+          align-items: start;
+          gap: 2mm;
+
+          min-width: 0;
+
+          padding:
+            1.7mm
+            0;
+
+          border-bottom:
+            1px solid
+            #f1e9ed;
+        }
+
+        .kp-ticket-row:last-child {
+          border-bottom: 0;
+        }
+
+        .kp-ticket-row-icon {
+          color:
+            var(--ticket-accent-dark);
+
+          font-size: 7pt;
+        }
+
+        .kp-ticket-row-label {
+          color: var(--ticket-muted);
+
+          font-size: 7pt;
+          font-weight: 600;
+
+          line-height: 1.35;
+        }
+
+        .kp-ticket-row strong {
+          min-width: 0;
+
+          color: var(--ticket-text);
+
+          font-size: 7.5pt;
+          font-weight: 700;
+
+          line-height: 1.35;
+
+          white-space: normal;
+          overflow-wrap: anywhere;
+          word-break: normal;
+        }
+
+        .kp-ticket-status {
+          display: inline-flex;
+
+          width: fit-content;
+
+          padding:
+            1mm
+            2.6mm;
+
+          border-radius: 999px;
+        }
+
+        .kp-ticket-status-pending {
+          color: #8a5d16;
+          background: #fff0c9;
+        }
+
+        .kp-ticket-status-confirmed {
+          color: #196178;
+          background: #dff4fa;
+        }
+
+        .kp-ticket-status-completed {
+          color: #276f50;
+          background: #e1f2e8;
+        }
+
+        .kp-ticket-status-cancelled {
+          color: #9a3c50;
+          background: #f9e2e8;
+        }
+
+        .kp-ticket-reason p {
+          margin: 0;
+
+          padding:
+            1mm
+            0
+            4mm;
+
+          color: var(--ticket-text);
+
+          font-size: 7.5pt;
+          line-height: 1.5;
+
+          white-space: pre-line;
+          overflow-wrap: anywhere;
+        }
+
+        .kp-ticket-footer {
+          padding:
+            5mm
+            6mm
+            6mm;
+
+          text-align: center;
+
+          background:
+            linear-gradient(
+              180deg,
+              #fdebf2 0%,
+              #f8dce8 100%
+            );
+        }
+
+        .kp-ticket-footer strong {
+          display: block;
+
+          color:
+            var(--ticket-accent-dark);
+
+          font-size: 8pt;
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
+        }
+
+        .kp-ticket-footer span {
+          display: block;
+
+          margin-top: 1.2mm;
+
+          color: var(--ticket-muted);
+          font-size: 6.5pt;
+        }
+
+        @media print {
+          html,
+          body {
+            width: 210mm;
+            height: 297mm;
+
+            overflow: hidden;
+          }
+
+          body {
+            padding: 10mm;
+            background: #fff;
+          }
+
+          .kp-ticket {
+            break-inside: avoid;
+            page-break-inside: avoid;
+
+            box-shadow: none;
+          }
+        }
+      </style>
+    </head>
+
+    <body>
+      ${ticketMarkup}
+
+      <script>
+        window.addEventListener(
+          'load',
+          function () {
+            setTimeout(
+              function () {
+                window.print();
+              },
+              500
+            );
+          }
+        );
+      <\/script>
+    </body>
+    </html>
+  `);
+
+  ticketWindow.document.close();
+}
+
+function formatBookingGender(
+  value
+) {
+  const gender =
+    String(value || '')
+      .trim()
+      .toLowerCase();
+
+  if (gender === 'female') {
+    return 'Female';
+  }
+
+  if (gender === 'male') {
+    return 'Male';
+  }
+
+  return 'Not recorded';
+}
+
+function formatBookingIdentityType(
+  value
+) {
+  const identityType =
+    String(value || '')
+      .trim()
+      .toLowerCase();
+
+  if (identityType === 'ic') {
+    return 'Malaysian IC';
+  }
+
+  if (
+    identityType === 'passport'
+  ) {
+    return 'Passport';
+  }
+
+  return 'Not recorded';
+}
+
+function formatBookingStatusLabel(
+  value
+) {
+  const status =
+    String(value || '')
+      .trim()
+      .toLowerCase();
+
+  const labels = {
+    pending: 'Pending',
+    confirmed: 'Confirmed',
+    completed: 'Completed',
+    cancelled: 'Cancelled',
+  };
+
+  return (
+    labels[status] ||
+    'Not recorded'
+  );
 }
 
 async function exportBookingsToCSV() {
@@ -3416,7 +4709,7 @@ async function loadPromotions() {
 
     tbody.innerHTML = promotionsCache.map((promotion) => `
       <tr>
-        <td>${Number(promotion.display_order || 0)}</td>
+        <td>${Number(promotion.sort_order || 0)}</td>
         <td>${escapeHtml(promotion.badge || '—')}</td>
         <td>${escapeHtml(promotion.title)}</td>
         <td class="wrap-text">${escapeHtml(promotion.description || '—')}</td>
@@ -3456,7 +4749,7 @@ function openPromotionModal(promotion = null) {
   showModal(isEdit ? 'Edit promotion' : 'Add promotion', `
     <div class="admin-form-grid two-column">
       <label><span>Badge</span><input id="m-promo-badge" type="text" value="${escapeAttribute(promotion?.badge || '')}"></label>
-      <label><span>Display order</span><input id="m-promo-order" type="number" value="${Number(promotion?.display_order || 0)}"></label>
+      <label><span>Sort order</span><input id="m-promo-order" type="number" value="${Number(promotion?.sort_order || 0)}"></label>
     </div>
     <label><span>Title</span><input id="m-promo-title" type="text" value="${escapeAttribute(promotion?.title || '')}" required></label>
     <label><span>Description</span><textarea id="m-promo-description" rows="4">${escapeHtml(promotion?.description || '')}</textarea></label>
@@ -3494,7 +4787,7 @@ function openPromotionModal(promotion = null) {
         cta_label: document.getElementById('m-promo-cta-label').value.trim() || null,
         cta_link: document.getElementById('m-promo-cta-link').value.trim() || null,
         image_url: imageUrl,
-        display_order: Number(document.getElementById('m-promo-order').value || 0),
+        sort_order: Number(document.getElementById('m-promo-order').value || 0),
         is_active: Number(document.getElementById('m-promo-active').value),
       };
 
@@ -3509,6 +4802,1621 @@ function openPromotionModal(promotion = null) {
   });
 
   bindImagePreview('m-promo-image', 'm-promo-preview');
+}
+
+// -----------------------------------------------------------------------------
+// ACTIVITIES & CSR
+// -----------------------------------------------------------------------------
+
+async function loadActivities() {
+  const tbody =
+    document.getElementById(
+      'activitiesTableBody'
+    );
+
+  if (
+    !tbody ||
+    !authedApi?.getAdminActivities
+  ) {
+    return;
+  }
+
+  tbody.innerHTML = `
+    <tr>
+      <td
+        colspan="7"
+        class="loading-row"
+      >
+        Loading…
+      </td>
+    </tr>
+  `;
+
+  try {
+    activitiesCache =
+      await authedApi
+        .getAdminActivities();
+
+    if (!activitiesCache.length) {
+      tbody.innerHTML = `
+        <tr>
+          <td
+            colspan="7"
+            class="empty-row"
+          >
+            No activities found.
+          </td>
+        </tr>
+      `;
+
+      return;
+    }
+
+    tbody.innerHTML =
+      activitiesCache
+        .map(
+          (activity) => `
+            <tr data-id="${Number(
+              activity.id
+            )}">
+              <td>
+                <strong>
+                  ${escapeHtml(
+                    activity.category ||
+                    '—'
+                  )}
+                </strong>
+              </td>
+
+              <td>
+                <strong>
+                  ${escapeHtml(
+                    activity.title
+                  )}
+                </strong>
+
+                <div class="cell-subtext">
+                  /${escapeHtml(
+                    activity.slug
+                  )}
+                </div>
+              </td>
+
+              <td class="wrap-text">
+                ${escapeHtml(
+                  getActivityMetaText(
+                    activity
+                  )
+                )}
+              </td>
+
+              <td>
+                ${Number(
+                  activity.gallery
+                    ?.length || 0
+                )}
+                image(s)
+              </td>
+
+              <td>
+                ${Number(
+                  activity.sort_order || 0
+                )}
+              </td>
+
+              <td>
+                ${
+                  Number(
+                    activity.is_active
+                  )
+                    ? 'Yes'
+                    : 'No'
+                }
+              </td>
+
+              <td>
+                <div class="table-action-stack">
+                  <button
+                    class="btn-small"
+                    type="button"
+                    data-action="edit-activity"
+                    data-id="${Number(
+                      activity.id
+                    )}"
+                  >
+                    Edit
+                  </button>
+
+                  <button
+                    class="btn-small"
+                    type="button"
+                    data-action="manage-activity-gallery"
+                    data-id="${Number(
+                      activity.id
+                    )}"
+                  >
+                    Gallery
+                  </button>
+
+                  <a
+                    class="btn-small"
+                    href="activities.html"
+                    target="_blank"
+                    rel="noopener"
+                  >
+                    Preview
+                  </a>
+
+                  <button
+                    class="btn-small danger"
+                    type="button"
+                    data-action="delete-activity"
+                    data-id="${Number(
+                      activity.id
+                    )}"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </td>
+            </tr>
+          `
+        )
+        .join('');
+
+    tbody
+      .querySelectorAll(
+        '[data-action="edit-activity"]'
+      )
+      .forEach((button) => {
+        button.addEventListener(
+          'click',
+          () => {
+            const activity =
+              activitiesCache.find(
+                (item) =>
+                  String(item.id) ===
+                  String(
+                    button.dataset.id
+                  )
+              );
+
+            if (activity) {
+              openActivityModal(
+                activity
+              );
+            }
+          }
+        );
+      });
+
+    tbody
+      .querySelectorAll(
+        '[data-action="manage-activity-gallery"]'
+      )
+      .forEach((button) => {
+        button.addEventListener(
+          'click',
+          () => {
+            openActivityGalleryManager(
+              Number(
+                button.dataset.id
+              )
+            );
+          }
+        );
+      });
+
+    tbody
+      .querySelectorAll(
+        '[data-action="delete-activity"]'
+      )
+      .forEach((button) => {
+        button.addEventListener(
+          'click',
+          async () => {
+            const confirmed =
+              confirm(
+                'Delete this activity and all its gallery images?'
+              );
+
+            if (!confirmed) {
+              return;
+            }
+
+            try {
+              await authedApi
+                .deleteActivity(
+                  button.dataset.id
+                );
+
+              await loadActivities();
+            } catch (error) {
+              if (
+                !handleAuthError(
+                  error
+                )
+              ) {
+                alert(
+                  `Unable to delete activity: ${error.message}`
+                );
+              }
+            }
+          }
+        );
+      });
+  } catch (error) {
+    if (!handleAuthError(error)) {
+      tbody.innerHTML = `
+        <tr>
+          <td
+            colspan="7"
+            class="empty-row"
+          >
+            ${escapeHtml(
+              error.message ||
+              'Unable to load activities.'
+            )}
+          </td>
+        </tr>
+      `;
+    }
+  }
+}
+
+function getActivityMetaText(
+  activity
+) {
+  const manualMeta =
+    String(
+      activity.meta_text || ''
+    ).trim();
+
+  if (manualMeta) {
+    return manualMeta;
+  }
+
+  const parts = [];
+
+  if (activity.event_date) {
+    parts.push(
+      formatActivityDate(
+        activity.event_date
+      )
+    );
+  }
+
+  if (activity.location) {
+    parts.push(
+      activity.location
+    );
+  }
+
+  return (
+    parts.join(' · ') ||
+    '—'
+  );
+}
+
+function formatActivityDate(value) {
+  if (!value) {
+    return '';
+  }
+
+  const date =
+    new Date(
+      `${String(value).slice(
+        0,
+        10
+      )}T00:00:00`
+    );
+
+  if (
+    Number.isNaN(
+      date.getTime()
+    )
+  ) {
+    return String(value);
+  }
+
+  return new Intl.DateTimeFormat(
+    'en-MY',
+    {
+      month: 'long',
+      year: 'numeric',
+    }
+  ).format(date);
+}
+
+function openActivityModal(
+  activity = null
+) {
+  const isEdit =
+    Boolean(activity);
+
+  const categories = [
+    'Community Outreach',
+    'CSR Programme',
+    'Staff Activity',
+    'Sponsorship',
+    'Health Screening',
+    'School Programme',
+    'Corporate Programme',
+    'Other',
+  ];
+
+  const categoryOptions =
+    categories
+      .map(
+        (category) => `
+          <option
+            value="${escapeAttribute(
+              category
+            )}"
+            ${
+              String(
+                activity?.category ||
+                ''
+              ) === category
+                ? 'selected'
+                : ''
+            }
+          >
+            ${escapeHtml(
+              category
+            )}
+          </option>
+        `
+      )
+      .join('');
+
+  showModal(
+    isEdit
+      ? 'Edit activity'
+      : 'Add activity',
+    `
+      <div class="admin-form-grid two-column">
+        <label>
+          <span>Category / tag</span>
+
+          <select
+            id="m-activity-category"
+            required
+          >
+            <option value="">
+              Select category
+            </option>
+
+            ${categoryOptions}
+          </select>
+        </label>
+
+        <label>
+          <span>Display order</span>
+
+          <input
+            id="m-activity-order"
+            type="number"
+            value="${Number(
+              activity?.sort_order ||
+              0
+            )}"
+          >
+        </label>
+      </div>
+
+      <div class="admin-form-grid two-column">
+        <label>
+          <span>Activity title</span>
+
+          <input
+            id="m-activity-title"
+            type="text"
+            value="${escapeAttribute(
+              activity?.title || ''
+            )}"
+            required
+          >
+        </label>
+
+        <label>
+          <span>URL slug</span>
+
+          <input
+            id="m-activity-slug"
+            type="text"
+            value="${escapeAttribute(
+              activity?.slug || ''
+            )}"
+            placeholder="ramadan-food-distribution"
+          >
+        </label>
+      </div>
+
+      <label>
+        <span>Short description</span>
+
+        <textarea
+          id="m-activity-description"
+          rows="5"
+        >${escapeHtml(
+          activity
+            ?.short_description ||
+          ''
+        )}</textarea>
+      </label>
+
+      <div class="admin-form-grid two-column">
+        <label>
+          <span>Event date</span>
+
+          <input
+            id="m-activity-date"
+            type="date"
+            value="${escapeAttribute(
+              activity?.event_date
+                ? String(
+                    activity.event_date
+                  ).slice(0, 10)
+                : ''
+            )}"
+          >
+        </label>
+
+        <label>
+          <span>Location</span>
+
+          <input
+            id="m-activity-location"
+            type="text"
+            value="${escapeAttribute(
+              activity?.location || ''
+            )}"
+            placeholder="Bandar Sri Permaisuri, Cheras"
+          >
+        </label>
+      </div>
+
+      <label>
+        <span>
+          Meta text shown on card
+        </span>
+
+        <input
+          id="m-activity-meta"
+          type="text"
+          value="${escapeAttribute(
+            activity?.meta_text || ''
+          )}"
+          placeholder="March 2026 · Bandar Sri Permaisuri, Cheras"
+        >
+
+        <div class="upload-help">
+          Optional. When filled, this exact text
+          will be shown on the public card.
+        </div>
+      </label>
+
+      <div class="admin-form-grid two-column">
+        <label>
+          <span>CTA label</span>
+
+          <input
+            id="m-activity-cta-label"
+            type="text"
+            value="${escapeAttribute(
+              activity?.cta_label || ''
+            )}"
+            placeholder="Watch on TikTok →"
+          >
+        </label>
+
+        <label>
+          <span>CTA link</span>
+
+          <input
+            id="m-activity-cta-link"
+            type="url"
+            value="${escapeAttribute(
+              activity?.cta_link || ''
+            )}"
+            placeholder="https://..."
+          >
+        </label>
+      </div>
+
+      <div class="admin-upload-field">
+        <label for="m-activity-cover">
+          Cover image
+        </label>
+
+        <input
+          id="m-activity-cover"
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+        >
+
+        <input
+          id="m-activity-cover-url"
+          type="hidden"
+          value="${escapeAttribute(
+            activity
+              ?.cover_image_url ||
+            ''
+          )}"
+        >
+
+        <div class="upload-help">
+          Used as the first image when the
+          activity has no gallery images.
+        </div>
+
+        <img
+          id="m-activity-cover-preview"
+          class="admin-image-preview landscape ${
+            activity
+              ?.cover_image_url
+              ? ''
+              : 'hidden'
+          }"
+          src="${
+            activity
+              ?.cover_image_url
+              ? escapeAttribute(
+                  resolveImageUrl(
+                    activity
+                      .cover_image_url
+                  )
+                )
+              : ''
+          }"
+          alt="Activity cover preview"
+        >
+      </div>
+
+      <div class="admin-form-grid two-column">
+        <label>
+          <span>Featured</span>
+
+          <select
+            id="m-activity-featured"
+          >
+            <option
+              value="1"
+              ${
+                Number(
+                  activity
+                    ?.is_featured
+                )
+                  ? 'selected'
+                  : ''
+              }
+            >
+              Yes
+            </option>
+
+            <option
+              value="0"
+              ${
+                !Number(
+                  activity
+                    ?.is_featured
+                )
+                  ? 'selected'
+                  : ''
+              }
+            >
+              No
+            </option>
+          </select>
+        </label>
+
+        <label>
+          <span>Active</span>
+
+          <select
+            id="m-activity-active"
+          >
+            <option
+              value="1"
+              ${
+                !activity ||
+                Number(
+                  activity.is_active
+                )
+                  ? 'selected'
+                  : ''
+              }
+            >
+              Yes
+            </option>
+
+            <option
+              value="0"
+              ${
+                activity &&
+                !Number(
+                  activity.is_active
+                )
+                  ? 'selected'
+                  : ''
+              }
+            >
+              No
+            </option>
+          </select>
+        </label>
+      </div>
+
+      <div
+        id="modalFormMessage"
+        class="form-message"
+      ></div>
+
+      <div class="modal-actions">
+        <button
+          class="btn-primary"
+          type="submit"
+        >
+          ${
+            isEdit
+              ? 'Save activity'
+              : 'Create activity'
+          }
+        </button>
+      </div>
+    `,
+    async (event) => {
+      event.preventDefault();
+
+      const message =
+        document.getElementById(
+          'modalFormMessage'
+        );
+
+      const coverInput =
+        document.getElementById(
+          'm-activity-cover'
+        );
+
+      let coverImageUrl =
+        document
+          .getElementById(
+            'm-activity-cover-url'
+          )
+          .value.trim() ||
+        null;
+
+      try {
+        if (
+          coverInput.files[0]
+        ) {
+          const upload =
+            await authedApi
+              .uploadImage(
+                coverInput
+                  .files[0],
+                'activities'
+              );
+
+          coverImageUrl =
+            upload.url;
+        }
+
+        const payload = {
+          category:
+            document
+              .getElementById(
+                'm-activity-category'
+              )
+              .value.trim(),
+
+          title:
+            document
+              .getElementById(
+                'm-activity-title'
+              )
+              .value.trim(),
+
+          slug:
+            document
+              .getElementById(
+                'm-activity-slug'
+              )
+              .value.trim(),
+
+          short_description:
+            document
+              .getElementById(
+                'm-activity-description'
+              )
+              .value.trim() ||
+            null,
+
+          event_date:
+            document
+              .getElementById(
+                'm-activity-date'
+              )
+              .value ||
+            null,
+
+          meta_text:
+            document
+              .getElementById(
+                'm-activity-meta'
+              )
+              .value.trim() ||
+            null,
+
+          location:
+            document
+              .getElementById(
+                'm-activity-location'
+              )
+              .value.trim() ||
+            null,
+
+          cta_label:
+            document
+              .getElementById(
+                'm-activity-cta-label'
+              )
+              .value.trim() ||
+            null,
+
+          cta_link:
+            document
+              .getElementById(
+                'm-activity-cta-link'
+              )
+              .value.trim() ||
+            null,
+
+          cover_image_url:
+            coverImageUrl,
+
+          sort_order: Number(
+            document
+              .getElementById(
+                'm-activity-order'
+              )
+              .value || 0
+          ),
+
+          is_featured: Number(
+            document
+              .getElementById(
+                'm-activity-featured'
+              )
+              .value
+          ),
+
+          is_active: Number(
+            document
+              .getElementById(
+                'm-activity-active'
+              )
+              .value
+          ),
+        };
+
+        let savedId =
+          activity?.id;
+
+        if (isEdit) {
+          await authedApi
+            .updateActivity(
+              activity.id,
+              payload
+            );
+        } else {
+          const response =
+            await authedApi
+              .createActivity(
+                payload
+              );
+
+          savedId =
+            response.id;
+        }
+
+        closeModal();
+        await loadActivities();
+
+        if (
+          !isEdit &&
+          savedId
+        ) {
+          const addGallery =
+            confirm(
+              'Activity created. Add gallery images now?'
+            );
+
+          if (addGallery) {
+            openActivityGalleryManager(
+              savedId
+            );
+          }
+        }
+      } catch (error) {
+        if (
+          !handleAuthError(
+            error
+          )
+        ) {
+          setMessage(
+            message,
+            error.message ||
+              'Unable to save activity.',
+            'error'
+          );
+        }
+      }
+    }
+  );
+
+  bindImagePreview(
+    'm-activity-cover',
+    'm-activity-cover-preview'
+  );
+
+  bindSlugGenerator(
+    'm-activity-title',
+    'm-activity-slug',
+    !isEdit
+  );
+}
+
+async function openActivityGalleryManager(
+  activityId
+) {
+  try {
+    const activity =
+      await authedApi
+        .getAdminActivity(
+          activityId
+        );
+
+    renderActivityGalleryManager(
+      activity
+    );
+  } catch (error) {
+    if (!handleAuthError(error)) {
+      alert(
+        `Unable to load activity gallery: ${error.message}`
+      );
+    }
+  }
+}
+
+function renderActivityGalleryManager(
+  activity
+) {
+  const gallery =
+    Array.isArray(
+      activity.gallery
+    )
+      ? activity.gallery
+      : [];
+
+  showModal(
+    `Activity gallery · ${activity.title}`,
+    `
+      <div class="gallery-manager-grid">
+        ${
+          gallery.length
+            ? gallery
+                .map(
+                  (image) => `
+                    <article class="gallery-manager-card">
+                      <img
+                        src="${escapeAttribute(
+                          resolveImageUrl(
+                            image.image_url
+                          )
+                        )}"
+                        alt="${escapeAttribute(
+                          image.alt_text ||
+                          image.caption ||
+                          'Activity gallery image'
+                        )}"
+                      >
+
+                      <div>
+                        <strong>
+                          ${escapeHtml(
+                            image.caption ||
+                            'No caption'
+                          )}
+                        </strong>
+
+                        <small>
+                          ${
+                            Number(
+                              image.is_active
+                            )
+                              ? 'Active'
+                              : 'Inactive'
+                          }
+                          · Order
+                          ${Number(
+                            image.sort_order ||
+                            0
+                          )}
+                        </small>
+
+                        <div class="gallery-manager-actions">
+                          <button
+                            class="btn-small"
+                            type="button"
+                            data-edit-activity-gallery="${Number(
+                              image.id
+                            )}"
+                          >
+                            Edit
+                          </button>
+
+                          <button
+                            class="btn-small danger"
+                            type="button"
+                            data-delete-activity-gallery="${Number(
+                              image.id
+                            )}"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </div>
+                    </article>
+                  `
+                )
+                .join('')
+            : `
+                <div class="manager-empty">
+                  No gallery images added yet.
+                </div>
+              `
+        }
+      </div>
+
+      <hr class="modal-divider">
+
+      <h3 id="activityGalleryFormHeading">
+        Add gallery image
+      </h3>
+
+      <input
+        id="m-activity-gallery-id"
+        type="hidden"
+      >
+
+      <input
+        id="m-activity-gallery-existing-url"
+        type="hidden"
+      >
+
+      <div class="admin-upload-field">
+        <label for="m-activity-gallery-file">
+          Image
+        </label>
+
+        <input
+  id="m-activity-gallery-file"
+  type="file"
+  accept="image/jpeg,image/png,image/webp"
+  multiple
+>
+
+        <div class="upload-help">
+  You may select multiple images at once.
+  New images will be uploaded with automatic
+  display order. Use Edit afterwards to add
+  captions, alternative text or change order.
+</div>
+
+        <img
+          id="m-activity-gallery-preview"
+          class="admin-image-preview landscape hidden"
+          src=""
+          alt="Activity gallery preview"
+        >
+      </div>
+
+      <label>
+        <span>Caption</span>
+
+        <input
+          id="m-activity-gallery-caption"
+          type="text"
+          placeholder="Optional caption"
+        >
+      </label>
+
+      <label>
+        <span>Alternative text</span>
+
+        <input
+          id="m-activity-gallery-alt"
+          type="text"
+          placeholder="Describe the image"
+        >
+      </label>
+
+      <div class="admin-form-grid two-column">
+        <label>
+          <span>Starting display order</span>
+
+          <input
+  id="m-activity-gallery-order"
+  type="number"
+  value="0"
+  min="0"
+>
+        </label>
+
+        <label>
+          <span>Active</span>
+
+          <select
+            id="m-activity-gallery-active"
+          >
+            <option value="1">
+              Yes
+            </option>
+
+            <option value="0">
+              No
+            </option>
+          </select>
+        </label>
+      </div>
+
+      <div
+        id="modalFormMessage"
+        class="form-message"
+      ></div>
+
+      <div class="modal-actions">
+        <button
+          class="btn-ghost"
+          id="activityGalleryFormCancel"
+          type="button"
+        >
+          Clear form
+        </button>
+
+        <button
+          class="btn-primary"
+          id="activityGallerySaveButton"
+          type="submit"
+        >
+          Upload image
+        </button>
+      </div>
+    `,
+    async (event) => {
+      event.preventDefault();
+
+      const message =
+        document.getElementById(
+          'modalFormMessage'
+        );
+
+      const galleryId =
+        document.getElementById(
+          'm-activity-gallery-id'
+        ).value;
+
+      const existingUrl =
+        document.getElementById(
+          'm-activity-gallery-existing-url'
+        ).value;
+
+            const saveButton =
+        document.getElementById(
+          'activityGallerySaveButton'
+        );
+
+      const fileInput =
+        document.getElementById(
+          'm-activity-gallery-file'
+        );
+
+      const files =
+        Array.from(
+          fileInput.files || []
+        );
+
+      const caption =
+        document
+          .getElementById(
+            'm-activity-gallery-caption'
+          )
+          .value.trim() ||
+        null;
+
+      const altText =
+        document
+          .getElementById(
+            'm-activity-gallery-alt'
+          )
+          .value.trim() ||
+        null;
+
+      const startingOrder =
+        Number(
+          document
+            .getElementById(
+              'm-activity-gallery-order'
+            )
+            .value || 0
+        );
+
+      const isActive =
+        Number(
+          document
+            .getElementById(
+              'm-activity-gallery-active'
+            )
+            .value
+        );
+
+      /*
+        Edit satu gallery image sedia ada.
+      */
+      if (galleryId) {
+        if (files.length > 1) {
+          setMessage(
+            message,
+            'When editing, select only one replacement image.',
+            'error'
+          );
+
+          return;
+        }
+
+        let imageUrl =
+          existingUrl || '';
+
+        try {
+          setMessage(message, '');
+
+          setButtonLoading(
+            saveButton,
+            true,
+            'Saving…'
+          );
+
+          if (files[0]) {
+            const upload =
+              await authedApi
+                .uploadImage(
+                  files[0],
+                  'activities'
+                );
+
+            imageUrl =
+              upload.url;
+          }
+
+          if (!imageUrl) {
+            throw new Error(
+              'A gallery image is required.'
+            );
+          }
+
+          await authedApi
+            .updateActivityGalleryItem(
+              galleryId,
+              {
+                image_url:
+                  imageUrl,
+
+                caption,
+
+                alt_text:
+                  altText,
+
+                sort_order:
+                  startingOrder,
+
+                is_active:
+                  isActive,
+              }
+            );
+
+          await openActivityGalleryManager(
+            activity.id
+          );
+        } catch (error) {
+          if (
+            !handleAuthError(
+              error
+            )
+          ) {
+            setMessage(
+              message,
+              error.message ||
+                'Unable to update gallery image.',
+              'error'
+            );
+          }
+
+          setButtonLoading(
+            saveButton,
+            false,
+            'Save changes'
+          );
+        }
+
+        return;
+      }
+
+      /*
+        Tambah banyak gambar baru sekali gus.
+      */
+      if (!files.length) {
+        setMessage(
+          message,
+          'Please select at least one image.',
+          'error'
+        );
+
+        return;
+      }
+
+      try {
+        setMessage(
+          message,
+          `Uploading ${files.length} image(s)…`
+        );
+
+        setButtonLoading(
+          saveButton,
+          true,
+          `Uploading 0/${files.length}…`
+        );
+
+        const uploadedImages = [];
+
+        /*
+          Upload secara berurutan supaya progress
+          lebih tepat dan tidak membebankan server.
+        */
+        for (
+          let index = 0;
+          index < files.length;
+          index += 1
+        ) {
+          const file =
+            files[index];
+
+          const upload =
+            await authedApi
+              .uploadImage(
+                file,
+                'activities'
+              );
+
+          uploadedImages.push({
+            image_url:
+              upload.url,
+
+            sort_order:
+              startingOrder +
+              index,
+          });
+
+          setButtonLoading(
+            saveButton,
+            true,
+            `Uploading ${
+              index + 1
+            }/${files.length}…`
+          );
+        }
+
+        for (
+          const uploadedImage
+          of uploadedImages
+        ) {
+          await authedApi
+            .createActivityGalleryItem(
+              activity.id,
+              {
+                image_url:
+                  uploadedImage
+                    .image_url,
+
+                caption:
+                  null,
+
+                alt_text:
+                  null,
+
+                sort_order:
+                  uploadedImage
+                    .sort_order,
+
+                is_active:
+                  isActive,
+              }
+            );
+        }
+
+        await openActivityGalleryManager(
+          activity.id
+        );
+      } catch (error) {
+        if (
+          !handleAuthError(
+            error
+          )
+        ) {
+          setMessage(
+            message,
+            error.message ||
+              'Unable to upload gallery images.',
+            'error'
+          );
+        }
+
+        setButtonLoading(
+          saveButton,
+          false,
+          'Upload images'
+        );
+      }
+    }
+  );
+
+  bindImagePreview(
+    'm-activity-gallery-file',
+    'm-activity-gallery-preview'
+  );
+
+  document
+    .getElementById(
+      'activityGalleryFormCancel'
+    )
+    ?.addEventListener(
+      'click',
+      clearActivityGalleryForm
+    );
+
+  document
+    .querySelectorAll(
+      '[data-edit-activity-gallery]'
+    )
+    .forEach((button) => {
+      button.addEventListener(
+        'click',
+        () => {
+          const image =
+            gallery.find(
+              (item) =>
+                String(item.id) ===
+                String(
+                  button.dataset
+                    .editActivityGallery
+                )
+            );
+
+          if (!image) {
+            return;
+          }
+
+          document.getElementById(
+            'activityGalleryFormHeading'
+          ).textContent =
+            'Edit gallery image';
+
+          document.getElementById(
+            'm-activity-gallery-id'
+          ).value =
+            image.id;
+
+          document.getElementById(
+            'm-activity-gallery-existing-url'
+          ).value =
+            image.image_url || '';
+
+          document.getElementById(
+            'm-activity-gallery-caption'
+          ).value =
+            image.caption || '';
+
+          document.getElementById(
+            'm-activity-gallery-alt'
+          ).value =
+            image.alt_text || '';
+
+          document.getElementById(
+            'm-activity-gallery-order'
+          ).value =
+            image.sort_order || 0;
+
+          document.getElementById(
+            'm-activity-gallery-active'
+          ).value =
+            Number(
+              image.is_active
+            )
+              ? '1'
+              : '0';
+
+          const fileInput =
+            document.getElementById(
+              'm-activity-gallery-file'
+            );
+
+          fileInput.value = '';
+          fileInput.multiple = false;
+
+          const preview =
+            document.getElementById(
+              'm-activity-gallery-preview'
+            );
+
+          preview.src =
+            resolveImageUrl(
+              image.image_url
+            );
+
+          preview.alt =
+            image.alt_text ||
+            image.caption ||
+            'Activity gallery preview';
+
+          preview.classList.remove(
+            'hidden'
+          );
+
+          document.getElementById(
+            'activityGallerySaveButton'
+          ).textContent =
+            'Save changes';
+
+          document
+            .getElementById(
+              'm-activity-gallery-caption'
+            )
+            .focus();
+        }
+      );
+    });
+
+  document
+    .querySelectorAll(
+      '[data-delete-activity-gallery]'
+    )
+    .forEach((button) => {
+      button.addEventListener(
+        'click',
+        async () => {
+          const confirmed =
+            confirm(
+              'Delete this gallery image?'
+            );
+
+          if (!confirmed) {
+            return;
+          }
+
+          try {
+            await authedApi
+              .deleteActivityGalleryItem(
+                button.dataset
+                  .deleteActivityGallery
+              );
+
+            await openActivityGalleryManager(
+              activity.id
+            );
+          } catch (error) {
+            if (
+              !handleAuthError(
+                error
+              )
+            ) {
+              alert(
+                `Unable to delete gallery image: ${error.message}`
+              );
+            }
+          }
+        }
+      );
+    });
+}
+
+function clearActivityGalleryForm() {
+  const heading =
+    document.getElementById(
+      'activityGalleryFormHeading'
+    );
+
+  const saveButton =
+    document.getElementById(
+      'activityGallerySaveButton'
+    );
+
+  if (heading) {
+    heading.textContent =
+      'Add gallery image';
+  }
+
+  if (saveButton) {
+    saveButton.textContent =
+      'Upload image';
+  }
+
+  [
+    'm-activity-gallery-id',
+    'm-activity-gallery-existing-url',
+    'm-activity-gallery-caption',
+    'm-activity-gallery-alt',
+  ].forEach((id) => {
+    const element =
+      document.getElementById(id);
+
+    if (element) {
+      element.value = '';
+    }
+  });
+
+  const fileInput =
+    document.getElementById(
+      'm-activity-gallery-file'
+    );
+
+  if (fileInput) {
+  fileInput.value = '';
+  fileInput.multiple = true;
+}
+
+  const order =
+    document.getElementById(
+      'm-activity-gallery-order'
+    );
+
+  if (order) {
+    order.value = '0';
+  }
+
+  const active =
+    document.getElementById(
+      'm-activity-gallery-active'
+    );
+
+  if (active) {
+    active.value = '1';
+  }
+
+  const preview =
+    document.getElementById(
+      'm-activity-gallery-preview'
+    );
+
+  if (preview) {
+    preview.removeAttribute(
+      'src'
+    );
+
+    preview.alt =
+      'Activity gallery preview';
+
+    preview.classList.add(
+      'hidden'
+    );
+  }
+
+  setMessage(
+    document.getElementById(
+      'modalFormMessage'
+    ),
+    ''
+  );
 }
 
 // -----------------------------------------------------------------------------

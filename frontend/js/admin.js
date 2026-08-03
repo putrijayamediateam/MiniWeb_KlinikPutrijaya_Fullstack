@@ -397,7 +397,7 @@ function renderBookingsFromCache() {
               value="pending"
               ${bk.status === 'pending' ? 'selected' : ''}
             >
-              Pending Review
+              Pending
             </option>
 
             <option

@@ -331,6 +331,24 @@
       );
     },
 
+    /* ---------------------------------------------------------
+   Public activities
+   --------------------------------------------------------- */
+
+getActivities() {
+  return apiRequest(
+    '/activities'
+  );
+},
+
+getActivityBySlug(slug) {
+  return apiRequest(
+    `/activities/slug/${encodeURIComponent(
+      slug
+    )}`
+  );
+},
+
     /* =========================================================
        Authenticated admin API
        ========================================================= */
@@ -778,9 +796,122 @@
           );
         },
 
-        deletePromotion(id) {
+                deletePromotion(id) {
           return apiRequest(
             `/promotions/${id}`,
+            {
+              method: 'DELETE',
+              headers,
+            }
+          );
+        },
+
+        /* -----------------------------------------------------
+           Activities & CSR
+           ----------------------------------------------------- */
+
+        getAdminActivities() {
+          return apiRequest(
+            '/activities/admin/all',
+            {
+              headers,
+            }
+          );
+        },
+
+        getAdminActivity(id) {
+          return apiRequest(
+            `/activities/admin/${id}`,
+            {
+              headers,
+            }
+          );
+        },
+
+        createActivity(payload) {
+          return apiRequest(
+            '/activities',
+            {
+              method: 'POST',
+              headers,
+
+              body: jsonBody(
+                payload
+              ),
+            }
+          );
+        },
+
+        updateActivity(
+          id,
+          payload
+        ) {
+          return apiRequest(
+            `/activities/${id}`,
+            {
+              method: 'PUT',
+              headers,
+
+              body: jsonBody(
+                payload
+              ),
+            }
+          );
+        },
+
+        deleteActivity(id) {
+          return apiRequest(
+            `/activities/${id}`,
+            {
+              method: 'DELETE',
+              headers,
+            }
+          );
+        },
+
+        /* -----------------------------------------------------
+           Activity gallery
+           ----------------------------------------------------- */
+
+        createActivityGalleryItem(
+          activityId,
+          payload
+        ) {
+          return apiRequest(
+            `/activities/${activityId}/gallery`,
+            {
+              method: 'POST',
+              headers,
+
+              body: jsonBody(
+                payload
+              ),
+            }
+          );
+        },
+
+        updateActivityGalleryItem(
+          galleryId,
+          payload
+        ) {
+          return apiRequest(
+            `/activities/gallery/${galleryId}`,
+            {
+              method: 'PUT',
+              headers,
+
+              body: jsonBody(
+                payload
+              ),
+            }
+          );
+        },
+
+        deleteActivityGalleryItem(
+          galleryId
+        ) {
+          return apiRequest(
+            `/activities/gallery/${galleryId}`,
             {
               method: 'DELETE',
               headers,
