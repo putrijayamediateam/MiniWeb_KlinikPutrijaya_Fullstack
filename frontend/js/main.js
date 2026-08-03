@@ -516,39 +516,6 @@ function normaliseCategoryName(value) {
     return desktopQuery.matches;
   }
 
-  function openDropdown(
-    dropdown
-  ) {
-    if (closeTimer) {
-      window.clearTimeout(
-        closeTimer
-      );
-
-      closeTimer = null;
-    }
-
-    dropdowns.forEach(
-      (item) => {
-        const shouldOpen =
-          item === dropdown;
-
-        item.classList.toggle(
-          'is-open',
-          shouldOpen
-        );
-
-        item
-          .querySelector(
-            '.nav-dropdown-toggle'
-          )
-          ?.setAttribute(
-            'aria-expanded',
-            String(shouldOpen)
-          );
-      }
-    );
-  }
-
   function closeDropdown(
     dropdown
   ) {
@@ -566,7 +533,9 @@ function normaliseCategoryName(value) {
       );
   }
 
-  function closeAllDropdowns() {
+  function closeAllDropdowns(
+    exceptDropdown = null
+  ) {
     if (closeTimer) {
       window.clearTimeout(
         closeTimer
@@ -576,8 +545,38 @@ function normaliseCategoryName(value) {
     }
 
     dropdowns.forEach(
-      closeDropdown
+      (dropdown) => {
+        if (
+          dropdown !==
+          exceptDropdown
+        ) {
+          closeDropdown(
+            dropdown
+          );
+        }
+      }
     );
+  }
+
+  function openDropdown(
+    dropdown
+  ) {
+    closeAllDropdowns(
+      dropdown
+    );
+
+    dropdown.classList.add(
+      'is-open'
+    );
+
+    dropdown
+      .querySelector(
+        '.nav-dropdown-toggle'
+      )
+      ?.setAttribute(
+        'aria-expanded',
+        'true'
+      );
   }
 
   function scheduleDropdownClose(
@@ -676,113 +675,81 @@ function normaliseCategoryName(value) {
         return;
       }
 
-      /*
-        Desktop:
-        cursor masuk mana-mana dropdown
-        akan terus buka.
-      */
       dropdown.addEventListener(
         'mouseenter',
         () => {
-          if (!isDesktopHover()) {
-            return;
+          if (
+            isDesktopHover()
+          ) {
+            openDropdown(
+              dropdown
+            );
           }
-
-          openDropdown(
-            dropdown
-          );
         }
       );
 
-      /*
-        Cursor keluar:
-        beri sedikit delay supaya
-        pergerakan nampak smooth.
-      */
       dropdown.addEventListener(
         'mouseleave',
         () => {
-          if (!isDesktopHover()) {
-            return;
+          if (
+            isDesktopHover()
+          ) {
+            scheduleDropdownClose(
+              dropdown
+            );
           }
-
-          scheduleDropdownClose(
-            dropdown
-          );
         }
       );
 
-      /*
-        Elakkan menu tertutup semasa
-        cursor berada dalam dropdown list.
-      */
       menu.addEventListener(
         'mouseenter',
         () => {
-          if (!isDesktopHover()) {
-            return;
+          if (
+            isDesktopHover()
+          ) {
+            openDropdown(
+              dropdown
+            );
           }
-
-          openDropdown(
-            dropdown
-          );
         }
       );
 
       menu.addEventListener(
         'mouseleave',
         () => {
-          if (!isDesktopHover()) {
-            return;
+          if (
+            isDesktopHover()
+          ) {
+            scheduleDropdownClose(
+              dropdown
+            );
           }
-
-          scheduleDropdownClose(
-            dropdown
-          );
         }
       );
 
-      /*
-        Mobile:
-        tap button untuk buka/tutup.
-        Desktop pula tidak perlu click.
-      */
       button.addEventListener(
         'click',
         (event) => {
           event.preventDefault();
           event.stopPropagation();
 
-          if (isDesktopHover()) {
-            openDropdown(
-              dropdown
-            );
-
-            return;
-          }
-
-          const shouldOpen =
-            !dropdown.classList.contains(
+          const isOpen =
+            dropdown.classList.contains(
               'is-open'
             );
 
-          closeAllDropdowns();
-
-          dropdown.classList.toggle(
-            'is-open',
-            shouldOpen
-          );
-
-          button.setAttribute(
-            'aria-expanded',
-            String(shouldOpen)
-          );
+          if (isOpen) {
+            closeDropdown(
+              dropdown
+            );
+          } else {
+            openDropdown(
+              dropdown
+            );
+          }
         }
       );
 
-      /*
-        Keyboard navigation.
-      */
       button.addEventListener(
         'focus',
         () => {
@@ -843,7 +810,10 @@ function normaliseCategoryName(value) {
   document.addEventListener(
     'keydown',
     (event) => {
-      if (event.key !== 'Escape') {
+      if (
+        event.key !==
+        'Escape'
+      ) {
         return;
       }
 
@@ -868,7 +838,9 @@ function normaliseCategoryName(value) {
       link.addEventListener(
         'click',
         () => {
-          if (!isDesktopHover()) {
+          if (
+            !isDesktopHover()
+          ) {
             closeMobileMenu();
           }
         }
@@ -876,25 +848,7 @@ function normaliseCategoryName(value) {
     });
 
   function resetNavigation() {
-    closeAllDropdowns();
-
-    navMenu?.classList.remove(
-      'is-open'
-    );
-
-    navToggle?.setAttribute(
-      'aria-expanded',
-      'false'
-    );
-
-    navToggle?.setAttribute(
-      'aria-label',
-      'Open navigation menu'
-    );
-
-    document.body.classList.remove(
-      'menu-open'
-    );
+    closeMobileMenu();
   }
 
   if (
@@ -911,464 +865,7 @@ function normaliseCategoryName(value) {
       resetNavigation
     );
   }
-
-  function supportsDesktopHover() {
-    return desktopHoverQuery.matches;
-  }
-
-  function closeDropdown(
-    dropdown
-  ) {
-    dropdown.classList.remove(
-      'is-open'
-    );
-
-    dropdown
-      .querySelector(
-        '.nav-dropdown-toggle'
-      )
-      ?.setAttribute(
-        'aria-expanded',
-        'false'
-      );
-  }
-
-  function closeAllDropdowns(
-    exceptDropdown = null
-  ) {
-    dropdowns.forEach(
-      (dropdown) => {
-        if (
-          dropdown !==
-          exceptDropdown
-        ) {
-          closeDropdown(
-            dropdown
-          );
-        }
-      }
-    );
-  }
-
-  function closeMobileNavigation() {
-    navMenu?.classList.remove(
-      'is-open'
-    );
-
-    navToggle?.setAttribute(
-      'aria-expanded',
-      'false'
-    );
-
-    navToggle?.setAttribute(
-      'aria-label',
-      'Open navigation menu'
-    );
-
-    document.body.classList.remove(
-      'menu-open'
-    );
-
-    closeAllDropdowns();
-  }
-
-  navToggle?.addEventListener(
-    'click',
-    () => {
-      const willOpen =
-        !navMenu?.classList.contains(
-          'is-open'
-        );
-
-      navMenu?.classList.toggle(
-        'is-open',
-        willOpen
-      );
-
-      navToggle.setAttribute(
-        'aria-expanded',
-        String(willOpen)
-      );
-
-      navToggle.setAttribute(
-        'aria-label',
-        willOpen
-          ? 'Close navigation menu'
-          : 'Open navigation menu'
-      );
-
-      document.body.classList.toggle(
-        'menu-open',
-        willOpen
-      );
-
-      if (!willOpen) {
-        closeAllDropdowns();
-      }
-    }
-  );
-
-  dropdowns.forEach(
-    (dropdown) => {
-      const button =
-        dropdown.querySelector(
-          '.nav-dropdown-toggle'
-        );
-
-      if (!button) {
-        return;
-      }
-
-      /*
-        Desktop mouse:
-        CSS hover opens the dropdown.
-        These events only update aria-expanded.
-      */
-      dropdown.addEventListener(
-        'mouseenter',
-        () => {
-          if (
-            !supportsDesktopHover()
-          ) {
-            return;
-          }
-
-          closeAllDropdowns(
-            dropdown
-          );
-
-          button.setAttribute(
-            'aria-expanded',
-            'true'
-          );
-        }
-      );
-
-      dropdown.addEventListener(
-        'mouseleave',
-        () => {
-          if (
-            !supportsDesktopHover()
-          ) {
-            return;
-          }
-
-          button.setAttribute(
-            'aria-expanded',
-            'false'
-          );
-
-          dropdown.classList.remove(
-            'is-open'
-          );
-        }
-      );
-
-      /*
-        Tap/click:
-        - Mobile and tablet: toggle dropdown.
-        - Desktop keyboard/click: still works
-          as an accessibility fallback.
-      */
-      button.addEventListener(
-        'click',
-        (event) => {
-          event.preventDefault();
-          event.stopPropagation();
-
-          const alreadyOpen =
-            dropdown.classList.contains(
-              'is-open'
-            );
-
-          closeAllDropdowns(
-            dropdown
-          );
-
-          const willOpen =
-            !alreadyOpen;
-
-          dropdown.classList.toggle(
-            'is-open',
-            willOpen
-          );
-
-          button.setAttribute(
-            'aria-expanded',
-            String(willOpen)
-          );
-        }
-      );
-
-      /*
-        Keyboard focus opens the dropdown.
-      */
-      dropdown.addEventListener(
-        'focusin',
-        () => {
-          closeAllDropdowns(
-            dropdown
-          );
-
-          button.setAttribute(
-            'aria-expanded',
-            'true'
-          );
-        }
-      );
-
-      dropdown.addEventListener(
-        'focusout',
-        (event) => {
-          const nextFocusedElement =
-            event.relatedTarget;
-
-          if (
-            nextFocusedElement &&
-            dropdown.contains(
-              nextFocusedElement
-            )
-          ) {
-            return;
-          }
-
-          button.setAttribute(
-            'aria-expanded',
-            'false'
-          );
-
-          dropdown.classList.remove(
-            'is-open'
-          );
-        }
-      );
-    }
-  );
-
-  /*
-    Click outside navigation closes
-    opened mobile/click dropdowns.
-  */
-  document.addEventListener(
-    'click',
-    (event) => {
-      if (
-        !event.target.closest(
-          '.nav-dropdown'
-        )
-      ) {
-        closeAllDropdowns();
-      }
-
-      if (
-        navMenu?.classList.contains(
-          'is-open'
-        ) &&
-        !event.target.closest(
-          '.site-nav'
-        )
-      ) {
-        closeMobileNavigation();
-      }
-    }
-  );
-
-  /*
-    Escape closes dropdowns and mobile menu.
-  */
-  document.addEventListener(
-    'keydown',
-    (event) => {
-      if (event.key !== 'Escape') {
-        return;
-      }
-
-      closeAllDropdowns();
-
-      if (
-        navMenu?.classList.contains(
-          'is-open'
-        )
-      ) {
-        closeMobileNavigation();
-        navToggle?.focus();
-      }
-    }
-  );
-
-  /*
-    Close mobile navigation after selecting
-    an actual destination link.
-  */
-  document
-    .querySelectorAll(
-      '.nav-menu a'
-    )
-    .forEach((link) => {
-      link.addEventListener(
-        'click',
-        () => {
-          closeMobileNavigation();
-        }
-      );
-    });
-
-  /*
-    Reset state when switching between
-    desktop and mobile widths.
-  */
-  function resetNavigationState() {
-    closeAllDropdowns();
-
-    if (
-      window.innerWidth > 880
-    ) {
-      navMenu?.classList.remove(
-        'is-open'
-      );
-
-      navToggle?.setAttribute(
-        'aria-expanded',
-        'false'
-      );
-
-      navToggle?.setAttribute(
-        'aria-label',
-        'Open navigation menu'
-      );
-
-      document.body.classList.remove(
-        'menu-open'
-      );
-    }
-  }
-
-  if (
-    typeof desktopHoverQuery
-      .addEventListener ===
-    'function'
-  ) {
-    desktopHoverQuery
-      .addEventListener(
-        'change',
-        resetNavigationState
-      );
-  } else {
-    desktopHoverQuery.addListener(
-      resetNavigationState
-    );
-  }
-
-
-    dropdowns.forEach((dropdown) => {
-  const button =
-    dropdown.querySelector(
-      '.nav-dropdown-toggle'
-    );
-
-  button?.addEventListener(
-    'click',
-    (event) => {
-      const supportsHover =
-        window.matchMedia(
-          '(hover: hover) and (pointer: fine)'
-        ).matches;
-
-      /*
-        Desktop:
-        hover sudah buka dropdown.
-        Click hanya toggle untuk keyboard/accessibility.
-      */
-      if (supportsHover) {
-        event.preventDefault();
-        return;
-      }
-
-      /*
-        Mobile/tablet:
-        tap untuk buka dan tutup.
-      */
-      event.preventDefault();
-      event.stopPropagation();
-
-      const alreadyOpen =
-        dropdown.classList.contains(
-          'is-open'
-        );
-
-      closeAllDropdowns(dropdown);
-
-      const willOpen =
-        !alreadyOpen;
-
-      dropdown.classList.toggle(
-        'is-open',
-        willOpen
-      );
-
-      button.setAttribute(
-        'aria-expanded',
-        String(willOpen)
-      );
-    }
-  );
-});
-    // Clicking anywhere outside an open dropdown closes it.
-    document.addEventListener('click', (event) => {
-      if (!event.target.closest('.nav-dropdown')) {
-        closeAllDropdowns();
-      }
-    });
-
-    const hoverSupported =
-  window.matchMedia(
-    '(hover: hover) and (pointer: fine)'
-  );
-
-if (hoverSupported.matches) {
-  dropdowns.forEach((dropdown) => {
-    const button =
-      dropdown.querySelector(
-        '.nav-dropdown-toggle'
-      );
-
-    dropdown.addEventListener(
-      'mouseenter',
-      () => {
-        button?.setAttribute(
-          'aria-expanded',
-          'true'
-        );
-      }
-    );
-
-    dropdown.addEventListener(
-      'mouseleave',
-      () => {
-        button?.setAttribute(
-          'aria-expanded',
-          'false'
-        );
-      }
-    );
-  });
 }
-
-    // Escape closes any open dropdown too.
-    document.addEventListener('keydown', (event) => {
-      if (event.key === 'Escape') {
-        closeAllDropdowns();
-      }
-    });
-
-    document.querySelectorAll('.nav-menu a').forEach((link) => {
-      link.addEventListener('click', () => {
-        navMenu?.classList.remove('is-open');
-        navToggle?.setAttribute('aria-expanded', 'false');
-        closeAllDropdowns();
-      });
-    });
-  }
 
   function initBranchModal() {
     const modal = document.getElementById('branchModal');

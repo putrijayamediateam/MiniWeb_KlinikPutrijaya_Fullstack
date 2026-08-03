@@ -1,4 +1,4 @@
-USE klinik_putrijaya;
+USE railway;
 
 ALTER TABLE bookings
   ADD COLUMN gender VARCHAR(10) NULL
