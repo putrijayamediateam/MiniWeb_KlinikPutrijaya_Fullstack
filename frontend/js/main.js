@@ -216,8 +216,14 @@ async function hydrateServiceCategoryLinks() {
 
   try {
     const apiBase =
-      window.KPApi?.baseUrl ||
-      'http://localhost:4000/api';
+  window.KPApi?.baseUrl ||
+  (
+    ['localhost', '127.0.0.1'].includes(
+      window.location.hostname
+    )
+      ? 'http://localhost:4000/api'
+      : 'https://backend-production-d730.up.railway.app/api'
+  );
 
     const response =
       await fetch(
