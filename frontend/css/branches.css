@@ -55,6 +55,242 @@
   font-size: 0.83rem;
 }
 
+/* ============================================================
+   INDIVIDUAL BRANCH PAGE
+   ============================================================ */
+
+.branch-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.branch-profile-grid {
+  display: grid;
+  grid-template-columns:
+    minmax(0, 1fr)
+    minmax(0, 1fr);
+  align-items: center;
+  gap: 54px;
+}
+
+.branch-profile-image {
+  overflow: hidden;
+  border-radius: 24px;
+  box-shadow:
+    0 20px 55px
+    rgba(36, 20, 28, 0.12);
+}
+
+.branch-profile-image img {
+  width: 100%;
+  min-height: 420px;
+  object-fit: cover;
+}
+
+.branch-profile-content h2 {
+  margin-top: 8px;
+  font-size: clamp(
+    1.8rem,
+    4vw,
+    2.5rem
+  );
+}
+
+.branch-profile-content > p {
+  margin-top: 16px;
+  color: var(--ink-soft);
+}
+
+.branch-info-list {
+  display: grid;
+  gap: 14px;
+  margin-top: 28px;
+}
+
+.branch-info-item {
+  display: grid;
+  grid-template-columns: 130px 1fr;
+  gap: 16px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.branch-info-item b {
+  color: var(--ink);
+}
+
+.branch-info-item span,
+.branch-info-item a {
+  color: var(--ink-soft);
+  text-decoration: none;
+}
+
+.branch-info-item a:hover {
+  color: var(--primary);
+}
+
+.branch-services-section {
+  background: var(--pink-tint);
+}
+
+.branch-service-grid {
+  display: grid;
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.branch-service-card {
+  padding: 28px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: #fff;
+  box-shadow:
+    0 12px 35px
+    rgba(36, 20, 28, 0.05);
+}
+
+.branch-service-card h3 {
+  margin-bottom: 12px;
+  font-size: 1.08rem;
+}
+
+.branch-service-card p {
+  color: var(--ink-soft);
+  font-size: 0.92rem;
+}
+
+.branch-section-action {
+  margin-top: 32px;
+  text-align: center;
+}
+
+.branch-location-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 36px;
+  padding: 42px;
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  background: #fff;
+  box-shadow:
+    0 16px 45px
+    rgba(36, 20, 28, 0.07);
+}
+
+.branch-location-card h2 {
+  margin-top: 8px;
+}
+
+.branch-location-card p {
+  max-width: 58ch;
+  margin-top: 12px;
+  color: var(--ink-soft);
+}
+
+.branch-location-actions {
+  display: flex;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.branch-faq-list {
+  display: grid;
+  gap: 14px;
+  max-width: 820px;
+}
+
+.branch-faq-list details {
+  padding: 20px 22px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: #fff;
+}
+
+.branch-faq-list summary {
+  color: var(--ink);
+  font-family: "Poppins", sans-serif;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.branch-faq-list p {
+  margin-top: 12px;
+  color: var(--ink-soft);
+}
+
+.branch-final-cta {
+  background: var(--ink);
+}
+
+.branch-final-cta-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 36px;
+}
+
+.branch-final-cta .eyebrow {
+  color: #ffb8d8;
+}
+
+.branch-final-cta h2 {
+  margin-top: 8px;
+  color: #fff;
+}
+
+.branch-final-cta p {
+  margin-top: 10px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+@media (max-width: 880px) {
+  .branch-profile-grid,
+  .branch-service-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .branch-service-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+  .branch-location-card,
+  .branch-final-cta-inner {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 600px) {
+  .branch-profile-image img {
+    min-height: 280px;
+  }
+
+  .branch-info-item {
+    grid-template-columns: 1fr;
+    gap: 5px;
+  }
+
+  .branch-service-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .branch-location-card {
+    padding: 28px 22px;
+  }
+
+  .branch-location-actions,
+  .branch-location-actions a,
+  .branch-final-cta a {
+    width: 100%;
+  }
+}
+
 @media (max-width: 960px) {
   .branch-grid {
     grid-template-columns: 1fr;
