@@ -13,7 +13,7 @@
 <link rel="stylesheet" href="css/admin-login.css">
 <link
   rel="stylesheet"
-  href="css/admin-upgrades.css?v=20260731-6"
+  href="css/admin-upgrades.css?v=20260804-2"
 >
 </head>
 <body class="admin-page">
@@ -467,32 +467,70 @@
   </div>
 
   <!-- SUMMARY CARDS -->
-  <div class="summary-grid" id="bookingSummaryCards">
-    <div class="summary-card">
-      <span class="summary-label">Total Bookings</span>
-      <strong id="summaryTotal">0</strong>
-    </div>
+  <div
+  class="performance-summary-grid"
+  id="bookingSummaryCards"
+>
+  <article class="performance-summary-card highlight">
+    <span>Total Bookings</span>
 
-    <div class="summary-card pending">
-      <span class="summary-label">Pending</span>
-      <strong id="summaryPending">0</strong>
-    </div>
+    <strong id="summaryTotal">
+      0
+    </strong>
 
-    <div class="summary-card confirmed">
-      <span class="summary-label">Confirmed</span>
-      <strong id="summaryConfirmed">0</strong>
-    </div>
+    <small>
+      All appointment requests
+    </small>
+  </article>
 
-    <div class="summary-card completed">
-      <span class="summary-label">Completed</span>
-      <strong id="summaryCompleted">0</strong>
-    </div>
+  <article class="performance-summary-card">
+    <span>Pending</span>
 
-    <div class="summary-card cancelled">
-      <span class="summary-label">Cancelled</span>
-      <strong id="summaryCancelled">0</strong>
-    </div>
-  </div>
+    <strong id="summaryPending">
+      0
+    </strong>
+
+    <small>
+      Waiting for confirmation
+    </small>
+  </article>
+
+  <article class="performance-summary-card">
+    <span>Confirmed</span>
+
+    <strong id="summaryConfirmed">
+      0
+    </strong>
+
+    <small>
+      Appointment confirmed
+    </small>
+  </article>
+
+  <article class="performance-summary-card">
+    <span>Completed</span>
+
+    <strong id="summaryCompleted">
+      0
+    </strong>
+
+    <small>
+      Visit completed
+    </small>
+  </article>
+
+  <article class="performance-summary-card">
+    <span>Cancelled</span>
+
+    <strong id="summaryCancelled">
+      0
+    </strong>
+
+    <small>
+      Cancelled appointments
+    </small>
+  </article>
+</div>
 
   <!-- FILTER BAR -->
   <div class="booking-toolbar">
@@ -745,79 +783,93 @@
 
   <!-- USER STATISTICS -->
   <div
-    class="summary-grid user-summary-grid"
-    id="adminUserSummary"
-  >
-    <div class="summary-card">
-      <span class="summary-label">
-        Total Users
-      </span>
+  class="performance-summary-grid user-summary-grid"
+  id="adminUserSummary"
+>
+  <article class="performance-summary-card highlight">
+    <span>Total Users</span>
 
-      <strong id="adminStatsTotal">
-        0
-      </strong>
-    </div>
+    <strong id="adminStatsTotal">
+      0
+    </strong>
 
-    <div class="summary-card completed">
-      <span class="summary-label">
-        Active Users
-      </span>
+    <small>
+      All registered staff accounts
+    </small>
+  </article>
 
-      <strong id="adminStatsActive">
-        0
-      </strong>
-    </div>
+  <article class="performance-summary-card">
+    <span>Active Users</span>
 
-    <div class="summary-card pending">
-      <span class="summary-label">
-        Pending Approval
-      </span>
+    <strong id="adminStatsActive">
+      0
+    </strong>
 
-      <strong id="adminStatsPending">
-        0
-      </strong>
-    </div>
+    <small>
+      Approved accounts with access
+    </small>
+  </article>
 
-    <div class="summary-card">
-      <span class="summary-label">
-        Managers
-      </span>
+  <article class="performance-summary-card">
+    <span>Pending Approval</span>
 
-      <strong id="adminStatsManagers">
-        0
-      </strong>
-    </div>
+    <strong id="adminStatsPending">
+      0
+    </strong>
 
-    <div class="summary-card">
-      <span class="summary-label">
-        Admin / CA
-      </span>
+    <small>
+      Waiting for superadmin review
+    </small>
+  </article>
 
-      <strong id="adminStatsAdmins">
-        0
-      </strong>
-    </div>
+  <article class="performance-summary-card">
+    <span>Managers</span>
 
-    <div class="summary-card confirmed">
-      <span class="summary-label">
-        Signed In
-      </span>
+    <strong id="adminStatsManagers">
+      0
+    </strong>
 
-      <strong id="adminStatsSignedIn">
-        0
-      </strong>
-    </div>
+    <small>
+      Operational management access
+    </small>
+  </article>
 
-    <div class="summary-card cancelled">
-      <span class="summary-label">
-        Never Signed In
-      </span>
+  <article class="performance-summary-card">
+    <span>Admin / CA</span>
 
-      <strong id="adminStatsNeverSignedIn">
-        0
-      </strong>
-    </div>
-  </div>
+    <strong id="adminStatsAdmins">
+      0
+    </strong>
+
+    <small>
+      Booking and performance access
+    </small>
+  </article>
+
+  <article class="performance-summary-card">
+    <span>Signed In</span>
+
+    <strong id="adminStatsSignedIn">
+      0
+    </strong>
+
+    <small>
+      Accounts with login activity
+    </small>
+  </article>
+
+  <article class="performance-summary-card">
+    <span>Never Signed In</span>
+
+    <strong id="adminStatsNeverSignedIn">
+      0
+    </strong>
+
+    <small>
+      No successful login recorded
+    </small>
+  </article>
+</div>
 
   <!-- USER FILTERS -->
   <div class="booking-toolbar user-management-toolbar">

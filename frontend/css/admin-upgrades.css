@@ -2234,6 +2234,8 @@ html body .gallery-manager-card small {
   display: none;
 }
 
+
+
 /* ============================================================
    PERFORMANCE — GENDER CHART
    ============================================================ */
@@ -2513,6 +2515,130 @@ html body .gallery-manager-card small {
   .booking-table-footer {
     flex-direction: column;
     justify-content: center;
+  }
+}
+
+/* =========================================================
+   Shared summary cards:
+   Performance, Bookings and User Management
+   ========================================================= */
+
+#bookingSummaryCards,
+#adminUserSummary {
+  display: grid;
+  grid-template-columns:
+    repeat(
+      auto-fit,
+      minmax(190px, 1fr)
+    );
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+#bookingSummaryCards .performance-summary-card,
+#adminUserSummary .performance-summary-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 145px;
+  padding: 22px;
+
+  background: #ffffff;
+  border: 1px solid rgba(36, 20, 28, 0.1);
+  border-radius: 18px;
+
+  box-shadow:
+    0 10px 30px
+    rgba(36, 20, 28, 0.06);
+}
+
+#bookingSummaryCards .performance-summary-card span,
+#adminUserSummary .performance-summary-card span {
+  color: #776972;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+#bookingSummaryCards .performance-summary-card strong,
+#adminUserSummary .performance-summary-card strong {
+  display: block;
+  margin-top: 10px;
+
+  color: #24141c;
+  font-family: "Poppins", sans-serif;
+  font-size: clamp(1.8rem, 3vw, 2.6rem);
+  font-weight: 800;
+  line-height: 1;
+}
+
+#bookingSummaryCards .performance-summary-card small,
+#adminUserSummary .performance-summary-card small {
+  display: block;
+  margin-top: auto;
+  padding-top: 16px;
+
+  color: #8d7d85;
+  font-size: 0.76rem;
+  line-height: 1.45;
+}
+
+#bookingSummaryCards .performance-summary-card.highlight,
+#adminUserSummary .performance-summary-card.highlight {
+  background:
+    linear-gradient(
+      135deg,
+      #fff2f7 0%,
+      #ffffff 100%
+    );
+
+  border-color:
+    rgba(227, 28, 121, 0.28);
+}
+
+#bookingSummaryCards .performance-summary-card.highlight::before,
+#adminUserSummary .performance-summary-card.highlight::before {
+  content: "";
+
+  position: absolute;
+  top: 0;
+  left: 22px;
+  right: 22px;
+
+  height: 4px;
+
+  background:
+    linear-gradient(
+      90deg,
+      #e31c79,
+      #fb6f92
+    );
+
+  border-radius:
+    0 0 999px 999px;
+}
+
+@media (max-width: 700px) {
+  #bookingSummaryCards,
+  #adminUserSummary {
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(0, 1fr)
+      );
+  }
+
+  #bookingSummaryCards .performance-summary-card,
+  #adminUserSummary .performance-summary-card {
+    min-height: 130px;
+    padding: 18px;
+  }
+}
+
+@media (max-width: 460px) {
+  #bookingSummaryCards,
+  #adminUserSummary {
+    grid-template-columns: 1fr;
   }
 }
 
