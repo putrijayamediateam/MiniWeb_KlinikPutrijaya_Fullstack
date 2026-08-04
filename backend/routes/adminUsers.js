@@ -9,6 +9,10 @@ const {
 } = require('../middleware/auth');
 
 const {
+  requireActiveAdmin,
+} = require('../middleware/roles');
+
+const {
   requireSuperAdmin,
 } = require(
   '../middleware/superadmin'
@@ -23,6 +27,30 @@ const {
 
 const router = express.Router();
 
+const ALLOWED_MANAGED_ROLES = new Set([
+  'admin',
+  'manager',
+]);
+
+function normalizeRole(value) {
+  return String(value || '')
+    .trim()
+    .toLowerCase();
+}
+
+function parseAdminId(value) {
+  const id = Number(value);
+
+  if (
+    !Number.isInteger(id) ||
+    id <= 0
+  ) {
+    return null;
+  }
+
+  return id;
+}
+
 /* =========================================================
    CURRENT ADMIN PROFILE
    ========================================================= */
@@ -30,6 +58,7 @@ const router = express.Router();
 router.get(
   '/me',
   requireAdmin,
+  requireActiveAdmin,
   async (req, res) => {
     try {
       const [rows] =
@@ -91,6 +120,165 @@ router.use(
 );
 
 /* =========================================================
+   USER STATISTICS
+   ========================================================= */
+
+router.get(
+  '/stats',
+  async (req, res) => {
+    try {
+      const [rows] = await db.query(
+        `
+          SELECT
+            COUNT(*) AS total_users,
+
+            SUM(
+              account_status = 'active'
+              AND is_active = 1
+            ) AS active_users,
+
+            SUM(
+              account_status = 'pending_approval'
+            ) AS pending_approval,
+
+            SUM(
+              account_status = 'pending_verification'
+            ) AS pending_verification,
+
+            SUM(
+              account_status = 'rejected'
+            ) AS rejected_users,
+
+            SUM(
+              role = 'superadmin'
+              AND account_status = 'active'
+              AND is_active = 1
+            ) AS superadmins,
+
+            SUM(
+              role = 'manager'
+              AND account_status = 'active'
+              AND is_active = 1
+            ) AS managers,
+
+            SUM(
+              role = 'admin'
+              AND account_status = 'active'
+              AND is_active = 1
+            ) AS admins,
+
+            SUM(
+              last_login_at IS NOT NULL
+            ) AS signed_in_users,
+
+            SUM(
+              last_login_at IS NULL
+            ) AS never_signed_in
+          FROM admins
+        `
+      );
+
+      const stats = rows[0] || {};
+
+      return res.json({
+        total_users:
+          Number(stats.total_users || 0),
+
+        active_users:
+          Number(stats.active_users || 0),
+
+        pending_approval:
+          Number(stats.pending_approval || 0),
+
+        pending_verification:
+          Number(stats.pending_verification || 0),
+
+        rejected_users:
+          Number(stats.rejected_users || 0),
+
+        superadmins:
+          Number(stats.superadmins || 0),
+
+        managers:
+          Number(stats.managers || 0),
+
+        admins:
+          Number(stats.admins || 0),
+
+        signed_in_users:
+          Number(stats.signed_in_users || 0),
+
+        never_signed_in:
+          Number(stats.never_signed_in || 0),
+      });
+    } catch (error) {
+      console.error(
+        'Load admin statistics error:',
+        error
+      );
+
+      return res.status(500).json({
+        message:
+          'Unable to load administrator statistics.',
+      });
+    }
+  }
+);
+
+/* =========================================================
+   ALL ADMIN USERS
+   ========================================================= */
+
+router.get(
+  '/all',
+  async (req, res) => {
+    try {
+      const [rows] = await db.query(
+        `
+          SELECT
+            id,
+            username,
+            email,
+            role,
+            account_status,
+            is_active,
+            auth_provider,
+            email_verified_at,
+            approved_at,
+            last_login_at,
+            created_at,
+            rejection_reason
+          FROM admins
+          ORDER BY
+            CASE role
+              WHEN 'superadmin' THEN 1
+              WHEN 'manager' THEN 2
+              ELSE 3
+            END,
+            created_at DESC,
+            id DESC
+        `
+      );
+
+      return res.json({
+        data: rows,
+        total: rows.length,
+      });
+    } catch (error) {
+      console.error(
+        'Load all admins error:',
+        error
+      );
+
+      return res.status(500).json({
+        message:
+          'Unable to load administrator accounts.',
+      });
+    }
+  }
+);
+
+/* =========================================================
    PENDING ADMIN ACCOUNTS
    ========================================================= */
 
@@ -139,6 +327,316 @@ router.get(
           message:
             'Unable to load pending administrator accounts.',
         });
+    }
+  }
+);
+
+/* =========================================================
+   CHANGE ADMIN ROLE
+   ========================================================= */
+
+router.put(
+  '/:id/role',
+  async (req, res) => {
+    try {
+      const targetId =
+        parseAdminId(req.params.id);
+
+      const requestedRole =
+        normalizeRole(req.body.role);
+
+      if (!targetId) {
+        return res.status(400).json({
+          message:
+            'A valid administrator ID is required.',
+        });
+      }
+
+      if (
+        !ALLOWED_MANAGED_ROLES.has(
+          requestedRole
+        )
+      ) {
+        return res.status(400).json({
+          message:
+            'Role must be admin or manager.',
+        });
+      }
+
+      if (
+        targetId ===
+        Number(req.superadmin.id)
+      ) {
+        return res.status(400).json({
+          message:
+            'You cannot change your own role.',
+        });
+      }
+
+      const [rows] = await db.query(
+        `
+          SELECT
+            id,
+            email,
+            role,
+            account_status,
+            is_active
+          FROM admins
+          WHERE id = ?
+          LIMIT 1
+        `,
+        [targetId]
+      );
+
+      const target = rows[0];
+
+      if (!target) {
+        return res.status(404).json({
+          message:
+            'Administrator account was not found.',
+        });
+      }
+
+      if (
+        normalizeRole(target.role) ===
+        'superadmin'
+      ) {
+        return res.status(403).json({
+          message:
+            'A superadmin role cannot be changed through this function.',
+        });
+      }
+
+      if (
+        String(
+          target.account_status || ''
+        ).toLowerCase() !== 'active' ||
+        Number(target.is_active) !== 1
+      ) {
+        return res.status(409).json({
+          message:
+            'Only active administrator accounts can have their role changed.',
+        });
+      }
+
+      await db.query(
+        `
+          UPDATE admins
+          SET role = ?
+          WHERE id = ?
+        `,
+        [
+          requestedRole,
+          targetId,
+        ]
+      );
+
+      return res.json({
+        message:
+          `${target.email} is now assigned as ${requestedRole}.`,
+
+        id: targetId,
+        role: requestedRole,
+      });
+    } catch (error) {
+      console.error(
+        'Change admin role error:',
+        error
+      );
+
+      return res.status(500).json({
+        message:
+          'Unable to change administrator role.',
+      });
+    }
+  }
+);
+
+/* =========================================================
+   DEACTIVATE ADMIN ACCOUNT
+   ========================================================= */
+
+router.put(
+  '/:id/deactivate',
+  async (req, res) => {
+    try {
+      const targetId =
+        parseAdminId(req.params.id);
+
+      if (!targetId) {
+        return res.status(400).json({
+          message:
+            'A valid administrator ID is required.',
+        });
+      }
+
+      if (
+        targetId ===
+        Number(req.superadmin.id)
+      ) {
+        return res.status(400).json({
+          message:
+            'You cannot deactivate your own account.',
+        });
+      }
+
+      const [rows] = await db.query(
+        `
+          SELECT
+            id,
+            email,
+            role,
+            account_status,
+            is_active
+          FROM admins
+          WHERE id = ?
+          LIMIT 1
+        `,
+        [targetId]
+      );
+
+      const target = rows[0];
+
+      if (!target) {
+        return res.status(404).json({
+          message:
+            'Administrator account was not found.',
+        });
+      }
+
+      if (
+        normalizeRole(target.role) ===
+        'superadmin'
+      ) {
+        return res.status(403).json({
+          message:
+            'A superadmin account cannot be deactivated through this function.',
+        });
+      }
+
+      await db.query(
+        `
+          UPDATE admins
+          SET is_active = 0
+          WHERE id = ?
+        `,
+        [targetId]
+      );
+
+      return res.json({
+        message:
+          `${target.email} has been deactivated.`,
+      });
+    } catch (error) {
+      console.error(
+        'Deactivate admin error:',
+        error
+      );
+
+      return res.status(500).json({
+        message:
+          'Unable to deactivate administrator account.',
+      });
+    }
+  }
+);
+
+/* =========================================================
+   REACTIVATE ADMIN ACCOUNT
+   ========================================================= */
+
+router.put(
+  '/:id/reactivate',
+  async (req, res) => {
+    try {
+      const targetId =
+        parseAdminId(req.params.id);
+
+      if (!targetId) {
+        return res.status(400).json({
+          message:
+            'A valid administrator ID is required.',
+        });
+      }
+
+      if (
+        targetId ===
+        Number(req.superadmin.id)
+      ) {
+        return res.status(400).json({
+          message:
+            'Your own account is already active.',
+        });
+      }
+
+      const [rows] = await db.query(
+        `
+          SELECT
+            id,
+            email,
+            role,
+            account_status,
+            is_active
+          FROM admins
+          WHERE id = ?
+          LIMIT 1
+        `,
+        [targetId]
+      );
+
+      const target = rows[0];
+
+      if (!target) {
+        return res.status(404).json({
+          message:
+            'Administrator account was not found.',
+        });
+      }
+
+      if (
+        normalizeRole(target.role) ===
+        'superadmin'
+      ) {
+        return res.status(403).json({
+          message:
+            'A superadmin account cannot be changed through this function.',
+        });
+      }
+
+      if (
+        String(
+          target.account_status || ''
+        ).toLowerCase() !== 'active'
+      ) {
+        return res.status(409).json({
+          message:
+            'Only an approved account can be reactivated.',
+        });
+      }
+
+      await db.query(
+        `
+          UPDATE admins
+          SET is_active = 1
+          WHERE id = ?
+        `,
+        [targetId]
+      );
+
+      return res.json({
+        message:
+          `${target.email} has been reactivated.`,
+      });
+    } catch (error) {
+      console.error(
+        'Reactivate admin error:',
+        error
+      );
+
+      return res.status(500).json({
+        message:
+          'Unable to reactivate administrator account.',
+      });
     }
   }
 );
