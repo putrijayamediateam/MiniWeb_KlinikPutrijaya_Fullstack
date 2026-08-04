@@ -4,10 +4,18 @@ const { Resend } = require('resend');
 
 let resendClient = null;
 
+function getSenderAddress() {
+  return String(
+    process.env.RESEND_FROM ||
+    process.env.MAIL_FROM ||
+    ''
+  ).trim();
+}
+
 function emailConfigured() {
   return Boolean(
     process.env.RESEND_API_KEY &&
-    process.env.RESEND_FROM
+    getSenderAddress()
   );
 }
 
@@ -86,7 +94,7 @@ async function sendSignupVerification({ email, verificationUrl }) {
   `;
 
   const { data, error } = await resend.emails.send({
-    from: process.env.RESEND_FROM,
+    from: getSenderAddress(),
     to: [email],
     subject: 'Complete Your Klinik Putrijaya Admin Account',
     text,
