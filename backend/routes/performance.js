@@ -5,6 +5,10 @@ const db = require('../db');
 const {
   requireAdmin,
 } = require('../middleware/auth');
+const {
+  requireActiveAdmin,
+  requirePerformanceAccess,
+} = require('../middleware/roles');
 
 const router = express.Router();
 
@@ -251,6 +255,8 @@ VALUES (?, ?, ?, ?, ?, ?, ?)
 router.get(
   '/overview',
   requireAdmin,
+  requireActiveAdmin,
+  requirePerformanceAccess,
   async (req, res) => {
     try {
       const {
