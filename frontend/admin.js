@@ -7,6 +7,36 @@ const TOKEN_KEY = 'kp_admin_token';
 const USERNAME_KEY = 'kp_admin_username';
 const ROLE_KEY = 'kp_admin_role';
 
+const ROLE_ACCESS = {
+  admin: [
+    'bookings',
+    'performance',
+  ],
+
+  manager: [
+    'bookings',
+    'performance',
+    'feedback',
+    'doctors',
+    'services',
+    'promotions',
+    'activities',
+  ],
+
+  superadmin: [
+    'bookings',
+    'performance',
+    'feedback',
+    'doctors',
+    'services',
+    'promotions',
+    'activities',
+  ],
+};
+
+let currentAdmin = null;
+let currentAdminRole = 'admin';
+
 let authedApi = null;
 let branchesCache = [];
 let doctorsCache = [];
@@ -17,6 +47,16 @@ let performanceReportCache = null;
 let performanceTrendChartInstance = null;
 let performanceDeviceChartInstance = null;
 let performanceGenderChartInstance = null;
+
+const ADMIN_API_BASE = String(
+  window.KP_API_BASE ||
+  (
+    ['localhost', '127.0.0.1']
+      .includes(window.location.hostname)
+      ? 'http://localhost:4000/api'
+      : 'https://backend-production-d730.up.railway.app/api'
+  )
+).replace(/\/+$/, '');
 
 const bookingState = {
   page: 1,
@@ -32,14 +72,12 @@ document.addEventListener('DOMContentLoaded', () => {
   bindCoreEvents();
   const token = sessionStorage.getItem(TOKEN_KEY);
   if (token) {
-    const storedRole = sessionStorage.getItem(ROLE_KEY);
-    const tokenRole = getRoleFromToken(token);
-
     enterDashboard(
-      token,
-      sessionStorage.getItem(USERNAME_KEY) || 'admin',
-      storedRole || tokenRole || 'admin'
-    );
+  token,
+  sessionStorage.getItem(
+    USERNAME_KEY
+  ) || 'admin'
+);
   }
 });
 
@@ -148,13 +186,20 @@ async function handleLogin(event) {
   try {
     const response = await KPApi.login(username, password);
     const resolvedUsername = response.username || username;
-    const resolvedRole = response.role || getRoleFromToken(response.token) || 'admin';
+    sessionStorage.setItem(
+  TOKEN_KEY,
+  response.token
+);
 
-    sessionStorage.setItem(TOKEN_KEY, response.token);
-    sessionStorage.setItem(USERNAME_KEY, resolvedUsername);
-    sessionStorage.setItem(ROLE_KEY, resolvedRole);
+sessionStorage.setItem(
+  USERNAME_KEY,
+  resolvedUsername
+);
 
-    enterDashboard(response.token, resolvedUsername, resolvedRole);
+await enterDashboard(
+  response.token,
+  resolvedUsername
+);
   } catch (error) {
     setMessage(messageBox, error.message || 'Login failed.', 'error');
   } finally {
@@ -167,46 +212,302 @@ function handleLogout() {
   sessionStorage.removeItem(USERNAME_KEY);
   sessionStorage.removeItem(ROLE_KEY);
   authedApi = null;
+  currentAdmin = null;
+  currentAdminRole = 'admin';
   updateAdminApprovalsVisibility('admin');
   document.getElementById('dashboard')?.classList.add('hidden');
   document.getElementById('loginScreen')?.classList.remove('hidden');
 }
 
-async function enterDashboard(token, username, role = 'admin') {
+async function enterDashboard(
+  token,
+  username
+) {
   authedApi = KPApi.withAuth(token);
 
-  const resolvedRole = role || getRoleFromToken(token) || 'admin';
-  sessionStorage.setItem(ROLE_KEY, resolvedRole);
-  updateAdminApprovalsVisibility(resolvedRole);
+  try {
+    currentAdmin =
+      await loadCurrentAdminProfile(
+        token
+      );
 
-  const usernameTarget = document.getElementById('adminUsername');
-  if (usernameTarget) usernameTarget.textContent = username;
+    currentAdminRole =
+      normalizeAdminRole(
+        currentAdmin.role
+      );
 
-  document.getElementById('loginScreen')?.classList.add('hidden');
-  document.getElementById('dashboard')?.classList.remove('hidden');
+    const displayName =
+      currentAdmin.username ||
+      currentAdmin.email ||
+      username ||
+      'admin';
+
+    sessionStorage.setItem(
+      USERNAME_KEY,
+      displayName
+    );
+
+    sessionStorage.setItem(
+      ROLE_KEY,
+      currentAdminRole
+    );
+
+    const usernameTarget =
+      document.getElementById(
+        'adminUsername'
+      );
+
+    if (usernameTarget) {
+      usernameTarget.textContent =
+        displayName;
+    }
+
+    applyRoleAccess();
+  } catch (error) {
+    console.error(
+      'Unable to load admin profile:',
+      error
+    );
+
+    handleLogout();
+
+    const messageBox =
+      document.getElementById(
+        'loginMessage'
+      );
+
+    setMessage(
+      messageBox,
+      error.message ||
+        'Unable to verify administrator access.',
+      'error'
+    );
+
+    return;
+  }
+
+  document
+    .getElementById('loginScreen')
+    ?.classList.add('hidden');
+
+  document
+    .getElementById('dashboard')
+    ?.classList.remove('hidden');
 
   try {
-  branchesCache = await KPApi.getBranches();
+    branchesCache =
+      await KPApi.getBranches();
 
-  populateBookingBranchFilter();
-  populatePerformanceBranchFilter();
-} catch (error) {
-  console.warn('Could not load branches:', error);
+    populateBookingBranchFilter();
+    populatePerformanceBranchFilter();
+  } catch (error) {
+    console.warn(
+      'Could not load branches:',
+      error
+    );
+  }
+
+  initialisePerformanceDates();
+
+  await loadAllowedDashboardModules();
 }
 
-initialisePerformanceDates();
+async function loadCurrentAdminProfile(
+  token
+) {
+  const response = await fetch(
+    `${ADMIN_API_BASE}/admin-users/me`,
+    {
+      headers: {
+        Authorization:
+          `Bearer ${token}`,
+        'Content-Type':
+          'application/json',
+      },
+    }
+  );
 
-await Promise.allSettled([
-  loadBookings(),
-  loadPerformance(),
-  loadFeedback(),
-  loadDoctors(),
-  loadServices(),
-  loadPromotions(),
-  loadActivities(),
-]);
+  const data =
+    await response
+      .json()
+      .catch(() => ({}));
+
+  if (!response.ok) {
+    const error = new Error(
+      data.message ||
+      'Unable to verify administrator account.'
+    );
+
+    error.status =
+      response.status;
+
+    throw error;
+  }
+
+  return data;
 }
 
+function normalizeAdminRole(value) {
+  const role = String(
+    value || 'admin'
+  )
+    .trim()
+    .toLowerCase();
+
+  if (
+    role === 'admin' ||
+    role === 'manager' ||
+    role === 'superadmin'
+  ) {
+    return role;
+  }
+
+  return 'admin';
+}
+
+function canAccessTab(tabName) {
+  const tabs =
+    ROLE_ACCESS[
+      currentAdminRole
+    ] || ROLE_ACCESS.admin;
+
+  return tabs.includes(tabName);
+}
+
+function hasManagementAccess() {
+  return (
+    currentAdminRole ===
+      'manager' ||
+    currentAdminRole ===
+      'superadmin'
+  );
+}
+
+function isSuperadmin() {
+  return (
+    currentAdminRole ===
+    'superadmin'
+  );
+}
+
+function applyRoleAccess() {
+  document
+    .querySelectorAll('.tab-btn')
+    .forEach((button) => {
+      const allowed =
+        canAccessTab(
+          button.dataset.tab
+        );
+
+      button.classList.toggle(
+        'hidden',
+        !allowed
+      );
+
+      button.disabled =
+        !allowed;
+
+      button.setAttribute(
+        'aria-hidden',
+        String(!allowed)
+      );
+
+      button.tabIndex =
+        allowed ? 0 : -1;
+    });
+
+  document
+    .querySelectorAll('.tab-panel')
+    .forEach((panel) => {
+      const tabName =
+        panel.id.replace(
+          'tab-',
+          ''
+        );
+
+      const allowed =
+        canAccessTab(tabName);
+
+      panel.classList.toggle(
+        'hidden',
+        !allowed
+      );
+
+      if (!allowed) {
+        panel.classList.remove(
+          'active'
+        );
+      }
+    });
+
+  updateAdminApprovalsVisibility(
+    currentAdminRole
+  );
+
+  [
+    'addDoctorBtn',
+    'addServiceBtn',
+    'addPromotionBtn',
+    'addActivityBtn',
+  ].forEach((id) => {
+    document
+      .getElementById(id)
+      ?.classList.toggle(
+        'hidden',
+        !hasManagementAccess()
+      );
+  });
+
+  switchTab('bookings');
+}
+
+async function loadAllowedDashboardModules() {
+  const tasks = [];
+
+  if (canAccessTab('bookings')) {
+    tasks.push(
+      loadBookings()
+    );
+  }
+
+  if (canAccessTab('performance')) {
+    tasks.push(
+      loadPerformance()
+    );
+  }
+
+  if (canAccessTab('feedback')) {
+    tasks.push(
+      loadFeedback()
+    );
+  }
+
+  if (canAccessTab('doctors')) {
+    tasks.push(
+      loadDoctors()
+    );
+  }
+
+  if (canAccessTab('services')) {
+    tasks.push(
+      loadServices()
+    );
+  }
+
+  if (canAccessTab('promotions')) {
+    tasks.push(
+      loadPromotions()
+    );
+  }
+
+  if (canAccessTab('activities')) {
+    tasks.push(
+      loadActivities()
+    );
+  }
+
+  await Promise.allSettled(tasks);
+}
 
 function updateAdminApprovalsVisibility(role) {
   const approvalsButton = document.getElementById('adminApprovalsBtn');
@@ -241,6 +542,14 @@ function getRoleFromToken(token) {
 }
 
 function switchTab(tab) {
+  if (!canAccessTab(tab)) {
+    console.warn(
+      `${currentAdminRole} cannot access ${tab}.`
+    );
+
+    return;
+  }
+
   document
     .querySelectorAll('.tab-btn')
     .forEach((button) => {
@@ -255,7 +564,8 @@ function switchTab(tab) {
     .forEach((panel) => {
       panel.classList.toggle(
         'active',
-        panel.id === `tab-${tab}`
+        panel.id ===
+          `tab-${tab}`
       );
     });
 
@@ -1877,7 +2187,20 @@ function renderBookings(bookings) {
       </span>
     `
 }
-            <button class="btn-small danger" type="button" data-action="delete-booking" data-id="${booking.id}">Delete</button>
+            ${
+  hasManagementAccess()
+    ? `
+      <button
+        class="btn-small danger"
+        type="button"
+        data-action="delete-booking"
+        data-id="${booking.id}"
+      >
+        Delete
+      </button>
+    `
+    : ''
+}
           </div>
         </td>
       </tr>
