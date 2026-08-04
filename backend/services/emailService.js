@@ -7,10 +7,18 @@ let resendClient = null;
 /**
  * Check whether Resend settings are available.
  */
+function getSenderAddress() {
+  return (
+    process.env.RESEND_FROM ||
+    process.env.MAIL_FROM ||
+    ''
+  ).trim();
+}
+
 function emailConfigured() {
   return Boolean(
     process.env.RESEND_API_KEY &&
-    process.env.RESEND_FROM
+    getSenderAddress()
   );
 }
 
@@ -120,7 +128,7 @@ async function sendPasswordReset({
   `;
 
   const { data, error } = await resend.emails.send({
-    from: process.env.RESEND_FROM,
+    from: getSenderAddress(),
     to: [email],
     subject: 'Klinik Putrijaya Admin Password Reset',
     text,
