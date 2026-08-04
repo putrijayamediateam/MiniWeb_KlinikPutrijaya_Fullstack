@@ -380,6 +380,61 @@ getActivityBySlug(slug) {
           );
         },
 
+        getAdminUserStats() {
+  return apiRequest(
+    '/admin-users/stats',
+    {
+      headers,
+    }
+  );
+},
+
+getAllAdminUsers() {
+  return apiRequest(
+    '/admin-users/all',
+    {
+      headers,
+    }
+  );
+},
+
+changeAdminRole(
+  id,
+  role
+) {
+  return apiRequest(
+    `/admin-users/${id}/role`,
+    {
+      method: 'PUT',
+      headers,
+
+      body: jsonBody({
+        role,
+      }),
+    }
+  );
+},
+
+deactivateAdmin(id) {
+  return apiRequest(
+    `/admin-users/${id}/deactivate`,
+    {
+      method: 'PUT',
+      headers,
+    }
+  );
+},
+
+reactivateAdmin(id) {
+  return apiRequest(
+    `/admin-users/${id}/reactivate`,
+    {
+      method: 'PUT',
+      headers,
+    }
+  );
+},
+
         approveAdmin(id) {
           return apiRequest(
             `/admin-users/${id}/approve`,

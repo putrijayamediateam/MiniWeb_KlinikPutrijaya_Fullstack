@@ -31,6 +31,7 @@ const ROLE_ACCESS = {
     'services',
     'promotions',
     'activities',
+    'users',
   ],
 };
 
@@ -43,6 +44,7 @@ let doctorsCache = [];
 let servicesCache = [];
 let promotionsCache = [];
 let activitiesCache = [];
+let adminUsersCache = [];
 let performanceReportCache = null;
 let performanceTrendChartInstance = null;
 let performanceDeviceChartInstance = null;
@@ -144,6 +146,44 @@ document
   document.getElementById('addServiceBtn')?.addEventListener('click', () => openServiceModal());
   document.getElementById('addPromotionBtn')?.addEventListener('click', () => openPromotionModal());
   document.getElementById('addActivityBtn')?.addEventListener('click',() => openActivityModal());
+  document
+  .getElementById(
+    'refreshAdminUsersBtn'
+  )
+  ?.addEventListener(
+    'click',
+    loadAdminUsers
+  );
+
+document
+  .getElementById(
+    'adminUserSearchInput'
+  )
+  ?.addEventListener(
+    'input',
+    debounce(
+      renderFilteredAdminUsers,
+      250
+    )
+  );
+
+document
+  .getElementById(
+    'adminUserRoleFilter'
+  )
+  ?.addEventListener(
+    'change',
+    renderFilteredAdminUsers
+  );
+
+document
+  .getElementById(
+    'adminUserStatusFilter'
+  )
+  ?.addEventListener(
+    'change',
+    renderFilteredAdminUsers
+  );
   document.getElementById('modalCloseBtn')?.addEventListener('click', closeModal);
 
   document.getElementById('modalBackdrop')?.addEventListener('click', (event) => {
@@ -506,6 +546,12 @@ async function loadAllowedDashboardModules() {
     );
   }
 
+  if (canAccessTab('users')) {
+  tasks.push(
+    loadAdminUsers()
+  );
+}
+
   await Promise.allSettled(tasks);
 }
 
@@ -573,6 +619,13 @@ function switchTab(tab) {
     initialisePerformanceDates();
     loadPerformance();
   }
+
+  if (
+  tab === 'users' &&
+  isSuperadmin()
+) {
+  loadAdminUsers();
+}
 }
 
 function handleAuthError(error) {
@@ -6740,6 +6793,740 @@ function clearActivityGalleryForm() {
     ),
     ''
   );
+}
+
+// -----------------------------------------------------------------------------
+// USER MANAGEMENT — SUPERADMIN ONLY
+// -----------------------------------------------------------------------------
+
+async function loadAdminUsers() {
+  const tbody =
+    document.getElementById(
+      'adminUsersTableBody'
+    );
+
+  if (
+    !tbody ||
+    !authedApi ||
+    !isSuperadmin()
+  ) {
+    return;
+  }
+
+  tbody.innerHTML = `
+    <tr>
+      <td
+        colspan="7"
+        class="loading-row"
+      >
+        Loading users…
+      </td>
+    </tr>
+  `;
+
+  try {
+    const [
+      stats,
+      usersResponse,
+    ] = await Promise.all([
+      authedApi
+        .getAdminUserStats(),
+
+      authedApi
+        .getAllAdminUsers(),
+    ]);
+
+    adminUsersCache =
+      Array.isArray(
+        usersResponse.data
+      )
+        ? usersResponse.data
+        : [];
+
+    renderAdminUserStats(
+      stats || {}
+    );
+
+    renderFilteredAdminUsers();
+  } catch (error) {
+    if (
+      handleAuthError(error)
+    ) {
+      return;
+    }
+
+    tbody.innerHTML = `
+      <tr>
+        <td
+          colspan="7"
+          class="empty-row"
+        >
+          ${escapeHtml(
+            error.message ||
+            'Unable to load administrator users.'
+          )}
+        </td>
+      </tr>
+    `;
+  }
+}
+
+function renderAdminUserStats(
+  stats
+) {
+  setText(
+    'adminStatsTotal',
+    Number(
+      stats.total_users || 0
+    )
+  );
+
+  setText(
+    'adminStatsActive',
+    Number(
+      stats.active_users || 0
+    )
+  );
+
+  setText(
+    'adminStatsPending',
+    Number(
+      stats.pending_approval || 0
+    )
+  );
+
+  setText(
+    'adminStatsManagers',
+    Number(
+      stats.managers || 0
+    )
+  );
+
+  setText(
+    'adminStatsAdmins',
+    Number(
+      stats.admins || 0
+    )
+  );
+
+  setText(
+    'adminStatsSignedIn',
+    Number(
+      stats.signed_in_users || 0
+    )
+  );
+
+  setText(
+    'adminStatsNeverSignedIn',
+    Number(
+      stats.never_signed_in || 0
+    )
+  );
+}
+
+function renderFilteredAdminUsers() {
+  const tbody =
+    document.getElementById(
+      'adminUsersTableBody'
+    );
+
+  if (!tbody) {
+    return;
+  }
+
+  const search =
+    document
+      .getElementById(
+        'adminUserSearchInput'
+      )
+      ?.value
+      .trim()
+      .toLowerCase() || '';
+
+  const roleFilter =
+    document
+      .getElementById(
+        'adminUserRoleFilter'
+      )
+      ?.value || '';
+
+  const statusFilter =
+    document
+      .getElementById(
+        'adminUserStatusFilter'
+      )
+      ?.value || '';
+
+  const filteredUsers =
+    adminUsersCache.filter(
+      (user) => {
+        const role =
+          normalizeAdminRole(
+            user.role
+          );
+
+        const status =
+          getAdminUserStatus(
+            user
+          );
+
+        const combinedText = [
+          user.username,
+          user.email,
+          role,
+          user.account_status,
+          user.auth_provider,
+        ]
+          .filter(Boolean)
+          .join(' ')
+          .toLowerCase();
+
+        const matchesSearch =
+          !search ||
+          combinedText.includes(
+            search
+          );
+
+        const matchesRole =
+          !roleFilter ||
+          role === roleFilter;
+
+        const matchesStatus =
+          !statusFilter ||
+          status === statusFilter;
+
+        return (
+          matchesSearch &&
+          matchesRole &&
+          matchesStatus
+        );
+      }
+    );
+
+  renderAdminUsersTable(
+    filteredUsers
+  );
+}
+
+function renderAdminUsersTable(
+  users
+) {
+  const tbody =
+    document.getElementById(
+      'adminUsersTableBody'
+    );
+
+  if (!tbody) {
+    return;
+  }
+
+  if (!users.length) {
+    tbody.innerHTML = `
+      <tr>
+        <td
+          colspan="7"
+          class="empty-row"
+        >
+          No administrator users found.
+        </td>
+      </tr>
+    `;
+
+    return;
+  }
+
+  tbody.innerHTML =
+    users
+      .map((user) => {
+        const role =
+          normalizeAdminRole(
+            user.role
+          );
+
+        const status =
+          getAdminUserStatus(
+            user
+          );
+
+        const isCurrentUser =
+          Number(user.id) ===
+          Number(currentAdmin?.id);
+
+        const isProtected =
+          role ===
+            'superadmin' ||
+          isCurrentUser;
+
+        return `
+          <tr data-user-id="${Number(
+            user.id
+          )}">
+            <td>
+              <strong>
+                ${escapeHtml(
+                  user.username ||
+                  'Unnamed user'
+                )}
+              </strong>
+
+              <div class="cell-subtext">
+                ${escapeHtml(
+                  user.email ||
+                  'No email'
+                )}
+              </div>
+
+              ${
+                isCurrentUser
+                  ? `
+                    <div class="cell-subtext">
+                      Current account
+                    </div>
+                  `
+                  : ''
+              }
+            </td>
+
+            <td>
+              ${
+                isProtected
+                  ? `
+                    <span class="status-pill status-confirmed">
+                      ${escapeHtml(
+                        formatAdminRole(
+                          role
+                        )
+                      )}
+                    </span>
+                  `
+                  : `
+                    <select
+                      class="admin-user-role-select"
+                      data-user-role-id="${Number(
+                        user.id
+                      )}"
+                      aria-label="Change role for ${escapeAttribute(
+                        user.email ||
+                        user.username ||
+                        'administrator'
+                      )}"
+                    >
+                      <option
+                        value="admin"
+                        ${
+                          role ===
+                          'admin'
+                            ? 'selected'
+                            : ''
+                        }
+                      >
+                        Admin / CA
+                      </option>
+
+                      <option
+                        value="manager"
+                        ${
+                          role ===
+                          'manager'
+                            ? 'selected'
+                            : ''
+                        }
+                      >
+                        Manager
+                      </option>
+                    </select>
+                  `
+              }
+            </td>
+
+            <td>
+              ${escapeHtml(
+                formatAuthProvider(
+                  user.auth_provider
+                )
+              )}
+            </td>
+
+            <td>
+              <span class="status-pill ${getAdminStatusClass(
+                status
+              )}">
+                ${escapeHtml(
+                  formatAdminStatus(
+                    status
+                  )
+                )}
+              </span>
+            </td>
+
+            <td>
+              ${escapeHtml(
+                formatAdminDateTime(
+                  user.last_login_at,
+                  'Never'
+                )
+              )}
+            </td>
+
+            <td>
+              ${escapeHtml(
+                formatAdminDateTime(
+                  user.created_at,
+                  '—'
+                )
+              )}
+            </td>
+
+            <td>
+              ${renderAdminUserActions(
+                user,
+                status,
+                isProtected
+              )}
+            </td>
+          </tr>
+        `;
+      })
+      .join('');
+
+  bindAdminUserActions();
+}
+
+function renderAdminUserActions(
+  user,
+  status,
+  isProtected
+) {
+  if (isProtected) {
+    return `
+      <span class="cell-subtext">
+        Protected
+      </span>
+    `;
+  }
+
+  if (
+    String(
+      user.account_status || ''
+    ).toLowerCase() !==
+    'active'
+  ) {
+    return `
+      <span class="cell-subtext">
+        Complete approval first
+      </span>
+    `;
+  }
+
+  if (status === 'inactive') {
+    return `
+      <button
+        class="btn-small"
+        type="button"
+        data-action="reactivate-admin"
+        data-id="${Number(user.id)}"
+      >
+        Reactivate
+      </button>
+    `;
+  }
+
+  return `
+    <button
+      class="btn-small danger"
+      type="button"
+      data-action="deactivate-admin"
+      data-id="${Number(user.id)}"
+    >
+      Deactivate
+    </button>
+  `;
+}
+
+function bindAdminUserActions() {
+  document
+    .querySelectorAll(
+      '.admin-user-role-select'
+    )
+    .forEach((select) => {
+      select.dataset.previous =
+        select.value;
+
+      select.addEventListener(
+        'change',
+        async () => {
+          const userId =
+            Number(
+              select.dataset
+                .userRoleId
+            );
+
+          const previousRole =
+            select.dataset.previous;
+
+          const nextRole =
+            select.value;
+
+          const confirmed =
+            confirm(
+              `Change this user's role to ${formatAdminRole(
+                nextRole
+              )}?`
+            );
+
+          if (!confirmed) {
+            select.value =
+              previousRole;
+
+            return;
+          }
+
+          select.disabled = true;
+
+          try {
+            await authedApi
+              .changeAdminRole(
+                userId,
+                nextRole
+              );
+
+            await loadAdminUsers();
+          } catch (error) {
+            select.value =
+              previousRole;
+
+            if (
+              !handleAuthError(
+                error
+              )
+            ) {
+              alert(
+                `Unable to change role: ${error.message}`
+              );
+            }
+          } finally {
+            select.disabled =
+              false;
+          }
+        }
+      );
+    });
+
+  document
+    .querySelectorAll(
+      '[data-action="deactivate-admin"]'
+    )
+    .forEach((button) => {
+      button.addEventListener(
+        'click',
+        async () => {
+          const confirmed =
+            confirm(
+              'Deactivate this administrator account? They will no longer be able to access the dashboard.'
+            );
+
+          if (!confirmed) {
+            return;
+          }
+
+          try {
+            await authedApi
+              .deactivateAdmin(
+                button.dataset.id
+              );
+
+            await loadAdminUsers();
+          } catch (error) {
+            if (
+              !handleAuthError(
+                error
+              )
+            ) {
+              alert(
+                `Unable to deactivate user: ${error.message}`
+              );
+            }
+          }
+        }
+      );
+    });
+
+  document
+    .querySelectorAll(
+      '[data-action="reactivate-admin"]'
+    )
+    .forEach((button) => {
+      button.addEventListener(
+        'click',
+        async () => {
+          const confirmed =
+            confirm(
+              'Reactivate this administrator account?'
+            );
+
+          if (!confirmed) {
+            return;
+          }
+
+          try {
+            await authedApi
+              .reactivateAdmin(
+                button.dataset.id
+              );
+
+            await loadAdminUsers();
+          } catch (error) {
+            if (
+              !handleAuthError(
+                error
+              )
+            ) {
+              alert(
+                `Unable to reactivate user: ${error.message}`
+              );
+            }
+          }
+        }
+      );
+    });
+}
+
+function getAdminUserStatus(user) {
+  const accountStatus =
+    String(
+      user.account_status || ''
+    )
+      .trim()
+      .toLowerCase();
+
+  if (
+    accountStatus === 'active' &&
+    Number(user.is_active) !== 1
+  ) {
+    return 'inactive';
+  }
+
+  return (
+    accountStatus ||
+    'unknown'
+  );
+}
+
+function formatAdminRole(role) {
+  const labels = {
+    superadmin:
+      'Superadmin',
+
+    manager:
+      'Manager',
+
+    admin:
+      'Admin / CA',
+  };
+
+  return (
+    labels[
+      normalizeAdminRole(role)
+    ] ||
+    'Admin / CA'
+  );
+}
+
+function formatAdminStatus(status) {
+  const labels = {
+    active:
+      'Active',
+
+    inactive:
+      'Deactivated',
+
+    pending_approval:
+      'Pending Approval',
+
+    pending_verification:
+      'Pending Verification',
+
+    rejected:
+      'Rejected',
+
+    unknown:
+      'Unknown',
+  };
+
+  return (
+    labels[status] ||
+    formatCategory(status)
+  );
+}
+
+function getAdminStatusClass(status) {
+  const classes = {
+    active:
+      'status-completed',
+
+    inactive:
+      'status-cancelled',
+
+    pending_approval:
+      'status-pending',
+
+    pending_verification:
+      'status-pending',
+
+    rejected:
+      'status-cancelled',
+  };
+
+  return (
+    classes[status] ||
+    'status-pending'
+  );
+}
+
+function formatAuthProvider(provider) {
+  const value =
+    String(
+      provider || 'local'
+    )
+      .trim()
+      .toLowerCase();
+
+  if (value === 'google') {
+    return 'Google';
+  }
+
+  return 'Email / Password';
+}
+
+function formatAdminDateTime(
+  value,
+  fallback = '—'
+) {
+  if (!value) {
+    return fallback;
+  }
+
+  const date =
+    new Date(value);
+
+  if (
+    Number.isNaN(
+      date.getTime()
+    )
+  ) {
+    return fallback;
+  }
+
+  return new Intl.DateTimeFormat(
+    'en-MY',
+    {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    }
+  ).format(date);
 }
 
 // -----------------------------------------------------------------------------

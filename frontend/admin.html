@@ -148,6 +148,15 @@
 <button class="tab-btn" data-tab="activities">
   Activities &amp; CSR
 </button>
+
+<button
+  class="tab-btn hidden"
+  data-tab="users"
+  id="userManagementTabBtn"
+  type="button"
+>
+  User Management
+</button>
     </nav>
 
     <main class="admin-main">
@@ -710,6 +719,202 @@
   </div>
 </section>
 
+<!-- USER MANAGEMENT TAB -->
+<section
+  class="tab-panel hidden"
+  id="tab-users"
+>
+  <div class="panel-head">
+    <div>
+      <h2>User Management</h2>
+
+      <p class="panel-subtitle">
+        View administrator accounts, login activity,
+        roles and account access.
+      </p>
+    </div>
+
+    <button
+      type="button"
+      class="btn-primary"
+      id="refreshAdminUsersBtn"
+    >
+      Refresh
+    </button>
+  </div>
+
+  <!-- USER STATISTICS -->
+  <div
+    class="summary-grid user-summary-grid"
+    id="adminUserSummary"
+  >
+    <div class="summary-card">
+      <span class="summary-label">
+        Total Users
+      </span>
+
+      <strong id="adminStatsTotal">
+        0
+      </strong>
+    </div>
+
+    <div class="summary-card completed">
+      <span class="summary-label">
+        Active Users
+      </span>
+
+      <strong id="adminStatsActive">
+        0
+      </strong>
+    </div>
+
+    <div class="summary-card pending">
+      <span class="summary-label">
+        Pending Approval
+      </span>
+
+      <strong id="adminStatsPending">
+        0
+      </strong>
+    </div>
+
+    <div class="summary-card">
+      <span class="summary-label">
+        Managers
+      </span>
+
+      <strong id="adminStatsManagers">
+        0
+      </strong>
+    </div>
+
+    <div class="summary-card">
+      <span class="summary-label">
+        Admin / CA
+      </span>
+
+      <strong id="adminStatsAdmins">
+        0
+      </strong>
+    </div>
+
+    <div class="summary-card confirmed">
+      <span class="summary-label">
+        Signed In
+      </span>
+
+      <strong id="adminStatsSignedIn">
+        0
+      </strong>
+    </div>
+
+    <div class="summary-card cancelled">
+      <span class="summary-label">
+        Never Signed In
+      </span>
+
+      <strong id="adminStatsNeverSignedIn">
+        0
+      </strong>
+    </div>
+  </div>
+
+  <!-- USER FILTERS -->
+  <div class="booking-toolbar user-management-toolbar">
+    <div class="booking-search-wrap">
+      <input
+        type="search"
+        id="adminUserSearchInput"
+        aria-label="Search administrator users"
+        placeholder="Search by username, email or role..."
+      >
+    </div>
+
+    <select
+      id="adminUserRoleFilter"
+      aria-label="Filter users by role"
+    >
+      <option value="">
+        All roles
+      </option>
+
+      <option value="superadmin">
+        Superadmin
+      </option>
+
+      <option value="manager">
+        Manager
+      </option>
+
+      <option value="admin">
+        Admin / CA
+      </option>
+    </select>
+
+    <select
+      id="adminUserStatusFilter"
+      aria-label="Filter users by status"
+    >
+      <option value="">
+        All account statuses
+      </option>
+
+      <option value="active">
+        Active
+      </option>
+
+      <option value="inactive">
+        Deactivated
+      </option>
+
+      <option value="pending_approval">
+        Pending approval
+      </option>
+
+      <option value="pending_verification">
+        Pending verification
+      </option>
+
+      <option value="rejected">
+        Rejected
+      </option>
+    </select>
+  </div>
+
+  <!-- USER TABLE -->
+  <div class="table-wrap">
+    <table class="admin-users-table">
+      <thead>
+        <tr>
+          <th>User</th>
+          <th>Role</th>
+          <th>Provider</th>
+          <th>Account Status</th>
+          <th>Last Sign In</th>
+          <th>Created</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+
+      <tbody id="adminUsersTableBody">
+        <tr>
+          <td
+            colspan="7"
+            class="loading-row"
+          >
+            Loading…
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p class="performance-privacy-note">
+    Only superadmin accounts can view or change administrator
+    roles and account access.
+  </p>
+</section>
+
     </main>
   </div>
 
@@ -723,7 +928,7 @@
   </div>
 
 <script
-  src="js/api.js?v=20260730-1"
+  src="js/api.js?v=20260804-1"
   defer
 ></script>
 
@@ -738,7 +943,7 @@
 ></script>
 
 <script
-  src="admin.js?v=20260731-1"
+  src="admin.js?v=20260804-1"
   defer
 ></script>
 </body>
