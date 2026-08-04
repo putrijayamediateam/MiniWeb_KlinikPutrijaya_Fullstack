@@ -6,6 +6,11 @@ const {
   requireAdmin,
 } = require('../middleware/auth');
 
+const {
+  requireActiveAdmin,
+  requireManagementAccess,
+} = require('../middleware/roles');
+
 const router = express.Router();
 
 function slugify(value) {
@@ -383,6 +388,8 @@ router.get(
 router.get(
   '/admin/all',
   requireAdmin,
+  requireActiveAdmin,
+  requireManagementAccess,
   async (req, res) => {
     try {
       const [rows] = await db.query(
@@ -434,6 +441,8 @@ router.get(
 router.get(
   '/admin/:id',
   requireAdmin,
+  requireActiveAdmin,
+  requireManagementAccess,
   async (req, res) => {
     try {
       const id = Number(
@@ -501,6 +510,8 @@ router.get(
 router.post(
   '/',
   requireAdmin,
+  requireActiveAdmin,
+  requireManagementAccess,
   async (req, res) => {
     try {
       const payload =
@@ -600,6 +611,8 @@ router.post(
 router.put(
   '/:id',
   requireAdmin,
+  requireActiveAdmin,
+  requireManagementAccess,
   async (req, res) => {
     try {
       const id = Number(
@@ -730,6 +743,8 @@ router.put(
 router.delete(
   '/:id',
   requireAdmin,
+  requireActiveAdmin,
+  requireManagementAccess,
   async (req, res) => {
     try {
       const id = Number(
@@ -775,6 +790,8 @@ router.delete(
 router.post(
   '/:activityId/gallery',
   requireAdmin,
+  requireActiveAdmin,
+  requireManagementAccess,
   async (req, res) => {
     try {
       const activityId = Number(
@@ -874,6 +891,8 @@ router.post(
 router.put(
   '/gallery/:galleryId',
   requireAdmin,
+  requireActiveAdmin,
+  requireManagementAccess,
   async (req, res) => {
     try {
       const galleryId = Number(
@@ -960,6 +979,8 @@ router.put(
 router.delete(
   '/gallery/:galleryId',
   requireAdmin,
+  requireActiveAdmin,
+  requireManagementAccess,
   async (req, res) => {
     try {
       const galleryId = Number(
