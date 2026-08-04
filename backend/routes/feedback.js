@@ -2,7 +2,14 @@
 
 const express = require('express');
 const db = require('../db');
-const { requireAdmin } = require('../middleware/auth');
+const {
+  requireAdmin,
+} = require('../middleware/auth');
+
+const {
+  requireActiveAdmin,
+  requireManagementAccess,
+} = require('../middleware/roles');
 
 const router = express.Router();
 
@@ -130,11 +137,22 @@ async function adminListHandler(req, res) {
   }
 }
 
-router.get('/admin/all', requireAdmin, adminListHandler);
-router.get('/admin', requireAdmin, adminListHandler);
-router.get('/all', requireAdmin, adminListHandler);
+router.get(
+  '/admin/all',
+  requireAdmin,
+  requireActiveAdmin,
+  requireManagementAccess,
+  adminListHandler
+);
+router.get('/admin', requireAdmin, requireActiveAdmin, requireManagementAccess, adminListHandler);
+router.get('/all', requireAdmin, requireActiveAdmin, requireManagementAccess, adminListHandler);
 
-router.put('/:id/approve', requireAdmin, async (req, res) => {
+router.put(
+  '/:id/approve',
+  requireAdmin,
+  requireActiveAdmin,
+  requireManagementAccess,
+  async (req, res) => {
   try {
     const [result] = await db.query(
       'UPDATE feedback SET is_approved = 1 WHERE id = ?',
@@ -152,7 +170,12 @@ router.put('/:id/approve', requireAdmin, async (req, res) => {
   }
 });
 
-router.delete('/:id', requireAdmin, async (req, res) => {
+router.delete(
+  '/:id',
+  requireAdmin,
+  requireActiveAdmin,
+  requireManagementAccess,
+  async (req, res) => {
   try {
     const [result] = await db.query('DELETE FROM feedback WHERE id = ?', [Number(req.params.id)]);
     if (!result.affectedRows) {
