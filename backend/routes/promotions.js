@@ -1,6 +1,13 @@
 const express = require('express');
 const pool = require('../db');
-const { requireAdmin } = require('../middleware/auth');
+const {
+  requireAdmin,
+} = require('../middleware/auth');
+
+const {
+  requireActiveAdmin,
+  requireManagementAccess,
+} = require('../middleware/roles');
 
 const router = express.Router();
 
@@ -55,7 +62,12 @@ router.get('/', async (req, res) => {
 });
 
 // GET /api/promotions/admin/all - admin view
-router.get('/admin/all', requireAdmin, async (req, res) => {
+router.get(
+  '/admin/all',
+  requireAdmin,
+  requireActiveAdmin,
+  requireManagementAccess,
+  async (req, res) => {
   try {
     const [rows] = await pool.query(`
       SELECT id, badge, title, description, details, cta_label, cta_link, image_url, sort_order, is_active
@@ -71,7 +83,12 @@ router.get('/admin/all', requireAdmin, async (req, res) => {
 });
 
 // POST /api/promotions
-router.post('/', requireAdmin, async (req, res) => {
+router.post(
+  '/',
+  requireAdmin,
+  requireActiveAdmin,
+  requireManagementAccess,
+  async (req, res) => {
   try {
     const {
       badge,
@@ -113,7 +130,12 @@ router.post('/', requireAdmin, async (req, res) => {
 });
 
 // PUT /api/promotions/:id
-router.put('/:id', requireAdmin, async (req, res) => {
+router.put(
+  '/:id',
+  requireAdmin,
+  requireActiveAdmin,
+  requireManagementAccess,
+  async (req, res) => {
   try {
     const {
       badge,
@@ -165,7 +187,12 @@ router.put('/:id', requireAdmin, async (req, res) => {
 });
 
 // DELETE /api/promotions/:id
-router.delete('/:id', requireAdmin, async (req, res) => {
+router.delete(
+  '/:id',
+  requireAdmin,
+  requireActiveAdmin,
+  requireManagementAccess,
+  async (req, res) => {
   try {
     await pool.query('DELETE FROM promotions WHERE id = ?', [req.params.id]);
     res.json({ message: 'Promotion deleted.' });
