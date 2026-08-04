@@ -2,7 +2,15 @@
 
 const express = require('express');
 const db = require('../db');
-const { requireAdmin } = require('../middleware/auth');
+const {
+  requireAdmin,
+} = require('../middleware/auth');
+
+const {
+  requireActiveAdmin,
+  requireBookingAccess,
+  requireManagementAccess,
+} = require('../middleware/roles');
 
 const router = express.Router();
 
@@ -262,7 +270,12 @@ if (
    ADMIN: Get bookings
    ========================================================= */
 
-router.get('/', requireAdmin, async (req, res) => {
+router.get(
+  '/',
+  requireAdmin,
+  requireActiveAdmin,
+  requireBookingAccess,
+  async (req, res) => {
   try {
     const {
       page,
@@ -379,6 +392,8 @@ router.get('/', requireAdmin, async (req, res) => {
 router.put(
   '/:id/status',
   requireAdmin,
+  requireActiveAdmin,
+  requireBookingAccess,
   async (req, res) => {
     try {
       const id = Number(req.params.id);
@@ -437,6 +452,8 @@ router.put(
 router.delete(
   '/:id',
   requireAdmin,
+  requireActiveAdmin,
+  requireManagementAccess,
   async (req, res) => {
     try {
       const id = Number(req.params.id);
