@@ -78,3 +78,29 @@
   color: #931451;
   box-shadow: none;
 }
+
+.google-button-shell {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: 3px;
+  border-radius: 999px;
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.95),
+      rgba(255, 239, 247, 0.95)
+    );
+  box-shadow:
+    0 8px 22px
+    rgba(224, 13, 146, 0.08);
+}
+
+.google-button-shell > div {
+  width: 100% !important;
+  max-width: 380px;
+}
+
+.google-button-shell iframe {
+  border-radius: 999px !important;
+}

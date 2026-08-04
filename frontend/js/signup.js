@@ -83,15 +83,15 @@ async function renderGoogleButton(clientId) {
   });
 
   target.innerHTML = '';
-  window.google.accounts.id.renderButton(target, {
+    window.google.accounts.id.renderButton(target, {
     type: 'standard',
     theme: 'outline',
     size: 'large',
-    text: 'signup_with',
-    shape: 'rectangular',
+    text: 'continue_with',
+    shape: 'pill',
     logo_alignment: 'left',
     width: Math.min(target.clientWidth || 380, 380),
-  });
+});
 }
 
 async function handleGoogleCredential(response) {
