@@ -2,7 +2,14 @@
 
 const express = require('express');
 const db = require('../db');
-const { requireAdmin } = require('../middleware/auth');
+const {
+  requireAdmin,
+} = require('../middleware/auth');
+
+const {
+  requireActiveAdmin,
+  requireManagementAccess,
+} = require('../middleware/roles');
 
 const router = express.Router();
 
@@ -57,7 +64,12 @@ router.get('/', async (req, res) => {
   }
 });
 
-router.get('/admin/all', requireAdmin, async (req, res) => {
+router.get(
+  '/admin/all',
+  requireAdmin,
+  requireActiveAdmin,
+  requireManagementAccess,
+  async (req, res) => {
   try {
     const [rows] = await db.query(
       `SELECT
@@ -80,7 +92,12 @@ router.get('/admin/all', requireAdmin, async (req, res) => {
   }
 });
 
-router.post('/', requireAdmin, async (req, res) => {
+router.post(
+  '/',
+  requireAdmin,
+  requireActiveAdmin,
+  requireManagementAccess,
+  async (req, res) => {
   try {
     const branchId = Number(req.body.branch_id);
     const name = String(req.body.name || '').trim();
@@ -112,7 +129,12 @@ router.post('/', requireAdmin, async (req, res) => {
   }
 });
 
-router.put('/:id', requireAdmin, async (req, res) => {
+router.put(
+  '/:id',
+  requireAdmin,
+  requireActiveAdmin,
+  requireManagementAccess,
+  async (req, res) => {
   try {
     const id = Number(req.params.id);
     const branchId = Number(req.body.branch_id);
@@ -144,7 +166,12 @@ router.put('/:id', requireAdmin, async (req, res) => {
   }
 });
 
-router.delete('/:id', requireAdmin, async (req, res) => {
+router.delete(
+  '/:id',
+  requireAdmin,
+  requireActiveAdmin,
+  requireManagementAccess,
+  async (req, res) => {
   try {
     const id = Number(req.params.id);
     const [result] = await db.query('DELETE FROM doctors WHERE id = ?', [id]);

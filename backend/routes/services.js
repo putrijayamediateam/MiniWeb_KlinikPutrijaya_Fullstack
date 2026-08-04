@@ -2,7 +2,14 @@
 
 const express = require('express');
 const db = require('../db');
-const { requireAdmin } = require('../middleware/auth');
+const {
+  requireAdmin,
+} = require('../middleware/auth');
+
+const {
+  requireActiveAdmin,
+  requireManagementAccess,
+} = require('../middleware/roles');
 
 const router = express.Router();
 
@@ -737,6 +744,8 @@ router.get('/slug/:slug', async (req, res) => {
 router.get(
   '/admin/all',
   requireAdmin,
+  requireActiveAdmin,
+  requireManagementAccess,
   async (req, res) => {
     try {
       const [rows] = await db.query(
@@ -820,6 +829,8 @@ router.get(
 router.get(
   '/admin/:id',
   requireAdmin,
+  requireActiveAdmin,
+  requireManagementAccess,
   async (req, res) => {
     try {
       const service =
@@ -856,6 +867,8 @@ router.get(
 router.post(
   '/',
   requireAdmin,
+  requireActiveAdmin,
+  requireManagementAccess,
   async (req, res) => {
     let connection;
 
@@ -1042,6 +1055,8 @@ router.post(
 router.put(
   '/:id',
   requireAdmin,
+  requireActiveAdmin,
+  requireManagementAccess,
   async (req, res) => {
     let connection;
 
@@ -1259,6 +1274,8 @@ router.put(
 router.delete(
   '/:id',
   requireAdmin,
+  requireActiveAdmin,
+  requireManagementAccess,
   async (req, res) => {
     try {
       const id = Number(req.params.id);
@@ -1309,6 +1326,8 @@ router.delete(
 router.post(
   '/:serviceId/prices',
   requireAdmin,
+  requireActiveAdmin,
+  requireManagementAccess,
   async (req, res) => {
     try {
       const serviceId =
@@ -1393,6 +1412,8 @@ router.post(
 router.put(
   '/prices/:priceId',
   requireAdmin,
+  requireActiveAdmin,
+  requireManagementAccess,
   async (req, res) => {
     try {
       const priceId =
@@ -1481,6 +1502,8 @@ router.put(
 router.delete(
   '/prices/:priceId',
   requireAdmin,
+  requireActiveAdmin,
+  requireManagementAccess,
   async (req, res) => {
     try {
       const [result] = await db.query(
@@ -1521,6 +1544,8 @@ router.delete(
 router.post(
   '/:serviceId/gallery',
   requireAdmin,
+  requireActiveAdmin,
+  requireManagementAccess,
   async (req, res) => {
     try {
       const serviceId =
@@ -1591,6 +1616,8 @@ router.post(
 router.put(
   '/gallery/:galleryId',
   requireAdmin,
+  requireActiveAdmin,
+  requireManagementAccess,
   async (req, res) => {
     try {
       const galleryId =
@@ -1665,6 +1692,8 @@ router.put(
 router.delete(
   '/gallery/:galleryId',
   requireAdmin,
+  requireActiveAdmin,
+  requireManagementAccess,
   async (req, res) => {
     try {
       const [result] = await db.query(
