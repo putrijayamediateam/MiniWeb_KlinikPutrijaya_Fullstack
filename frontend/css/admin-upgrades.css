@@ -2642,6 +2642,162 @@ html body .gallery-manager-card small {
   }
 }
 
+/* =========================================================
+   Compact dashboard summary cards
+   ========================================================= */
+
+#bookingSummaryCards .performance-summary-card,
+#adminUserSummary .performance-summary-card {
+  min-height: 118px;
+  padding: 17px 19px;
+}
+
+#bookingSummaryCards .performance-summary-card strong,
+#adminUserSummary .performance-summary-card strong {
+  margin-top: 7px;
+
+  font-size: clamp(
+    1.65rem,
+    2.5vw,
+    2.15rem
+  );
+
+  font-weight: 700;
+  line-height: 1.05;
+}
+
+#bookingSummaryCards .performance-summary-card small,
+#adminUserSummary .performance-summary-card small {
+  margin-top: auto;
+  padding-top: 10px;
+
+  font-size: 0.73rem;
+  line-height: 1.35;
+}
+
+/* =========================================================
+   Booking card status accents
+   ========================================================= */
+
+#bookingSummaryCards .performance-summary-card {
+  overflow: hidden;
+}
+
+#bookingSummaryCards .performance-summary-card::before {
+  content: "";
+
+  position: absolute;
+  top: 0;
+  left: 19px;
+  right: 19px;
+
+  height: 4px;
+  border-radius: 0 0 999px 999px;
+}
+
+/* Total bookings — Klinik Putrijaya pink */
+#bookingSummaryCards .booking-total-card {
+  border-color:
+    rgba(227, 28, 121, 0.28);
+}
+
+#bookingSummaryCards .booking-total-card::before {
+  background:
+    linear-gradient(
+      90deg,
+      #e31c79,
+      #fb6f92
+    );
+}
+
+/* Pending — amber */
+#bookingSummaryCards .booking-pending-card {
+  border-color:
+    rgba(205, 145, 36, 0.32);
+
+  background:
+    linear-gradient(
+      135deg,
+      #fffaf0 0%,
+      #ffffff 100%
+    );
+}
+
+#bookingSummaryCards .booking-pending-card::before {
+  background:
+    linear-gradient(
+      90deg,
+      #d79b2b,
+      #efbe58
+    );
+}
+
+/* Confirmed — blue */
+#bookingSummaryCards .booking-confirmed-card {
+  border-color:
+    rgba(47, 137, 170, 0.30);
+
+  background:
+    linear-gradient(
+      135deg,
+      #f0faff 0%,
+      #ffffff 100%
+    );
+}
+
+#bookingSummaryCards .booking-confirmed-card::before {
+  background:
+    linear-gradient(
+      90deg,
+      #368baa,
+      #6bbbd4
+    );
+}
+
+/* Completed — green */
+#bookingSummaryCards .booking-completed-card {
+  border-color:
+    rgba(55, 145, 101, 0.30);
+
+  background:
+    linear-gradient(
+      135deg,
+      #f1fbf6 0%,
+      #ffffff 100%
+    );
+}
+
+#bookingSummaryCards .booking-completed-card::before {
+  background:
+    linear-gradient(
+      90deg,
+      #368d64,
+      #68bd8e
+    );
+}
+
+/* Cancelled — red */
+#bookingSummaryCards .booking-cancelled-card {
+  border-color:
+    rgba(190, 78, 100, 0.28);
+
+  background:
+    linear-gradient(
+      135deg,
+      #fff3f5 0%,
+      #ffffff 100%
+    );
+}
+
+#bookingSummaryCards .booking-cancelled-card::before {
+  background:
+    linear-gradient(
+      90deg,
+      #bd5268,
+      #e28496
+    );
+}
+
 
 /* AUTH LINKS RESTORED */
 .admin-login-signup-link {

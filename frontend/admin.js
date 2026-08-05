@@ -749,32 +749,99 @@ function applyPerformancePreset(
   }
 
   const today = new Date();
-  const startDate =
-    new Date(today);
+const currentYear =
+  today.getFullYear();
 
-  if (preset === 'today') {
-    // Today only.
-  } else if (preset === '7') {
-    startDate.setDate(
-      startDate.getDate() - 6
-    );
-  } else if (
-    preset === 'month'
-  ) {
-    startDate.setDate(1);
-  } else {
-    startDate.setDate(
-      startDate.getDate() - 29
-    );
-  }
+let startDate =
+  new Date(today);
 
-  startInput.value =
-    localDateInputValue(
-      startDate
+let endDate =
+  new Date(today);
+
+if (preset === 'today') {
+  // Today only.
+} else if (preset === '7') {
+  startDate.setDate(
+    startDate.getDate() - 6
+  );
+} else if (preset === 'month') {
+  startDate =
+    new Date(
+      currentYear,
+      today.getMonth(),
+      1
+    );
+} else if (preset === 'q1') {
+  startDate =
+    new Date(
+      currentYear,
+      0,
+      1
     );
 
-  endInput.value =
-    localDateInputValue(today);
+  endDate =
+    new Date(
+      currentYear,
+      2,
+      31
+    );
+} else if (preset === 'q2') {
+  startDate =
+    new Date(
+      currentYear,
+      3,
+      1
+    );
+
+  endDate =
+    new Date(
+      currentYear,
+      5,
+      30
+    );
+} else if (preset === 'q3') {
+  startDate =
+    new Date(
+      currentYear,
+      6,
+      1
+    );
+
+  endDate =
+    new Date(
+      currentYear,
+      8,
+      30
+    );
+} else if (preset === 'q4') {
+  startDate =
+    new Date(
+      currentYear,
+      9,
+      1
+    );
+
+  endDate =
+    new Date(
+      currentYear,
+      11,
+      31
+    );
+} else {
+  startDate.setDate(
+    startDate.getDate() - 29
+  );
+}
+
+startInput.value =
+  localDateInputValue(
+    startDate
+  );
+
+endInput.value =
+  localDateInputValue(
+    endDate
+  );
 }
 
 async function loadPerformance() {
