@@ -19,6 +19,7 @@ const ROLE_ACCESS = {
     'feedback',
     'doctors',
     'services',
+    'service-setup',
     'promotions',
     'activities',
   ],
@@ -29,6 +30,7 @@ const ROLE_ACCESS = {
     'feedback',
     'doctors',
     'services',
+    'service-setup',
     'promotions',
     'activities',
     'users',
@@ -42,6 +44,10 @@ let authedApi = null;
 let branchesCache = [];
 let doctorsCache = [];
 let servicesCache = [];
+
+let serviceCategoriesCache = [];
+let serviceSubcategoriesCache = [];
+
 let promotionsCache = [];
 let activitiesCache = [];
 let adminUsersCache = [];
@@ -82,6 +88,11 @@ document.addEventListener('DOMContentLoaded', () => {
 );
   }
 });
+
+const serviceTaxonomyState = {
+  categoryFilter: '',
+  search: '',
+};
 
 function bindCoreEvents() {
   document.getElementById('loginForm')?.addEventListener('submit', handleLogin);
@@ -144,6 +155,70 @@ document
   document.getElementById('exportBookingsBtn')?.addEventListener('click', exportBookingsToCSV);
   document.getElementById('addDoctorBtn')?.addEventListener('click', () => openDoctorModal());
   document.getElementById('addServiceBtn')?.addEventListener('click', () => openServiceModal());
+    document
+    .getElementById(
+      'refreshServiceTaxonomyBtn'
+    )
+    ?.addEventListener(
+      'click',
+      loadServiceTaxonomy
+    );
+
+  document
+    .getElementById(
+      'addServiceCategoryBtn'
+    )
+    ?.addEventListener(
+      'click',
+      () =>
+        openServiceCategoryModal()
+    );
+
+  document
+    .getElementById(
+      'addServiceSubcategoryBtn'
+    )
+    ?.addEventListener(
+      'click',
+      () =>
+        openServiceSubcategoryModal()
+    );
+
+  document
+    .getElementById(
+      'taxonomyCategoryFilter'
+    )
+    ?.addEventListener(
+      'change',
+      (event) => {
+        serviceTaxonomyState
+          .categoryFilter =
+          event.target.value;
+
+        renderFilteredServiceSubcategories();
+      }
+    );
+
+  document
+    .getElementById(
+      'taxonomySearchInput'
+    )
+    ?.addEventListener(
+      'input',
+      debounce(
+        (event) => {
+          serviceTaxonomyState.search =
+            String(
+              event.target.value || ''
+            )
+              .trim()
+              .toLowerCase();
+
+          renderFilteredServiceSubcategories();
+        },
+        250
+      )
+    );
   document.getElementById('addPromotionBtn')?.addEventListener('click', () => openPromotionModal());
   document.getElementById('addActivityBtn')?.addEventListener('click',() => openActivityModal());
   document
@@ -484,9 +559,12 @@ function applyRoleAccess() {
     currentAdminRole
   );
 
-  [
+    [
     'addDoctorBtn',
     'addServiceBtn',
+    'addServiceCategoryBtn',
+    'addServiceSubcategoryBtn',
+    'refreshServiceTaxonomyBtn',
     'addPromotionBtn',
     'addActivityBtn',
   ].forEach((id) => {
@@ -531,6 +609,16 @@ async function loadAllowedDashboardModules() {
   if (canAccessTab('services')) {
     tasks.push(
       loadServices()
+    );
+  }
+
+    if (
+    canAccessTab(
+      'service-setup'
+    )
+  ) {
+    tasks.push(
+      loadServiceTaxonomy()
     );
   }
 
@@ -618,6 +706,13 @@ function switchTab(tab) {
   if (tab === 'performance') {
     initialisePerformanceDates();
     loadPerformance();
+  }
+
+    if (
+    tab === 'service-setup' &&
+    hasManagementAccess()
+  ) {
+    loadServiceTaxonomy();
   }
 
   if (
@@ -5492,6 +5587,1215 @@ function clearGalleryForm() {
       'modalFormMessage'
     ),
     ''
+  );
+}
+
+// -----------------------------------------------------------------------------
+// SERVICE TAXONOMY — MANAGER / SUPERADMIN
+// -----------------------------------------------------------------------------
+
+async function loadServiceTaxonomy() {
+  const categoryBody =
+    document.getElementById(
+      'serviceCategoriesTableBody'
+    );
+
+  const subcategoryBody =
+    document.getElementById(
+      'serviceSubcategoriesTableBody'
+    );
+
+  if (
+    !authedApi ||
+    !hasManagementAccess() ||
+    (
+      !categoryBody &&
+      !subcategoryBody
+    )
+  ) {
+    return;
+  }
+
+  if (categoryBody) {
+    categoryBody.innerHTML = `
+      <tr>
+        <td
+          colspan="7"
+          class="loading-row"
+        >
+          Loading categories…
+        </td>
+      </tr>
+    `;
+  }
+
+  if (subcategoryBody) {
+    subcategoryBody.innerHTML = `
+      <tr>
+        <td
+          colspan="7"
+          class="loading-row"
+        >
+          Loading subcategories…
+        </td>
+      </tr>
+    `;
+  }
+
+  try {
+    [
+      serviceCategoriesCache,
+      serviceSubcategoriesCache,
+    ] = await Promise.all([
+      authedApi
+        .getAdminServiceCategories(),
+
+      authedApi
+        .getAdminServiceSubcategories(),
+    ]);
+
+    serviceCategoriesCache =
+      Array.isArray(
+        serviceCategoriesCache
+      )
+        ? serviceCategoriesCache
+        : [];
+
+    serviceSubcategoriesCache =
+      Array.isArray(
+        serviceSubcategoriesCache
+      )
+        ? serviceSubcategoriesCache
+        : [];
+
+    renderServiceCategoriesTable();
+
+    populateTaxonomyCategoryFilter();
+
+    renderFilteredServiceSubcategories();
+  } catch (error) {
+    if (
+      handleAuthError(error)
+    ) {
+      return;
+    }
+
+    const message =
+      escapeHtml(
+        error.message ||
+        'Unable to load service setup.'
+      );
+
+    if (categoryBody) {
+      categoryBody.innerHTML = `
+        <tr>
+          <td
+            colspan="7"
+            class="empty-row"
+          >
+            ${message}
+          </td>
+        </tr>
+      `;
+    }
+
+    if (subcategoryBody) {
+      subcategoryBody.innerHTML = `
+        <tr>
+          <td
+            colspan="7"
+            class="empty-row"
+          >
+            ${message}
+          </td>
+        </tr>
+      `;
+    }
+  }
+}
+
+function renderServiceCategoriesTable() {
+  const tbody =
+    document.getElementById(
+      'serviceCategoriesTableBody'
+    );
+
+  if (!tbody) {
+    return;
+  }
+
+  if (!serviceCategoriesCache.length) {
+    tbody.innerHTML = `
+      <tr>
+        <td
+          colspan="7"
+          class="empty-row"
+        >
+          No service categories found.
+        </td>
+      </tr>
+    `;
+
+    return;
+  }
+
+  tbody.innerHTML =
+    serviceCategoriesCache
+      .map(
+        (category) => {
+          const isActive =
+            Number(
+              category.is_active
+            ) === 1;
+
+          return `
+            <tr data-category-id="${Number(
+              category.id
+            )}">
+              <td>
+                <strong>
+                  ${escapeHtml(
+                    category.name
+                  )}
+                </strong>
+              </td>
+
+              <td>
+                <span class="cell-subtext">
+                  ${escapeHtml(
+                    category.slug
+                  )}
+                </span>
+              </td>
+
+              <td>
+                ${Number(
+                  category
+                    .subcategory_count ||
+                  0
+                )}
+              </td>
+
+              <td>
+                ${Number(
+                  category
+                    .service_count ||
+                  0
+                )}
+              </td>
+
+              <td>
+                ${Number(
+                  category.sort_order ||
+                  0
+                )}
+              </td>
+
+              <td>
+                <span class="status-pill ${
+                  isActive
+                    ? 'status-completed'
+                    : 'status-cancelled'
+                }">
+                  ${
+                    isActive
+                      ? 'Active'
+                      : 'Inactive'
+                  }
+                </span>
+              </td>
+
+              <td>
+                <div class="table-action-stack">
+                  <button
+                    type="button"
+                    class="btn-small"
+                    data-action="edit-service-category"
+                    data-id="${Number(
+                      category.id
+                    )}"
+                  >
+                    Edit
+                  </button>
+
+                  <button
+                    type="button"
+                    class="btn-small ${
+                      isActive
+                        ? 'danger'
+                        : ''
+                    }"
+                    data-action="toggle-service-category"
+                    data-id="${Number(
+                      category.id
+                    )}"
+                    data-active="${
+                      isActive
+                        ? '1'
+                        : '0'
+                    }"
+                  >
+                    ${
+                      isActive
+                        ? 'Deactivate'
+                        : 'Activate'
+                    }
+                  </button>
+                </div>
+              </td>
+            </tr>
+          `;
+        }
+      )
+      .join('');
+
+  tbody
+    .querySelectorAll(
+      '[data-action="edit-service-category"]'
+    )
+    .forEach((button) => {
+      button.addEventListener(
+        'click',
+        () => {
+          const category =
+            serviceCategoriesCache.find(
+              (item) =>
+                String(item.id) ===
+                String(
+                  button.dataset.id
+                )
+            );
+
+          if (category) {
+            openServiceCategoryModal(
+              category
+            );
+          }
+        }
+      );
+    });
+
+  tbody
+    .querySelectorAll(
+      '[data-action="toggle-service-category"]'
+    )
+    .forEach((button) => {
+      button.addEventListener(
+        'click',
+        async () => {
+          const currentlyActive =
+            Number(
+              button.dataset.active
+            ) === 1;
+
+          const nextActive =
+            currentlyActive
+              ? 0
+              : 1;
+
+          const actionLabel =
+            nextActive
+              ? 'activate'
+              : 'deactivate';
+
+          const confirmed =
+            confirm(
+              `Are you sure you want to ${actionLabel} this category?`
+            );
+
+          if (!confirmed) {
+            return;
+          }
+
+          button.disabled = true;
+
+          try {
+            await authedApi
+              .updateServiceCategoryStatus(
+                button.dataset.id,
+                nextActive
+              );
+
+            await loadServiceTaxonomy();
+          } catch (error) {
+            if (
+              !handleAuthError(
+                error
+              )
+            ) {
+              alert(
+                error.message ||
+                `Unable to ${actionLabel} category.`
+              );
+            }
+          } finally {
+            button.disabled = false;
+          }
+        }
+      );
+    });
+}
+
+function populateTaxonomyCategoryFilter() {
+  const select =
+    document.getElementById(
+      'taxonomyCategoryFilter'
+    );
+
+  if (!select) {
+    return;
+  }
+
+  const currentValue =
+    serviceTaxonomyState
+      .categoryFilter;
+
+  select.innerHTML = [
+    `
+      <option value="">
+        All categories
+      </option>
+    `,
+
+    ...serviceCategoriesCache.map(
+      (category) => `
+        <option
+          value="${Number(
+            category.id
+          )}"
+        >
+          ${escapeHtml(
+            category.name
+          )}
+        </option>
+      `
+    ),
+  ].join('');
+
+  if (
+    serviceCategoriesCache.some(
+      (category) =>
+        String(category.id) ===
+        String(currentValue)
+    )
+  ) {
+    select.value =
+      currentValue;
+  } else {
+    serviceTaxonomyState
+      .categoryFilter = '';
+
+    select.value = '';
+  }
+}
+
+function renderFilteredServiceSubcategories() {
+  const categoryFilter =
+    String(
+      serviceTaxonomyState
+        .categoryFilter || ''
+    );
+
+  const search =
+    String(
+      serviceTaxonomyState.search ||
+      ''
+    )
+      .trim()
+      .toLowerCase();
+
+  const filtered =
+    serviceSubcategoriesCache.filter(
+      (subcategory) => {
+        const matchesCategory =
+          !categoryFilter ||
+          String(
+            subcategory.category_id
+          ) === categoryFilter;
+
+        const searchableText = [
+          subcategory.name,
+          subcategory.slug,
+          subcategory.category_name,
+        ]
+          .filter(Boolean)
+          .join(' ')
+          .toLowerCase();
+
+        const matchesSearch =
+          !search ||
+          searchableText.includes(
+            search
+          );
+
+        return (
+          matchesCategory &&
+          matchesSearch
+        );
+      }
+    );
+
+  renderServiceSubcategoriesTable(
+    filtered
+  );
+}
+
+function renderServiceSubcategoriesTable(
+  subcategories
+) {
+  const tbody =
+    document.getElementById(
+      'serviceSubcategoriesTableBody'
+    );
+
+  if (!tbody) {
+    return;
+  }
+
+  if (!subcategories.length) {
+    tbody.innerHTML = `
+      <tr>
+        <td
+          colspan="7"
+          class="empty-row"
+        >
+          No matching subcategories found.
+        </td>
+      </tr>
+    `;
+
+    return;
+  }
+
+  tbody.innerHTML =
+    subcategories
+      .map(
+        (subcategory) => {
+          const isActive =
+            Number(
+              subcategory.is_active
+            ) === 1;
+
+          const parentActive =
+            Number(
+              subcategory
+                .category_is_active
+            ) === 1;
+
+          return `
+            <tr data-subcategory-id="${Number(
+              subcategory.id
+            )}">
+              <td>
+                <strong>
+                  ${escapeHtml(
+                    subcategory.name
+                  )}
+                </strong>
+              </td>
+
+              <td>
+                ${escapeHtml(
+                  subcategory
+                    .category_name ||
+                  '—'
+                )}
+
+                ${
+                  !parentActive
+                    ? `
+                      <div class="cell-subtext">
+                        Parent inactive
+                      </div>
+                    `
+                    : ''
+                }
+              </td>
+
+              <td>
+                <span class="cell-subtext">
+                  ${escapeHtml(
+                    subcategory.slug
+                  )}
+                </span>
+              </td>
+
+              <td>
+                ${Number(
+                  subcategory
+                    .service_count ||
+                  0
+                )}
+              </td>
+
+              <td>
+                ${Number(
+                  subcategory
+                    .sort_order ||
+                  0
+                )}
+              </td>
+
+              <td>
+                <span class="status-pill ${
+                  isActive
+                    ? 'status-completed'
+                    : 'status-cancelled'
+                }">
+                  ${
+                    isActive
+                      ? 'Active'
+                      : 'Inactive'
+                  }
+                </span>
+              </td>
+
+              <td>
+                <div class="table-action-stack">
+                  <button
+                    type="button"
+                    class="btn-small"
+                    data-action="edit-service-subcategory"
+                    data-id="${Number(
+                      subcategory.id
+                    )}"
+                  >
+                    Edit
+                  </button>
+
+                  <button
+                    type="button"
+                    class="btn-small ${
+                      isActive
+                        ? 'danger'
+                        : ''
+                    }"
+                    data-action="toggle-service-subcategory"
+                    data-id="${Number(
+                      subcategory.id
+                    )}"
+                    data-active="${
+                      isActive
+                        ? '1'
+                        : '0'
+                    }"
+                  >
+                    ${
+                      isActive
+                        ? 'Deactivate'
+                        : 'Activate'
+                    }
+                  </button>
+                </div>
+              </td>
+            </tr>
+          `;
+        }
+      )
+      .join('');
+
+  tbody
+    .querySelectorAll(
+      '[data-action="edit-service-subcategory"]'
+    )
+    .forEach((button) => {
+      button.addEventListener(
+        'click',
+        () => {
+          const subcategory =
+            serviceSubcategoriesCache.find(
+              (item) =>
+                String(item.id) ===
+                String(
+                  button.dataset.id
+                )
+            );
+
+          if (subcategory) {
+            openServiceSubcategoryModal(
+              subcategory
+            );
+          }
+        }
+      );
+    });
+
+  tbody
+    .querySelectorAll(
+      '[data-action="toggle-service-subcategory"]'
+    )
+    .forEach((button) => {
+      button.addEventListener(
+        'click',
+        async () => {
+          const currentlyActive =
+            Number(
+              button.dataset.active
+            ) === 1;
+
+          const nextActive =
+            currentlyActive
+              ? 0
+              : 1;
+
+          const actionLabel =
+            nextActive
+              ? 'activate'
+              : 'deactivate';
+
+          const confirmed =
+            confirm(
+              `Are you sure you want to ${actionLabel} this subcategory?`
+            );
+
+          if (!confirmed) {
+            return;
+          }
+
+          button.disabled = true;
+
+          try {
+            await authedApi
+              .updateServiceSubcategoryStatus(
+                button.dataset.id,
+                nextActive
+              );
+
+            await loadServiceTaxonomy();
+          } catch (error) {
+            if (
+              !handleAuthError(
+                error
+              )
+            ) {
+              alert(
+                error.message ||
+                `Unable to ${actionLabel} subcategory.`
+              );
+            }
+          } finally {
+            button.disabled = false;
+          }
+        }
+      );
+    });
+}
+
+function openServiceCategoryModal(
+  category = null
+) {
+  const isEdit =
+    Boolean(category);
+
+  showModal(
+    isEdit
+      ? 'Edit service category'
+      : 'Add service category',
+
+    `
+      <div class="admin-form-grid two-column">
+        <label>
+          <span>Category name</span>
+
+          <input
+            id="m-taxonomy-category-name"
+            type="text"
+            value="${escapeAttribute(
+              category?.name || ''
+            )}"
+            required
+          >
+        </label>
+
+        <label>
+          <span>URL slug</span>
+
+          <input
+            id="m-taxonomy-category-slug"
+            type="text"
+            value="${escapeAttribute(
+              category?.slug || ''
+            )}"
+            placeholder="family-general-medicine"
+          >
+        </label>
+      </div>
+
+      <div class="admin-form-grid two-column">
+        <label>
+          <span>Display order</span>
+
+          <input
+            id="m-taxonomy-category-order"
+            type="number"
+            value="${Number(
+              category?.sort_order ||
+              0
+            )}"
+          >
+        </label>
+
+        <label>
+          <span>Status</span>
+
+          <select
+            id="m-taxonomy-category-active"
+          >
+            <option
+              value="1"
+              ${
+                !category ||
+                Number(
+                  category.is_active
+                )
+                  ? 'selected'
+                  : ''
+              }
+            >
+              Active
+            </option>
+
+            <option
+              value="0"
+              ${
+                category &&
+                !Number(
+                  category.is_active
+                )
+                  ? 'selected'
+                  : ''
+              }
+            >
+              Inactive
+            </option>
+          </select>
+        </label>
+      </div>
+
+      <div class="upload-help">
+        The slug is used in the Services page URL.
+        Leave it unchanged unless necessary.
+      </div>
+
+      <div
+        id="modalFormMessage"
+        class="form-message"
+      ></div>
+
+      <div class="modal-actions">
+        <button
+          type="submit"
+          class="btn-primary"
+          id="saveServiceCategoryBtn"
+        >
+          ${
+            isEdit
+              ? 'Save category'
+              : 'Create category'
+          }
+        </button>
+      </div>
+    `,
+
+    async (event) => {
+      event.preventDefault();
+
+      const message =
+        document.getElementById(
+          'modalFormMessage'
+        );
+
+      const saveButton =
+        document.getElementById(
+          'saveServiceCategoryBtn'
+        );
+
+      const payload = {
+        name:
+          document
+            .getElementById(
+              'm-taxonomy-category-name'
+            )
+            .value.trim(),
+
+        slug:
+          document
+            .getElementById(
+              'm-taxonomy-category-slug'
+            )
+            .value.trim(),
+
+        short_description:
+          category
+            ?.short_description ||
+          null,
+
+        image_url:
+          category?.image_url ||
+          null,
+
+        sort_order: Number(
+          document
+            .getElementById(
+              'm-taxonomy-category-order'
+            )
+            .value || 0
+        ),
+
+        is_active: Number(
+          document
+            .getElementById(
+              'm-taxonomy-category-active'
+            )
+            .value
+        ),
+      };
+
+      try {
+        setButtonLoading(
+          saveButton,
+          true,
+          'Saving…'
+        );
+
+        if (isEdit) {
+          await authedApi
+            .updateServiceCategory(
+              category.id,
+              payload
+            );
+        } else {
+          await authedApi
+            .createServiceCategory(
+              payload
+            );
+        }
+
+        closeModal();
+
+        await loadServiceTaxonomy();
+      } catch (error) {
+        if (
+          !handleAuthError(
+            error
+          )
+        ) {
+          setMessage(
+            message,
+            error.message ||
+            'Unable to save category.',
+            'error'
+          );
+        }
+      } finally {
+        if (
+          document.body.contains(
+            saveButton
+          )
+        ) {
+          setButtonLoading(
+            saveButton,
+            false,
+            isEdit
+              ? 'Save category'
+              : 'Create category'
+          );
+        }
+      }
+    }
+  );
+
+  bindSlugGenerator(
+    'm-taxonomy-category-name',
+    'm-taxonomy-category-slug',
+    !isEdit
+  );
+}
+
+function openServiceSubcategoryModal(
+  subcategory = null
+) {
+  const isEdit =
+    Boolean(subcategory);
+
+  const categoryOptions =
+    serviceCategoriesCache
+      .map(
+        (category) => `
+          <option
+            value="${Number(
+              category.id
+            )}"
+            ${
+              Number(
+                category.id
+              ) ===
+              Number(
+                subcategory
+                  ?.category_id
+              )
+                ? 'selected'
+                : ''
+            }
+          >
+            ${escapeHtml(
+              category.name
+            )}
+            ${
+              Number(
+                category.is_active
+              )
+                ? ''
+                : ' — Inactive'
+            }
+          </option>
+        `
+      )
+      .join('');
+
+  showModal(
+    isEdit
+      ? 'Edit service subcategory'
+      : 'Add service subcategory',
+
+    `
+      <label>
+        <span>Parent category</span>
+
+        <select
+          id="m-taxonomy-subcategory-category"
+          required
+        >
+          <option value="">
+            Select category
+          </option>
+
+          ${categoryOptions}
+        </select>
+      </label>
+
+      <div class="admin-form-grid two-column">
+        <label>
+          <span>Subcategory name</span>
+
+          <input
+            id="m-taxonomy-subcategory-name"
+            type="text"
+            value="${escapeAttribute(
+              subcategory?.name || ''
+            )}"
+            required
+          >
+        </label>
+
+        <label>
+          <span>URL slug</span>
+
+          <input
+            id="m-taxonomy-subcategory-slug"
+            type="text"
+            value="${escapeAttribute(
+              subcategory?.slug || ''
+            )}"
+            placeholder="general-consultation"
+          >
+        </label>
+      </div>
+
+      <div class="admin-form-grid two-column">
+        <label>
+          <span>Display order</span>
+
+          <input
+            id="m-taxonomy-subcategory-order"
+            type="number"
+            value="${Number(
+              subcategory
+                ?.sort_order ||
+              0
+            )}"
+          >
+        </label>
+
+        <label>
+          <span>Status</span>
+
+          <select
+            id="m-taxonomy-subcategory-active"
+          >
+            <option
+              value="1"
+              ${
+                !subcategory ||
+                Number(
+                  subcategory
+                    .is_active
+                )
+                  ? 'selected'
+                  : ''
+              }
+            >
+              Active
+            </option>
+
+            <option
+              value="0"
+              ${
+                subcategory &&
+                !Number(
+                  subcategory
+                    .is_active
+                )
+                  ? 'selected'
+                  : ''
+              }
+            >
+              Inactive
+            </option>
+          </select>
+        </label>
+      </div>
+
+      <div
+        id="modalFormMessage"
+        class="form-message"
+      ></div>
+
+      <div class="modal-actions">
+        <button
+          type="submit"
+          class="btn-primary"
+          id="saveServiceSubcategoryBtn"
+        >
+          ${
+            isEdit
+              ? 'Save subcategory'
+              : 'Create subcategory'
+          }
+        </button>
+      </div>
+    `,
+
+    async (event) => {
+      event.preventDefault();
+
+      const message =
+        document.getElementById(
+          'modalFormMessage'
+        );
+
+      const saveButton =
+        document.getElementById(
+          'saveServiceSubcategoryBtn'
+        );
+
+      const payload = {
+        category_id: Number(
+          document
+            .getElementById(
+              'm-taxonomy-subcategory-category'
+            )
+            .value
+        ),
+
+        name:
+          document
+            .getElementById(
+              'm-taxonomy-subcategory-name'
+            )
+            .value.trim(),
+
+        slug:
+          document
+            .getElementById(
+              'm-taxonomy-subcategory-slug'
+            )
+            .value.trim(),
+
+        short_description:
+          subcategory
+            ?.short_description ||
+          null,
+
+        image_url:
+          subcategory?.image_url ||
+          null,
+
+        sort_order: Number(
+          document
+            .getElementById(
+              'm-taxonomy-subcategory-order'
+            )
+            .value || 0
+        ),
+
+        is_active: Number(
+          document
+            .getElementById(
+              'm-taxonomy-subcategory-active'
+            )
+            .value
+        ),
+      };
+
+      try {
+        setButtonLoading(
+          saveButton,
+          true,
+          'Saving…'
+        );
+
+        if (isEdit) {
+          await authedApi
+            .updateServiceSubcategory(
+              subcategory.id,
+              payload
+            );
+        } else {
+          await authedApi
+            .createServiceSubcategory(
+              payload
+            );
+        }
+
+        closeModal();
+
+        await loadServiceTaxonomy();
+      } catch (error) {
+        if (
+          !handleAuthError(
+            error
+          )
+        ) {
+          setMessage(
+            message,
+            error.message ||
+            'Unable to save subcategory.',
+            'error'
+          );
+        }
+      } finally {
+        if (
+          document.body.contains(
+            saveButton
+          )
+        ) {
+          setButtonLoading(
+            saveButton,
+            false,
+            isEdit
+              ? 'Save subcategory'
+              : 'Create subcategory'
+          );
+        }
+      }
+    }
+  );
+
+  bindSlugGenerator(
+    'm-taxonomy-subcategory-name',
+    'm-taxonomy-subcategory-slug',
+    !isEdit
   );
 }
 

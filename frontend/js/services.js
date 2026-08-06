@@ -325,58 +325,37 @@ function renderCategoryCards() {
           );
 
         return `
-          <button
-            class="service-category-card ${
-              isSelected ? 'is-active' : ''
-            }"
-            type="button"
-            data-category-id="${categoryId}"
-            data-category-slug="${escapeAttribute(
-              category.slug
-            )}"
-            aria-pressed="${
-              isSelected ? 'true' : 'false'
-            }"
-          >
-            <span
-              class="service-category-card-number"
-              aria-hidden="true"
-            >
-              ${String(index + 1).padStart(
-                2,
-                '0'
-              )}
-            </span>
+  <button
+    class="service-category-pill ${
+      isSelected
+        ? 'is-active'
+        : ''
+    }"
+    type="button"
+    data-category-id="${categoryId}"
+    data-category-slug="${escapeAttribute(
+      category.slug
+    )}"
+    aria-pressed="${
+      isSelected
+        ? 'true'
+        : 'false'
+    }"
+  >
+    <span class="service-category-pill-label">
+      ${escapeHtml(
+        category.name
+      )}
+    </span>
 
-            <span class="service-category-card-copy">
-              <strong>
-                ${escapeHtml(category.name)}
-              </strong>
-
-              <span>
-                ${escapeHtml(
-                  category.short_description ||
-                    'Explore the available services in this category.'
-                )}
-              </span>
-            </span>
-
-            <span class="service-category-card-footer">
-              <span>
-                ${serviceCount}
-                ${
-                  serviceCount === 1
-                    ? 'service'
-                    : 'services'
-                }
-              </span>
-
-              <span aria-hidden="true">
-                &rarr;
-              </span>
-            </span>
-          </button>
-        `;
+    <span
+      class="service-category-pill-count"
+      aria-label="${serviceCount} services"
+    >
+      ${serviceCount}
+    </span>
+  </button>
+`;
       })
       .join('');
 }

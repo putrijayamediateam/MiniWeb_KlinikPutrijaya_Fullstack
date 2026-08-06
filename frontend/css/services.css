@@ -818,3 +818,140 @@
     transition: none;
   }
 }
+
+/* =========================================================
+   SERVICE CATEGORY PILLS
+   ========================================================= */
+
+#serviceCategoryCards {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+
+  margin-top: 24px;
+}
+
+.service-category-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+
+  min-height: 46px;
+  padding: 10px 18px;
+
+  border: 1px solid
+    rgba(227, 28, 121, 0.24);
+
+  border-radius: 999px;
+
+  color: #5f3347;
+  background: #ffffff;
+
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.2;
+
+  cursor: pointer;
+
+  box-shadow:
+    0 7px 20px
+    rgba(74, 38, 54, 0.06);
+
+  transition:
+    transform 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.service-category-pill:hover {
+  color: #c8176e;
+
+  border-color:
+    rgba(227, 28, 121, 0.62);
+
+  transform:
+    translateY(-1px);
+
+  box-shadow:
+    0 10px 24px
+    rgba(74, 38, 54, 0.1);
+}
+
+.service-category-pill:focus-visible {
+  outline: 3px solid
+    rgba(227, 28, 121, 0.22);
+
+  outline-offset: 3px;
+}
+
+.service-category-pill.is-active {
+  color: #ffffff;
+  border-color: #e31c79;
+  background: #e31c79;
+
+  box-shadow:
+    0 10px 24px
+    rgba(227, 28, 121, 0.24);
+}
+
+.service-category-pill-label {
+  white-space: nowrap;
+}
+
+.service-category-pill-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-width: 24px;
+  height: 24px;
+  padding: 0 7px;
+
+  border-radius: 999px;
+
+  color: #c8176e;
+  background: #fde9f2;
+
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.service-category-pill.is-active
+.service-category-pill-count {
+  color: #c8176e;
+  background: #ffffff;
+}
+
+#servicesCategoryDescription {
+  display: none;
+}
+
+@media (max-width: 700px) {
+  #serviceCategoryCards {
+    flex-wrap: nowrap;
+
+    overflow-x: auto;
+    overflow-y: hidden;
+
+    margin-right: -16px;
+    padding-right: 16px;
+    padding-bottom: 8px;
+
+    scrollbar-width: thin;
+    scroll-snap-type: x proximity;
+  }
+
+  .service-category-pill {
+    flex: 0 0 auto;
+
+    min-height: 44px;
+    padding: 9px 16px;
+
+    scroll-snap-align: start;
+  }
+}

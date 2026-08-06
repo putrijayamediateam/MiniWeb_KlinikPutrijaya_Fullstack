@@ -13,7 +13,7 @@
 <link rel="stylesheet" href="css/admin-login.css">
 <link
   rel="stylesheet"
-  href="./css/admin-upgrades.css?v=20260805-4"
+  href="./css/admin-upgrades.css?v=20260806-5"
 >
 </head>
 <body class="admin-page">
@@ -139,6 +139,15 @@
       <button class="tab-btn" data-tab="doctors">Doctors</button>
       <button class="tab-btn" data-tab="services">
   Services
+</button>
+
+<button
+  class="tab-btn"
+  data-tab="service-setup"
+  id="serviceSetupTabBtn"
+  type="button"
+>
+  Service Setup
 </button>
 
 <button class="tab-btn" data-tab="promotions">
@@ -810,6 +819,152 @@
         </div>
       </section>
 
+      <!-- SERVICE SETUP TAB -->
+<section
+  class="tab-panel"
+  id="tab-service-setup"
+>
+  <div class="panel-head">
+    <div>
+      <h2>Service Setup</h2>
+
+      <p class="panel-subtitle">
+        Manage service categories and subcategories
+        without editing the database.
+      </p>
+    </div>
+
+    <button
+      type="button"
+      class="btn-primary"
+      id="refreshServiceTaxonomyBtn"
+    >
+      Refresh
+    </button>
+  </div>
+
+  <!-- CATEGORY SECTION -->
+  <article class="taxonomy-admin-card">
+    <div class="taxonomy-admin-card-head">
+      <div>
+        <h3>Service Categories</h3>
+
+        <p>
+          Main groups shown on the public Services page.
+        </p>
+      </div>
+
+      <button
+        type="button"
+        class="btn-primary"
+        id="addServiceCategoryBtn"
+      >
+        + Add category
+      </button>
+    </div>
+
+    <div class="table-wrap">
+      <table class="taxonomy-admin-table">
+        <thead>
+          <tr>
+            <th>Category</th>
+            <th>Slug</th>
+            <th>Subcategories</th>
+            <th>Services</th>
+            <th>Order</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+
+        <tbody id="serviceCategoriesTableBody">
+          <tr>
+            <td
+              colspan="7"
+              class="loading-row"
+            >
+              Loading categories…
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </article>
+
+  <!-- SUBCATEGORY SECTION -->
+  <article class="taxonomy-admin-card">
+    <div class="taxonomy-admin-card-head">
+      <div>
+        <h3>Service Subcategories</h3>
+
+        <p>
+          Smaller service groups placed under each category.
+        </p>
+      </div>
+
+      <button
+        type="button"
+        class="btn-primary"
+        id="addServiceSubcategoryBtn"
+      >
+        + Add subcategory
+      </button>
+    </div>
+
+    <div class="booking-toolbar taxonomy-toolbar">
+      <select
+        id="taxonomyCategoryFilter"
+        aria-label="Filter subcategories by category"
+      >
+        <option value="">
+          All categories
+        </option>
+      </select>
+
+      <div class="booking-search-wrap">
+        <input
+          type="search"
+          id="taxonomySearchInput"
+          aria-label="Search service taxonomy"
+          placeholder="Search category or subcategory..."
+        >
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table class="taxonomy-admin-table">
+        <thead>
+          <tr>
+            <th>Subcategory</th>
+            <th>Parent Category</th>
+            <th>Slug</th>
+            <th>Services</th>
+            <th>Order</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+
+        <tbody id="serviceSubcategoriesTableBody">
+          <tr>
+            <td
+              colspan="7"
+              class="loading-row"
+            >
+              Loading subcategories…
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </article>
+
+  <p class="performance-privacy-note">
+    Categories and subcategories control how services
+    are grouped on the public website.
+  </p>
+</section>
+
       <!-- PROMOTIONS TAB -->
       <section class="tab-panel" id="tab-promotions">
         <div class="panel-head">
@@ -1103,7 +1258,7 @@
   </div>
 
 <script
-  src="js/api.js?v=20260806-2"
+  src="js/api.js?v=20260806-3"
   defer
 ></script>
 
@@ -1118,7 +1273,7 @@
 ></script>
 
 <script
-  src="admin.js?v=20260806-2"
+  src="admin.js?v=20260806-3"
   defer
 ></script>
 </body>

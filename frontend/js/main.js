@@ -104,40 +104,8 @@
     </span>
   </button>
 
-  <div class="nav-dropdown-menu nav-services-menu">
-
-    <a
-  data-service-category-link
-  data-category-name="Family & General Medicine"
-  href="services.html"
->
-  Family &amp; General Medicine
-</a>
-
-<a
-  data-service-category-link
-  data-category-name="Women & Maternity Care"
-  href="services.html"
->
-  Women &amp; Maternity Care
-</a>
-
-<a
-  data-service-category-link
-  data-category-name="Procedures & Minor Care"
-  href="services.html"
->
-  Procedures &amp; Minor Care
-</a>
-
-<a
-  data-service-category-link
-  data-category-name="Wellness & Certification"
-  href="services.html"
->
-  Wellness &amp; Certification
-</a>
-  </div>
+ <div class="nav-dropdown-menu nav-services-menu">
+</div>
 </li>
 
             <li>
@@ -203,27 +171,26 @@
 }
 
 async function hydrateServiceCategoryLinks() {
-  const links =
-    Array.from(
-      document.querySelectorAll(
-        '[data-service-category-link]'
-      )
+  const menu =
+    document.querySelector(
+      '.nav-services-menu'
     );
 
-  if (!links.length) {
+  if (!menu) {
     return;
   }
 
   try {
     const apiBase =
-  window.KPApi?.baseUrl ||
-  (
-    ['localhost', '127.0.0.1'].includes(
-      window.location.hostname
-    )
-      ? 'http://localhost:4000/api'
-      : 'https://backend-production-d730.up.railway.app/api'
-  );
+      window.KPApi?.baseUrl ||
+      (
+        ['localhost', '127.0.0.1']
+          .includes(
+            window.location.hostname
+          )
+          ? 'http://localhost:4000/api'
+          : 'https://backend-production-d730.up.railway.app/api'
+      );
 
     const response =
       await fetch(
@@ -240,52 +207,88 @@ async function hydrateServiceCategoryLinks() {
       await response.json();
 
     if (!Array.isArray(categories)) {
-      return;
+      throw new Error(
+        'Invalid service categories response.'
+      );
     }
 
-    links.forEach((link) => {
-      const requestedName =
-        normaliseCategoryName(
-          link.dataset.categoryName
+    const activeCategories =
+      categories
+        .filter(
+          (category) =>
+            Number(category.is_active) === 1 &&
+            category.name &&
+            category.slug
+        )
+        .sort(
+          (first, second) => {
+            const orderDifference =
+              Number(
+                first.sort_order || 0
+              ) -
+              Number(
+                second.sort_order || 0
+              );
+
+            if (orderDifference !== 0) {
+              return orderDifference;
+            }
+
+            return String(first.name)
+              .localeCompare(
+                String(second.name)
+              );
+          }
         );
 
-      const category =
-        categories.find(
-          (item) =>
-            normaliseCategoryName(
-              item.name
-            ) === requestedName
-        );
-
-      if (!category?.slug) {
-        return;
-      }
-
-      link.href =
-        `services.html?category=${encodeURIComponent(
-          category.slug
-        )}`;
-
-      link.dataset.serviceCategoryLink =
-        String(category.slug);
-    });
+    menu.innerHTML =
+  activeCategories
+    .map(
+      (category) => `
+        <a
+          data-service-category-link="${escapeSharedAttribute(
+            category.slug
+          )}"
+          href="services.html?category=${encodeURIComponent(
+            category.slug
+          )}"
+        >
+          ${escapeSharedHtml(
+            category.name
+          )}
+        </a>
+      `
+    )
+    .join('');
   } catch (error) {
     console.warn(
-      'Could not hydrate service menu:',
+      'Could not load service menu:',
       error
     );
+
+    menu.innerHTML = '';
   }
 }
 
-function normaliseCategoryName(value) {
+function escapeSharedHtml(value) {
+  const element =
+    document.createElement('div');
+
+  element.textContent =
+    value == null
+      ? ''
+      : String(value);
+
+  return element.innerHTML;
+}
+
+function escapeSharedAttribute(value) {
   return String(value || '')
-    .trim()
-    .toLowerCase()
-    .replace(/[’‘']/g, '')
-    .replace(/\bwomens\b/g, 'women')
-    .replace(/&amp;/g, '&')
-    .replace(/\s*&\s*/g, ' & ')
-    .replace(/\s+/g, ' ');
+    .replaceAll('&', '&amp;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;');
 }
 
   function footerMarkup() {

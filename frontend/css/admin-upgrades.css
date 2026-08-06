@@ -3164,3 +3164,186 @@ html body .gallery-manager-card small {
     0 0 0 3px
     rgba(227, 28, 121, 0.13);
 }
+
+/* =========================================================
+   SERVICE TAXONOMY ADMIN
+   ========================================================= */
+
+#tab-service-setup {
+  display: none;
+}
+
+#tab-service-setup.active {
+  display: block;
+}
+
+.taxonomy-admin-card {
+  margin-top: 24px;
+  overflow: hidden;
+
+  border: 1px solid
+    rgba(40, 25, 32, 0.1);
+
+  border-radius: 18px;
+
+  background: #ffffff;
+
+  box-shadow:
+    0 12px 32px
+    rgba(40, 25, 32, 0.05);
+}
+
+.taxonomy-admin-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 20px;
+
+  padding: 22px 24px;
+
+  border-bottom: 1px solid
+    rgba(40, 25, 32, 0.08);
+}
+
+.taxonomy-admin-card-head h3 {
+  margin: 0;
+
+  color: #24141c;
+
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.taxonomy-admin-card-head p {
+  margin: 6px 0 0;
+
+  color: #786b72;
+
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.taxonomy-admin-table {
+  width: 100%;
+  min-width: 880px;
+
+  border-collapse: collapse;
+}
+
+.taxonomy-admin-table th {
+  padding: 14px 16px;
+
+  color: #6e5d65;
+  background: #fff7fa;
+
+  font-size: 12px;
+  font-weight: 800;
+
+  text-align: left;
+  text-transform: uppercase;
+
+  letter-spacing: 0.04em;
+}
+
+.taxonomy-admin-table td {
+  padding: 15px 16px;
+
+  vertical-align: middle;
+
+  border-top: 1px solid
+    rgba(40, 25, 32, 0.07);
+}
+
+.taxonomy-admin-table tbody tr:hover {
+  background:
+    rgba(255, 244, 248, 0.65);
+}
+
+.taxonomy-admin-table td strong {
+  color: #24141c;
+}
+
+.taxonomy-toolbar {
+  margin: 0;
+  padding: 18px 24px;
+
+  border-bottom: 1px solid
+    rgba(40, 25, 32, 0.07);
+
+  border-radius: 0;
+
+  background: #ffffff;
+}
+
+.taxonomy-toolbar select {
+  min-width: 240px;
+}
+
+.taxonomy-toolbar
+.booking-search-wrap {
+  flex: 1;
+}
+
+#taxonomySearchInput {
+  width: 100%;
+}
+
+#serviceCategoriesTableBody
+.table-action-stack,
+#serviceSubcategoriesTableBody
+.table-action-stack {
+  display: flex;
+  flex-wrap: wrap;
+
+  gap: 8px;
+}
+
+#serviceCategoriesTableBody
+.cell-subtext,
+#serviceSubcategoriesTableBody
+.cell-subtext {
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 900px) {
+  .taxonomy-admin-card-head {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .taxonomy-admin-card-head
+  .btn-primary {
+    width: 100%;
+  }
+
+  .taxonomy-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .taxonomy-toolbar select {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .taxonomy-admin-card {
+    margin-top: 18px;
+    border-radius: 14px;
+  }
+
+  .taxonomy-admin-card-head {
+    padding: 18px;
+  }
+
+  .taxonomy-toolbar {
+    padding: 16px 18px;
+  }
+
+  .taxonomy-admin-table th,
+  .taxonomy-admin-table td {
+    padding: 12px 14px;
+  }
+}
