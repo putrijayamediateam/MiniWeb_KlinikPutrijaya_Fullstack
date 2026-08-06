@@ -54,6 +54,68 @@ async function initServiceDetailV2() {
 
     updateServiceMetadata(service);
 
+    function updateServiceCanonical(service) {
+  const slug =
+    String(
+      service?.slug || ''
+    ).trim();
+
+  if (!slug) {
+    setServicePageNoindex();
+    return;
+  }
+
+  let canonical =
+    document.querySelector(
+      'link[rel="canonical"]'
+    );
+
+  if (!canonical) {
+    canonical =
+      document.createElement(
+        'link'
+      );
+
+    canonical.rel =
+      'canonical';
+
+    document.head.appendChild(
+      canonical
+    );
+  }
+
+  canonical.href =
+    `https://klinikputrijaya.com/service-detail?slug=${encodeURIComponent(
+      slug
+    )}`;
+}
+
+function setServicePageNoindex() {
+  let robotsMeta =
+    document.querySelector(
+      'meta[name="robots"]'
+    );
+
+  if (!robotsMeta) {
+    robotsMeta =
+      document.createElement(
+        'meta'
+      );
+
+    robotsMeta.name =
+      'robots';
+
+    document.head.appendChild(
+      robotsMeta
+    );
+  }
+
+  robotsMeta.content =
+    'noindex, follow';
+}
+
+    updateServiceCanonical(service);
+
     renderServiceDetail(
       root,
       service,
@@ -964,6 +1026,7 @@ function renderServiceError(
   root,
   message
 ) {
+  setServicePageNoindex();
   root.innerHTML = `
     <section class="service-detail-error">
       <div class="wrap">

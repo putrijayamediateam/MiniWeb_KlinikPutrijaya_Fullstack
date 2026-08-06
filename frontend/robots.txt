@@ -1,4 +1,14 @@
 User-agent: *
 Allow: /
 
+Disallow: /admin
+Disallow: /admin-approvals
+Disallow: /admin-forgot-link
+Disallow: /signup
+Disallow: /verify-account
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /maintenance
+Disallow: /index-backup
+
 Sitemap: https://klinikputrijaya.com/sitemap.xml
