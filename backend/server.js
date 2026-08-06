@@ -290,6 +290,11 @@ app.use(
 app.use('/api/services', require('./routes/services'));
 
 app.use(
+  '/api/performance/google-search',
+  require('./routes/googleSearchPerformance')
+);
+
+app.use(
   '/api/performance',
   require('./routes/performance')
 );
