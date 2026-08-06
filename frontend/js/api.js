@@ -486,13 +486,13 @@ reactivateAdmin(id) {
   const params =
     new URLSearchParams({
       start_date: startDate,
-      end_date: endDate
+      end_date: endDate,
     });
 
-  return request(
+  return apiRequest(
     `/performance/google-search?${params.toString()}`,
     {
-      method: 'GET'
+      headers,
     }
   );
 },
