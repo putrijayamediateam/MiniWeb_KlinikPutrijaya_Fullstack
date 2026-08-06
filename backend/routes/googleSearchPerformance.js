@@ -94,15 +94,25 @@ router.get('/', async (req, res) => {
           )
       },
 
-      rows: result.rows.map((row) => ({
-        ...row,
+      queries: result.queries.map((row) => ({
+  ...row,
 
-        ctr_percentage:
-          round(row.ctr * 100),
+  ctr_percentage:
+    round(row.ctr * 100),
 
-        position:
-          round(row.position)
-      }))
+  position:
+    round(row.position)
+})),
+
+pages: result.pages.map((row) => ({
+  ...row,
+
+  ctr_percentage:
+    round(row.ctr * 100),
+
+  position:
+    round(row.position)
+}))
     });
   } catch (error) {
     console.error(

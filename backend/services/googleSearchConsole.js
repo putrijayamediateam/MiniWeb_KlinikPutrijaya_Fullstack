@@ -73,39 +73,48 @@ async function fetchGoogleSearchPerformance({
   startDate,
   endDate
 }) {
-  /*
-    Request pertama:
-    Dapatkan summary rasmi tanpa dimensions.
-  */
-  const summaryResponse =
-    await querySearchConsole({
+  const [
+    summaryResponse,
+    queryResponse,
+    pageResponse
+  ] = await Promise.all([
+    querySearchConsole({
       startDate,
       endDate,
       dimensions: [],
       rowLimit: 1
-    });
+    }),
 
-  /*
-    Request kedua:
-    Dapatkan pecahan query dan landing page.
-  */
-  const rowsResponse =
-    await querySearchConsole({
+    querySearchConsole({
       startDate,
       endDate,
       dimensions: [
-        'query',
+        'query'
+      ],
+      rowLimit: 500
+    }),
+
+    querySearchConsole({
+      startDate,
+      endDate,
+      dimensions: [
         'page'
       ],
       rowLimit: 500
-    });
+    })
+  ]);
 
   const summaryRow =
     summaryResponse.rows?.[0] || {};
 
-  const rows =
-    Array.isArray(rowsResponse.rows)
-      ? rowsResponse.rows
+  const queryRows =
+    Array.isArray(queryResponse.rows)
+      ? queryResponse.rows
+      : [];
+
+  const pageRows =
+    Array.isArray(pageResponse.rows)
+      ? pageResponse.rows
       : [];
 
   return {
@@ -123,12 +132,26 @@ async function fetchGoogleSearchPerformance({
         Number(summaryRow.position || 0)
     },
 
-    rows: rows.map((row) => ({
+    queries: queryRows.map((row) => ({
       query:
         row.keys?.[0] || '',
 
+      clicks:
+        Number(row.clicks || 0),
+
+      impressions:
+        Number(row.impressions || 0),
+
+      ctr:
+        Number(row.ctr || 0),
+
+      position:
+        Number(row.position || 0)
+    })),
+
+    pages: pageRows.map((row) => ({
       page:
-        row.keys?.[1] || '',
+        row.keys?.[0] || '',
 
       clicks:
         Number(row.clicks || 0),
