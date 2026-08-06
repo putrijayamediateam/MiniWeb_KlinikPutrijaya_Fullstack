@@ -498,6 +498,131 @@ reactivateAdmin(id) {
 },
 
         /* -----------------------------------------------------
+           Service taxonomy management
+           Manager / Superadmin only
+           ----------------------------------------------------- */
+
+        getAdminServiceCategories() {
+          return apiRequest(
+            '/service-categories/admin/all',
+            {
+              headers,
+            }
+          );
+        },
+
+        createServiceCategory(
+          payload
+        ) {
+          return apiRequest(
+            '/service-categories',
+            {
+              method: 'POST',
+              headers,
+
+              body: jsonBody(
+                payload
+              ),
+            }
+          );
+        },
+
+        updateServiceCategory(
+          id,
+          payload
+        ) {
+          return apiRequest(
+            `/service-categories/${id}`,
+            {
+              method: 'PUT',
+              headers,
+
+              body: jsonBody(
+                payload
+              ),
+            }
+          );
+        },
+
+        updateServiceCategoryStatus(
+          id,
+          isActive
+        ) {
+          return apiRequest(
+            `/service-categories/${id}/status`,
+            {
+              method: 'PUT',
+              headers,
+
+              body: jsonBody({
+                is_active:
+                  Number(isActive),
+              }),
+            }
+          );
+        },
+
+        getAdminServiceSubcategories() {
+          return apiRequest(
+            '/service-subcategories/admin/all',
+            {
+              headers,
+            }
+          );
+        },
+
+        createServiceSubcategory(
+          payload
+        ) {
+          return apiRequest(
+            '/service-subcategories',
+            {
+              method: 'POST',
+              headers,
+
+              body: jsonBody(
+                payload
+              ),
+            }
+          );
+        },
+
+        updateServiceSubcategory(
+          id,
+          payload
+        ) {
+          return apiRequest(
+            `/service-subcategories/${id}`,
+            {
+              method: 'PUT',
+              headers,
+
+              body: jsonBody(
+                payload
+              ),
+            }
+          );
+        },
+
+        updateServiceSubcategoryStatus(
+          id,
+          isActive
+        ) {
+          return apiRequest(
+            `/service-subcategories/${id}/status`,
+            {
+              method: 'PUT',
+              headers,
+
+              body: jsonBody({
+                is_active:
+                  Number(isActive),
+              }),
+            }
+          );
+        },
+
+        /* -----------------------------------------------------
            Bookings
            ----------------------------------------------------- */
 
