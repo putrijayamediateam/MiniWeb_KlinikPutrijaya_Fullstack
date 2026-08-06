@@ -359,176 +359,6 @@ tr:last-child td {
   text-align: center;
 }
 
-/* ---------------- Bookings Table ---------------- */
-#tab-bookings .bookings-table {
-  min-width: 1420px;
-  table-layout: fixed;
-}
-
-#tab-bookings .bookings-table tbody tr {
-  border-bottom: 1px solid var(--line);
-}
-
-#tab-bookings .bookings-table tbody tr:last-child {
-  border-bottom: none;
-}
-
-#tab-bookings .bookings-table tbody td {
-  border-bottom: none;
-  vertical-align: top;
-  padding-top: 14px;
-  padding-bottom: 14px;
-}
-
-/* Column widths */
-#tab-bookings .bookings-table th:nth-child(1),
-#tab-bookings .bookings-table td:nth-child(1) {
-  width: 210px;
-}
-
-#tab-bookings .bookings-table th:nth-child(2),
-#tab-bookings .bookings-table td:nth-child(2) {
-  width: 125px;
-}
-
-#tab-bookings .bookings-table th:nth-child(3),
-#tab-bookings .bookings-table td:nth-child(3) {
-  width: 180px;
-}
-
-#tab-bookings .bookings-table th:nth-child(4),
-#tab-bookings .bookings-table td:nth-child(4) {
-  width: 160px;
-}
-
-#tab-bookings .bookings-table th:nth-child(5),
-#tab-bookings .bookings-table td:nth-child(5) {
-  width: 210px;
-}
-
-#tab-bookings .bookings-table th:nth-child(6),
-#tab-bookings .bookings-table td:nth-child(6) {
-  width: 115px;
-}
-
-#tab-bookings .bookings-table th:nth-child(7),
-#tab-bookings .bookings-table td:nth-child(7) {
-  width: 90px;
-}
-
-/* Reason column */
-#tab-bookings .bookings-table th:nth-child(8),
-#tab-bookings .bookings-table td:nth-child(8),
-#tab-bookings .bookings-table th.reason-col,
-#tab-bookings .bookings-table td.reason-col {
-  width: 390px;
-  min-width: 390px;
-  max-width: 390px;
-  vertical-align: top;
-}
-
-/* Status */
-#tab-bookings .bookings-table th:nth-child(9),
-#tab-bookings .bookings-table td:nth-child(9) {
-  width: 140px;
-  vertical-align: top;
-}
-
-/* Action */
-#tab-bookings .bookings-table th:nth-child(10),
-#tab-bookings .bookings-table td:nth-child(10) {
-  width: 130px;
-  vertical-align: top;
-}
-
-/* Reason text: one line by default */
-.reason-text {
-  display: block;
-  width: 100%;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  line-height: 1.4;
-}
-
-.reason-text.expanded {
-  white-space: normal;
-  overflow: visible;
-  text-overflow: unset;
-  line-height: 1.5;
-}
-
-.reason-toggle {
-  display: inline-block;
-  margin-top: 4px;
-  border: none;
-  background: transparent;
-  color: var(--primary);
-  font-weight: 600;
-  cursor: pointer;
-  padding: 0;
-  font-size: 0.74rem;
-}
-
-.reason-toggle:hover {
-  text-decoration: underline;
-}
-
-/* Status select stays nicely at top */
-#tab-bookings .status-select {
-  margin-top: 0;
-}
-
-/* Booking actions */
-.booking-actions {
-  display: flex;
-  align-items: flex-start;
-  gap: 6px;
-  flex-wrap: nowrap;
-}
-
-
-
-/* Small WhatsApp icon */
-.whatsapp-icon-btn {
-  width: 32px;
-  height: 32px;
-  min-width: 32px;
-  min-height: 32px;
-  border-radius: 50%;
-  background: #25D366;
-  border: 2px solid #1FB857;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  text-decoration: none;
-  cursor: pointer;
-  flex-shrink: 0;
-  padding: 0;
-  line-height: 1;
-  overflow: hidden;
-  transition: background 0.15s ease, transform 0.15s ease;
-}
-
-.whatsapp-icon-btn svg {
-  width: 22px;
-  height: 22px;
-  fill: #ffffff;
-  display: block;
-}
-
-.whatsapp-icon-btn:hover {
-  background: #1FB857;
-  transform: translateY(-1px);
-}
-
-.whatsapp-icon-btn.disabled {
-  background: #f3f3f3;
-  border-color: #ddd;
-  color: #aaa;
-  cursor: not-allowed;
-}
-
 /* ---------------- Status ---------------- */
 .status-pill {
   display: inline-block;
@@ -557,69 +387,6 @@ tr:last-child td {
 .status-cancelled {
   background: #FDECEC;
   color: #A21C1C;
-}
-
-/* ---------------- Modern Status Dropdown ---------------- */
-.status-select {
-  width: 170px;
-  padding: 7px 28px 7px 11px;
-  border-radius: 999px;
-  border: 1px solid transparent;
-  font-family: 'Inter', sans-serif;
-  font-size: 0.78rem;
-  font-weight: 600;
-  text-transform: capitalize;
-  cursor: pointer;
-  outline: none;
-  appearance: none;
-  background-repeat: no-repeat;
-  background-position: right 10px center;
-  background-size: 10px;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
-}
-
-/* small dropdown arrow */
-.status-select {
-  background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%235C4A52' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-}
-
-.status-select:hover,
-.status-select:focus {
-  box-shadow: 0 0 0 3px rgba(227, 28, 121, 0.08);
-}
-
-/* Pending */
-.status-select.status-pending {
-  background-color: #FFF6DD;
-  color: #8A6100;
-  border-color: #F3D48B;
-}
-
-/* Confirmed */
-.status-select.status-confirmed {
-  background-color: #EAF4FF;
-  color: #0B5FA5;
-  border-color: #B9DDF7;
-}
-
-/* Completed */
-.status-select.status-completed {
-  background-color: #EAF7EE;
-  color: #1E6B3A;
-  border-color: #BFE6CB;
-}
-
-/* Cancelled */
-.status-select.status-cancelled {
-  background-color: #FDECEC;
-  color: #A21C1C;
-  border-color: #F5C2C2;
-}
-
-.status-select option {
-  background: #ffffff;
-  color: var(--ink);
-  font-weight: 500;
 }
 
 /* ---------------- Modal ---------------- */
@@ -951,48 +718,425 @@ tr:last-child td {
   font-weight: 500;
 }
 
-/* ---------------- Responsive ---------------- */
+/* ---------------- Responsive — Mobile Admin ---------------- */
 @media (max-width: 640px) {
-  .admin-tabs {
-    overflow-x: auto;
+  /*
+    Pastikan dashboard dan setiap panel
+    tidak boleh memaksa viewport menjadi lebar.
+  */
+  .admin-header,
+  .admin-header-inner,
+  .admin-tabs,
+  .admin-main,
+  .tab-panel,
+  .panel-head,
+  .summary-grid,
+  .booking-toolbar,
+  .table-wrap {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
   }
 
-  .admin-main {
-    padding: 16px;
+  /*
+    Header mobile:
+
+    [Logo] Staff Dashboard
+           username
+
+    [Admin Approvals] [Logout]
+  */
+  .admin-header-inner {
+    display: grid;
+
+    grid-template-columns:
+      auto
+      minmax(0, 1fr);
+
+    grid-template-rows:
+      auto
+      auto
+      auto;
+
+    align-items: center;
+
+    column-gap: 12px;
+    row-gap: 3px;
+
+    padding:
+      12px
+      16px
+      14px;
   }
 
-  th,
-  td {
+  .admin-logo {
+    grid-column: 1;
+    grid-row: 1 / 3;
+
+    width: auto;
+    height: 30px;
+
+    align-self: center;
+  }
+
+  .admin-title {
+    grid-column: 2;
+    grid-row: 1;
+
+    min-width: 0;
+
+    font-size: 0.92rem;
+    line-height: 1.2;
+
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /*
+    Membenarkan username dan button
+    menyertai grid parent tanpa wrapper
+    menambah ruang atau lebar sendiri.
+  */
+  .admin-header-right {
+    display: contents;
+  }
+
+  .admin-username {
+    grid-column: 2;
+    grid-row: 2;
+
+    min-width: 0;
+
+    color: var(--muted);
+
+    font-size: 0.68rem;
+    line-height: 1.3;
+
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .admin-action-buttons {
+    grid-column: 1 / -1;
+    grid-row: 3;
+
+    display: grid;
+
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(0, 1fr)
+      );
+
+    gap: 10px;
+
+    width: 100%;
+    min-width: 0;
+
+    margin-top: 9px;
+  }
+
+  .admin-action-buttons
+  .logout-btn {
+    width: 100%;
+    min-width: 0;
+    min-height: 38px;
+
+    margin: 0;
+    padding:
+      8px
+      10px;
+
+    font-size: 0.72rem;
+    line-height: 1.15;
+
     white-space: normal;
   }
 
-  #tab-bookings .bookings-table {
-    min-width: 1100px;
+  /*
+    Tab sahaja boleh swipe mendatar.
+    Keseluruhan page tidak akan bergerak.
+  */
+  .admin-tabs {
+    display: flex;
+    flex-wrap: nowrap;
+
+    gap: 16px;
+
+    padding:
+      12px
+      16px
+      0;
+
+    overflow-x: auto;
+    overflow-y: hidden;
+
+    -webkit-overflow-scrolling:
+      touch;
+
+    overscroll-behavior-x:
+      contain;
+
+    scrollbar-width: none;
   }
 
-  #tab-bookings .bookings-table th:nth-child(8),
-  #tab-bookings .bookings-table td:nth-child(8),
-  #tab-bookings .bookings-table th.reason-col,
-  #tab-bookings .bookings-table td.reason-col {
-    width: 300px;
-    min-width: 300px;
-    max-width: 300px;
+  .admin-tabs::-webkit-scrollbar {
+    display: none;
   }
 
-  #tab-bookings .bookings-table th:nth-child(10),
-  #tab-bookings .bookings-table td:nth-child(10) {
-    width: 120px;
+  .tab-btn {
+    flex:
+      0
+      0
+      auto;
+
+    min-width: max-content;
+
+    padding:
+      10px
+      2px;
+
+    font-size: 0.82rem;
+
+    white-space: nowrap;
   }
 
+  /*
+    Kandungan utama sentiasa ikut viewport.
+  */
+  .admin-main {
+    padding:
+      18px
+      16px
+      28px;
+
+    overflow: visible;
+  }
+
+  .tab-panel {
+    overflow: visible;
+  }
+
+  .panel-head {
+    align-items: flex-start;
+    flex-direction: column;
+
+    gap: 14px;
+
+    margin-bottom: 18px;
+  }
+
+  .panel-head > div {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .panel-head h2 {
+    max-width: 100%;
+
+    font-size:
+      clamp(
+        1.45rem,
+        7vw,
+        1.9rem
+      );
+
+    line-height: 1.15;
+
+    overflow-wrap: anywhere;
+  }
+
+  .panel-subtitle {
+    max-width: 100%;
+
+    font-size: 0.8rem;
+    line-height: 1.5;
+
+    overflow-wrap: anywhere;
+  }
+
+  .panel-head
+  > .btn-primary,
+  .panel-head
+  > button {
+    width: 100%;
+  }
+
+  /*
+    Booking summary kekal dua kolum
+    dan tidak menghasilkan overflow.
+  */
   .summary-grid {
-  grid-template-columns: repeat(2, 1fr);
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(0, 1fr)
+      );
+
+    gap: 12px;
+  }
+
+  .summary-card {
+    min-width: 0;
+
+    padding: 14px;
+
+    overflow: hidden;
+  }
+
+  .summary-card
+  .summary-label {
+    font-size: 0.66rem;
+    line-height: 1.3;
+
+    overflow-wrap: anywhere;
+  }
+
+  .summary-card strong {
+    font-size: 1.55rem;
+  }
+
+  /*
+    Filter disusun menegak pada phone.
+  */
+  .booking-toolbar {
+    grid-template-columns: 1fr;
+
+    gap: 10px;
+  }
+
+  .booking-search-wrap,
+  .booking-toolbar select {
+    width: 100%;
+    min-width: 0;
+  }
+
+  /*
+    Hanya table boleh scroll mendatar.
+    Ia tidak boleh membesarkan body.
+  */
+  .table-wrap {
+    position: relative;
+
+    overflow-x: auto;
+    overflow-y: hidden;
+
+    -webkit-overflow-scrolling:
+      touch;
+
+    overscroll-behavior-x:
+      contain;
+  }
+
+  /*
+    Lebar table dikekalkan supaya
+    semua maklumat masih boleh dibaca
+    melalui scroll dalam table-wrap.
+  */
+  #tab-bookings
+.bookings-table {
+  width: 1550px;
+  min-width: 1550px;
+
+  table-layout: fixed;
 }
 
-.booking-toolbar {
-  grid-template-columns: 1fr;
+  /*
+    Reason sekarang ialah kolum ke-9.
+  */
+  #tab-bookings
+  .bookings-table
+  th:nth-child(9),
+  #tab-bookings
+  .bookings-table
+  td:nth-child(9),
+  #tab-bookings
+  .bookings-table
+  th.reason-col,
+  #tab-bookings
+  .bookings-table
+  td.reason-col {
+    width: 280px;
+    min-width: 280px;
+    max-width: 280px;
+  }
+
+  #tab-bookings
+.bookings-table
+th:nth-child(10),
+#tab-bookings
+.bookings-table
+td:nth-child(10) {
+  width: 155px;
 }
 
-#tab-bookings .bookings-table {
-  min-width: 1250px;
+#tab-bookings
+.bookings-table
+th:nth-child(11),
+#tab-bookings
+.bookings-table
+td:nth-child(11) {
+  width: 165px;
 }
+
+#tab-bookings
+.status-select {
+  display: block;
+
+  width: 132px;
+  max-width: 100%;
+
+  margin: 0;
+}
+
+#tab-bookings
+.booking-actions {
+  display: grid;
+
+  grid-template-columns:
+    34px
+    minmax(78px, 1fr);
+
+  align-items: center;
+  gap: 8px;
+
+  width: 100%;
+  min-width: 0;
+}
+
+#tab-bookings
+.booking-whatsapp-btn {
+  position: static;
+
+  width: 34px;
+  height: 34px;
+  min-width: 34px;
+
+  margin: 0;
+}
+
+#tab-bookings
+.booking-actions
+.btn-small {
+  width: 100%;
+  min-width: 0;
+
+  margin: 0;
+  padding:
+    8px
+    10px;
+
+  white-space: nowrap;
+}
+
+  th,
+  td {
+    white-space: nowrap;
+  }
+
+  td.wrap-text {
+    white-space: normal;
+  }
 }

@@ -415,6 +415,7 @@ body.admin-modal-open {
 }
 
 .admin-login-card {
+  position: relative;
   width: min(460px, 100%);
   padding: 36px;
   border: 1px solid rgba(147, 20, 81, 0.13);
@@ -443,6 +444,44 @@ body.admin-modal-open {
   display: inline-flex;
   align-items: center;
   text-decoration: none;
+}
+
+.admin-login-back {
+  position: absolute;
+  top: 22px;
+  right: 24px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-height: 34px;
+  padding: 7px 12px;
+
+  border: 1px solid
+    rgba(147, 20, 81, 0.16);
+
+  border-radius: 999px;
+
+  background: #fff7fb;
+  color: #931451;
+
+  font-size: 0.74rem;
+  font-weight: 700;
+  line-height: 1;
+  text-decoration: none;
+
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.admin-login-back:hover,
+.admin-login-back:focus-visible {
+  border-color: #e00d92;
+  background: #ffe7f2;
+  color: #e00d92;
 }
 
 .admin-login-brand img {
@@ -2439,36 +2478,150 @@ html body .gallery-manager-card small {
 
 @media (max-width: 700px) {
   .admin-action-buttons {
-    align-items: flex-end;
-    width: auto;
+    display: grid;
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+
+    align-items: stretch;
+    gap: 10px;
+
+    width: 100%;
   }
 
-  .admin-action-buttons .logout-btn {
-    width: 125px;
-    min-height: 32px;
-    font-size: 0.74rem;
+  .admin-action-buttons
+  .logout-btn {
+    width: 100%;
+    min-width: 0;
+    min-height: 38px;
+
+    padding:
+      8px
+      10px;
+
+    font-size: 0.72rem;
+    line-height: 1.15;
   }
 }
 
 @media (max-width: 540px) {
   .admin-login-screen {
     align-items: start;
-    padding: 22px 14px;
+
+    min-height: 100dvh;
+
+    padding:
+      14px
+      12px
+      calc(
+        20px +
+        env(safe-area-inset-bottom)
+      );
   }
 
   .admin-login-card {
-    margin-top: 20px;
-    padding: 28px 22px;
-    border-radius: 22px;
+    margin-top: 0;
+
+    padding:
+      22px
+      20px
+      20px;
+
+    border-radius: 20px;
+  }
+
+  .admin-login-back {
+    top: 18px;
+    right: 18px;
+
+    min-height: 30px;
+    padding: 6px 10px;
+
+    font-size: 0.68rem;
   }
 
   .admin-login-brand img {
-    max-width: 155px;
-    max-height: 64px;
+    max-width: 132px;
+    max-height: 48px;
+  }
+
+  .admin-login-kicker {
+    margin:
+      18px 0
+      5px;
+
+    font-size: 0.7rem;
+  }
+
+  .admin-login-card h1 {
+    font-size: 1.65rem;
   }
 
   .admin-login-intro {
+    margin:
+      7px 0
+      17px;
+
+    font-size: 0.84rem;
+    line-height: 1.5;
+  }
+
+  .admin-login-form {
+    gap: 11px;
+  }
+
+  .admin-login-field {
+    gap: 5px;
+  }
+
+  .admin-login-field label {
+    font-size: 0.76rem;
+  }
+
+  .admin-login-field input {
+    min-height: 44px;
+    padding: 0 13px;
+
+    border-radius: 11px;
+
     font-size: 0.9rem;
+  }
+
+  .admin-login-options {
+    min-height: 18px;
+    margin-top: -2px;
+  }
+
+  .admin-login-options
+  .forgot-password-link {
+    font-size: 0.78rem;
+  }
+
+  .admin-login-message {
+    min-height: 0;
+
+    font-size: 0.78rem;
+  }
+
+  .admin-login-message:empty {
+    display: none;
+  }
+
+  .admin-login-button {
+    min-height: 44px;
+    margin-top: 0;
+
+    border-radius: 11px;
+  }
+
+  .admin-login-signup-link {
+    margin-top: 14px;
+    padding-top: 14px;
+
+    border-top: 1px solid
+      rgba(147, 20, 81, 0.1);
+
+    font-size: 0.82rem;
+    text-align: center;
   }
 }
 
@@ -2489,16 +2642,6 @@ html body .gallery-manager-card small {
     justify-content: space-between;
   }
 }
-
-.forgot-password-link {
-  display: inline-block;
-  margin-top: 12px;
-  color: #931451;
-  font-size: .9rem;
-  font-weight: 700;
-  text-decoration: none;
-}
-
 
 @media (max-width: 600px) {
   .feedback-toolbar {
@@ -2625,20 +2768,52 @@ html body .gallery-manager-card small {
       repeat(
         2,
         minmax(0, 1fr)
-      );
+      ) !important;
+
+    gap: 12px !important;
   }
 
-  #bookingSummaryCards .performance-summary-card,
-  #adminUserSummary .performance-summary-card {
-    min-height: 130px;
-    padding: 18px;
-  }
-}
+  #bookingSummaryCards
+  .performance-summary-card,
+  #adminUserSummary
+  .performance-summary-card {
+    min-width: 0;
 
-@media (max-width: 460px) {
-  #bookingSummaryCards,
-  #adminUserSummary {
-    grid-template-columns: 1fr;
+    min-height: 112px !important;
+
+    padding:
+      14px
+      15px !important;
+  }
+
+  #bookingSummaryCards
+  .performance-summary-card
+  > span,
+  #adminUserSummary
+  .performance-summary-card
+  > span {
+    font-size:
+      0.68rem !important;
+  }
+
+  #bookingSummaryCards
+  .performance-summary-card
+  > strong,
+  #adminUserSummary
+  .performance-summary-card
+  > strong {
+    font-size:
+      1.55rem !important;
+  }
+
+  #bookingSummaryCards
+  .performance-summary-card
+  > small,
+  #adminUserSummary
+  .performance-summary-card
+  > small {
+    font-size:
+      0.64rem !important;
   }
 }
 

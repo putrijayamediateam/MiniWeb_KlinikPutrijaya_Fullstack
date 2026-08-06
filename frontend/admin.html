@@ -9,24 +9,31 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet"
   href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
-<link rel="stylesheet" href="css/admin.css">
+<link rel="stylesheet" href="./css/admin.css?v=20260806-4">
 <link rel="stylesheet" href="css/signup.css">
 <link rel="stylesheet" href="css/admin-login.css">
-<link
-  rel="stylesheet"
-  href="./css/admin-upgrades.css?v=20260806-5"
->
+<link rel="stylesheet" href="./css/admin-upgrades.css?v=20260806-7">
 </head>
 <body class="admin-page">
 
   <!-- LOGIN SCREEN -->
   <div id="loginScreen" class="login-screen admin-login-screen">
-    <section class="login-card admin-login-card" aria-labelledby="loginTitle">
-      <a
-        class="admin-login-brand"
-        href="index.html"
-        aria-label="Klinik Putrijaya Home"
-      >
+    <section
+  class="login-card admin-login-card"
+  aria-labelledby="loginTitle"
+>
+  <a
+    href="index.html"
+    class="back-link admin-login-back"
+  >
+    &larr; Back to website
+  </a>
+
+  <a
+    class="admin-login-brand"
+    href="index.html"
+    aria-label="Klinik Putrijaya Home"
+  >
         <img
           src="images/logoklinik.png"
           alt="Klinik Putrijaya"
@@ -91,10 +98,6 @@
       <p class="auth-switch admin-login-signup-link">
         New user? <a href="signup.html">Create an account</a>
       </p>
-
-      <a href="index.html" class="back-link admin-login-back">
-        &larr; Back to website
-      </a>
     </section>
   </div>
 

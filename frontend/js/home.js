@@ -7,93 +7,333 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function initPanelScroller() {
-  const scroller = document.querySelector("[data-panel-scroller]");
-  const track = scroller?.querySelector(".panel-track");
+  const scroller =
+    document.querySelector(
+      '[data-panel-scroller]'
+    );
 
-  if (!scroller || !track || track.dataset.cloned === "true") return;
+  const track =
+    scroller?.querySelector(
+      '.panel-track'
+    );
 
-  track.insertAdjacentHTML("beforeend", track.innerHTML);
-  track.dataset.cloned = "true";
+  if (
+    !scroller ||
+    !track ||
+    track.dataset.cloned === 'true'
+  ) {
+    return;
+  }
 
-  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  let isDragging = false;
-  let autoScrollPaused = false;
-  let startX = 0;
+  /*
+    Gandakan logo sekali sahaja untuk
+    menghasilkan loop berterusan.
+  */
+  track.insertAdjacentHTML(
+    'beforeend',
+    track.innerHTML
+  );
+
+  track.dataset.cloned = 'true';
+
+  const reduceMotion =
+    window.matchMedia(
+      '(prefers-reduced-motion: reduce)'
+    ).matches;
+
+  const speed =
+    reduceMotion ? 0 : 0.55;
+
+  let animationFrameId = null;
+  let resumeTimer = null;
+
+  let isInteracting = false;
+  let startPointerX = 0;
   let startScrollLeft = 0;
-  let wheelTimer = null;
-  const speed = reduceMotion ? 0 : 0.6;
 
-  const halfWidth = () => track.scrollWidth / 2;
+  /*
+    Nilai berasingan ini penting untuk Safari.
+    Ia menyimpan pergerakan pecahan seperti
+    0.55px tanpa dibundarkan kepada kosong.
+  */
+  let virtualScrollLeft = 1;
 
-  function normalizeScroll() {
-    const half = halfWidth();
-    if (!half) return;
+  function getLoopWidth() {
+    return track.scrollWidth / 2;
+  }
 
-    if (scroller.scrollLeft >= half) scroller.scrollLeft -= half;
-    if (scroller.scrollLeft <= 0) scroller.scrollLeft += half;
+  function normalizePosition() {
+    const loopWidth =
+      getLoopWidth();
+
+    if (!loopWidth) {
+      return;
+    }
+
+    if (
+      virtualScrollLeft >=
+      loopWidth
+    ) {
+      virtualScrollLeft -=
+        loopWidth;
+    }
+
+    if (
+      virtualScrollLeft <= 0
+    ) {
+      virtualScrollLeft +=
+        loopWidth;
+    }
+
+    scroller.scrollLeft =
+      virtualScrollLeft;
+  }
+
+  function pauseAutoScroll() {
+    isInteracting = true;
+
+    window.clearTimeout(
+      resumeTimer
+    );
+  }
+
+  function resumeAutoScroll(
+    delay = 700
+  ) {
+    window.clearTimeout(
+      resumeTimer
+    );
+
+    resumeTimer =
+      window.setTimeout(
+        () => {
+          virtualScrollLeft =
+            scroller.scrollLeft;
+
+          isInteracting =
+            false;
+        },
+        delay
+      );
+  }
+
+  function startInteraction(
+    pointerX
+  ) {
+    pauseAutoScroll();
+
+    startPointerX =
+      pointerX;
+
+    startScrollLeft =
+      scroller.scrollLeft;
+
+    virtualScrollLeft =
+      startScrollLeft;
+
+    scroller.classList.add(
+      'is-dragging'
+    );
+  }
+
+  function moveInteraction(
+    pointerX
+  ) {
+    if (!isInteracting) {
+      return;
+    }
+
+    const distance =
+      pointerX -
+      startPointerX;
+
+    virtualScrollLeft =
+      startScrollLeft -
+      distance;
+
+    normalizePosition();
+  }
+
+  function endInteraction() {
+    scroller.classList.remove(
+      'is-dragging'
+    );
+
+    virtualScrollLeft =
+      scroller.scrollLeft;
+
+    resumeAutoScroll();
   }
 
   function autoScroll() {
-    if (!isDragging && !autoScrollPaused && speed > 0) {
-      scroller.scrollLeft += speed;
-      normalizeScroll();
+    if (
+      !isInteracting &&
+      speed > 0
+    ) {
+      virtualScrollLeft +=
+        speed;
+
+      normalizePosition();
     }
-    window.requestAnimationFrame(autoScroll);
+
+    animationFrameId =
+      window.requestAnimationFrame(
+        autoScroll
+      );
   }
 
+  scroller.addEventListener(
+    'mousedown',
+    (event) => {
+      event.preventDefault();
+
+      startInteraction(
+        event.pageX
+      );
+    }
+  );
+
+  window.addEventListener(
+    'mousemove',
+    (event) => {
+      if (!isInteracting) {
+        return;
+      }
+
+      event.preventDefault();
+
+      moveInteraction(
+        event.pageX
+      );
+    }
+  );
+
+  window.addEventListener(
+    'mouseup',
+    () => {
+      if (isInteracting) {
+        endInteraction();
+      }
+    }
+  );
+
+  scroller.addEventListener(
+    'touchstart',
+    (event) => {
+      const touch =
+        event.touches[0];
+
+      if (!touch) {
+        return;
+      }
+
+      startInteraction(
+        touch.pageX
+      );
+    },
+    {
+      passive: true,
+    }
+  );
+
+  scroller.addEventListener(
+    'touchmove',
+    (event) => {
+      const touch =
+        event.touches[0];
+
+      if (
+        !touch ||
+        !isInteracting
+      ) {
+        return;
+      }
+
+      moveInteraction(
+        touch.pageX
+      );
+    },
+    {
+      passive: true,
+    }
+  );
+
+  scroller.addEventListener(
+    'touchend',
+    endInteraction,
+    {
+      passive: true,
+    }
+  );
+
+  scroller.addEventListener(
+    'touchcancel',
+    endInteraction,
+    {
+      passive: true,
+    }
+  );
+
+  scroller.addEventListener(
+    'wheel',
+    (event) => {
+      event.preventDefault();
+
+      pauseAutoScroll();
+
+      virtualScrollLeft +=
+        event.deltaY ||
+        event.deltaX;
+
+      normalizePosition();
+      resumeAutoScroll(900);
+    },
+    {
+      passive: false,
+    }
+  );
+
+  /*
+    Selaraskan semula selepas resize
+    atau pertukaran orientasi phone.
+  */
+  window.addEventListener(
+    'resize',
+    () => {
+      virtualScrollLeft =
+        scroller.scrollLeft ||
+        1;
+
+      normalizePosition();
+    }
+  );
+
   scroller.scrollLeft = 1;
-
-  scroller.addEventListener("mousedown", (event) => {
-    isDragging = true;
-    autoScrollPaused = true;
-    startX = event.pageX;
-    startScrollLeft = scroller.scrollLeft;
-    scroller.classList.add("is-dragging");
-  });
-
-  window.addEventListener("mouseup", () => {
-    if (!isDragging) return;
-    isDragging = false;
-    scroller.classList.remove("is-dragging");
-    window.setTimeout(() => { autoScrollPaused = false; }, 500);
-  });
-
-  scroller.addEventListener("mousemove", (event) => {
-    if (!isDragging) return;
-    event.preventDefault();
-    scroller.scrollLeft = startScrollLeft - (event.pageX - startX);
-    normalizeScroll();
-  });
-
-  scroller.addEventListener("touchstart", (event) => {
-    isDragging = true;
-    autoScrollPaused = true;
-    startX = event.touches[0].pageX;
-    startScrollLeft = scroller.scrollLeft;
-  }, { passive: true });
-
-  scroller.addEventListener("touchmove", (event) => {
-    if (!isDragging) return;
-    scroller.scrollLeft = startScrollLeft - (event.touches[0].pageX - startX);
-    normalizeScroll();
-  }, { passive: true });
-
-  scroller.addEventListener("touchend", () => {
-    isDragging = false;
-    window.setTimeout(() => { autoScrollPaused = false; }, 500);
-  });
-
-  scroller.addEventListener("wheel", (event) => {
-    event.preventDefault();
-    autoScrollPaused = true;
-    scroller.scrollLeft += event.deltaY || event.deltaX;
-    normalizeScroll();
-
-    window.clearTimeout(wheelTimer);
-    wheelTimer = window.setTimeout(() => { autoScrollPaused = false; }, 800);
-  }, { passive: false });
+  virtualScrollLeft = 1;
 
   autoScroll();
+
+  /*
+    Hentikan animation frame jika elemen
+    dibuang daripada halaman.
+  */
+  window.addEventListener(
+    'pagehide',
+    () => {
+      if (animationFrameId) {
+        window.cancelAnimationFrame(
+          animationFrameId
+        );
+      }
+
+      window.clearTimeout(
+        resumeTimer
+      );
+    },
+    {
+      once: true,
+    }
+  );
 }
 
 function initCounters() {
