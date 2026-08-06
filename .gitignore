@@ -12,6 +12,20 @@ backend/node_modules/
 backend/.env
 frontend/.env
 
+# Google Search Console service-account credentials
+google-search-console-key.json
+kputrijaya-search-analytics.json
+kliniputrijaya-search-console.json
+
+*service-account*.json
+*-service-account.json
+*google-search*.json
+*kputrijaya-search*.json
+
+credentials/
+backend/credentials/
+backend/config/credentials/
+
 # Allow safe environment template files
 !.env.example
 !backend/.env.example
