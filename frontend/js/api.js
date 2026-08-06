@@ -479,6 +479,24 @@ reactivateAdmin(id) {
           );
         },
 
+        getGoogleSearchPerformance(
+  startDate,
+  endDate
+) {
+  const params =
+    new URLSearchParams({
+      start_date: startDate,
+      end_date: endDate
+    });
+
+  return request(
+    `/performance/google-search?${params.toString()}`,
+    {
+      method: 'GET'
+    }
+  );
+},
+
         /* -----------------------------------------------------
            Bookings
            ----------------------------------------------------- */

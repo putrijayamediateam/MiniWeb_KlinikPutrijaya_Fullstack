@@ -867,6 +867,11 @@ async function loadPerformance() {
       'performanceBranchFilter'
     )?.value || '';
 
+      loadGoogleSearchPerformance(
+    startDate,
+    endDate
+  );
+
   const trendContainer =
     document.getElementById(
       'performanceTrendChart'
@@ -1743,6 +1748,364 @@ function renderPerformanceBranches(
         `
       )
       .join('');
+}
+
+// -----------------------------------------------------------------------------
+// GOOGLE SEARCH CONSOLE PERFORMANCE
+// -----------------------------------------------------------------------------
+
+function formatSearchConsolePage(
+  value
+) {
+  try {
+    const url =
+      new URL(value);
+
+    return (
+      url.pathname || '/'
+    );
+  } catch {
+    return value || '—';
+  }
+}
+
+function renderGoogleSearchSummary(
+  summary = {}
+) {
+  setText(
+    'searchConsoleClicks',
+    Number(
+      summary.clicks || 0
+    ).toLocaleString(
+      'en-MY'
+    )
+  );
+
+  setText(
+    'searchConsoleImpressions',
+    Number(
+      summary.impressions || 0
+    ).toLocaleString(
+      'en-MY'
+    )
+  );
+
+  setText(
+    'searchConsoleCtr',
+    `${Number(
+      summary.ctr_percentage || 0
+    ).toFixed(2)}%`
+  );
+
+  const averagePosition =
+    Number(
+      summary.average_position || 0
+    );
+
+  setText(
+    'searchConsolePosition',
+    averagePosition > 0
+      ? averagePosition.toFixed(1)
+      : '—'
+  );
+}
+
+function renderGoogleSearchQueries(
+  queries = []
+) {
+  const tbody =
+    document.getElementById(
+      'searchConsoleQueriesBody'
+    );
+
+  if (!tbody) {
+    return;
+  }
+
+  if (!queries.length) {
+    tbody.innerHTML = `
+      <tr>
+        <td
+          colspan="5"
+          class="empty-row"
+        >
+          Search queries are not available yet.
+          Google may hide low-volume queries
+          for privacy.
+        </td>
+      </tr>
+    `;
+
+    return;
+  }
+
+  tbody.innerHTML =
+    queries
+      .map(
+        (row) => `
+          <tr>
+            <td>
+              <strong>
+                ${escapeHtml(
+                  row.query ||
+                  'Unknown query'
+                )}
+              </strong>
+            </td>
+
+            <td>
+              ${Number(
+                row.clicks || 0
+              ).toLocaleString(
+                'en-MY'
+              )}
+            </td>
+
+            <td>
+              ${Number(
+                row.impressions || 0
+              ).toLocaleString(
+                'en-MY'
+              )}
+            </td>
+
+            <td>
+              ${Number(
+                row.ctr_percentage ||
+                0
+              ).toFixed(2)}%
+            </td>
+
+            <td>
+              ${Number(
+                row.position || 0
+              ).toFixed(1)}
+            </td>
+          </tr>
+        `
+      )
+      .join('');
+}
+
+function renderGoogleSearchPages(
+  pages = []
+) {
+  const tbody =
+    document.getElementById(
+      'searchConsolePagesBody'
+    );
+
+  if (!tbody) {
+    return;
+  }
+
+  if (!pages.length) {
+    tbody.innerHTML = `
+      <tr>
+        <td
+          colspan="5"
+          class="empty-row"
+        >
+          No landing-page data found
+          for this date range.
+        </td>
+      </tr>
+    `;
+
+    return;
+  }
+
+  tbody.innerHTML =
+    pages
+      .map(
+        (row) => `
+          <tr>
+            <td
+              title="${escapeAttribute(
+                row.page || ''
+              )}"
+            >
+              <strong>
+                ${escapeHtml(
+                  formatSearchConsolePage(
+                    row.page
+                  )
+                )}
+              </strong>
+
+              <div class="cell-subtext">
+                ${escapeHtml(
+                  row.page || ''
+                )}
+              </div>
+            </td>
+
+            <td>
+              ${Number(
+                row.clicks || 0
+              ).toLocaleString(
+                'en-MY'
+              )}
+            </td>
+
+            <td>
+              ${Number(
+                row.impressions || 0
+              ).toLocaleString(
+                'en-MY'
+              )}
+            </td>
+
+            <td>
+              ${Number(
+                row.ctr_percentage ||
+                0
+              ).toFixed(2)}%
+            </td>
+
+            <td>
+              ${Number(
+                row.position || 0
+              ).toFixed(1)}
+            </td>
+          </tr>
+        `
+      )
+      .join('');
+}
+
+async function loadGoogleSearchPerformance(
+  startDate,
+  endDate
+) {
+  const queryBody =
+    document.getElementById(
+      'searchConsoleQueriesBody'
+    );
+
+  const pageBody =
+    document.getElementById(
+      'searchConsolePagesBody'
+    );
+
+  /*
+    HTML Search Console mungkin belum ditambah.
+    Dalam keadaan itu, jangan buat API request.
+  */
+  if (
+    !queryBody &&
+    !pageBody
+  ) {
+    return;
+  }
+
+  if (
+    !startDate ||
+    !endDate
+  ) {
+    return;
+  }
+
+  if (queryBody) {
+    queryBody.innerHTML = `
+      <tr>
+        <td
+          colspan="5"
+          class="loading-row"
+        >
+          Loading Google Search queries...
+        </td>
+      </tr>
+    `;
+  }
+
+  if (pageBody) {
+    pageBody.innerHTML = `
+      <tr>
+        <td
+          colspan="5"
+          class="loading-row"
+        >
+          Loading landing pages...
+        </td>
+      </tr>
+    `;
+  }
+
+  try {
+    if (
+      !authedApi
+        ?.getGoogleSearchPerformance
+    ) {
+      throw new Error(
+        'Google Search API function is unavailable.'
+      );
+    }
+
+    const data =
+      await authedApi
+        .getGoogleSearchPerformance(
+          startDate,
+          endDate
+        );
+
+    renderGoogleSearchSummary(
+      data?.summary || {}
+    );
+
+    renderGoogleSearchQueries(
+      Array.isArray(
+        data?.queries
+      )
+        ? data.queries
+        : []
+    );
+
+    renderGoogleSearchPages(
+      Array.isArray(
+        data?.pages
+      )
+        ? data.pages
+        : []
+    );
+  } catch (error) {
+    console.error(
+      'Unable to load Google Search performance:',
+      error
+    );
+
+    const message =
+      escapeHtml(
+        error.message ||
+        'Unable to load Google Search data.'
+      );
+
+    if (queryBody) {
+      queryBody.innerHTML = `
+        <tr>
+          <td
+            colspan="5"
+            class="empty-row"
+          >
+            ${message}
+          </td>
+        </tr>
+      `;
+    }
+
+    if (pageBody) {
+      pageBody.innerHTML = `
+        <tr>
+          <td
+            colspan="5"
+            class="empty-row"
+          >
+            ${message}
+          </td>
+        </tr>
+      `;
+    }
+  }
 }
 
 function performanceExportFilterRows(
