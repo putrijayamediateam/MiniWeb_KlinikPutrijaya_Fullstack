@@ -98,6 +98,42 @@ function bindCoreEvents() {
   document.getElementById('loginForm')?.addEventListener('submit', handleLogin);
   document.getElementById('logoutBtn')?.addEventListener('click', handleLogout);
 
+  const loginPassword =
+  document.getElementById('loginPassword');
+
+const toggleLoginPassword =
+  document.getElementById('toggleLoginPassword');
+
+toggleLoginPassword?.addEventListener(
+  'click',
+  () => {
+    if (!loginPassword) {
+      return;
+    }
+
+    const shouldShow =
+      loginPassword.type === 'password';
+
+    loginPassword.type =
+      shouldShow ? 'text' : 'password';
+
+    toggleLoginPassword.textContent =
+      shouldShow ? 'Hide' : 'Show';
+
+    toggleLoginPassword.setAttribute(
+      'aria-label',
+      shouldShow
+        ? 'Hide password'
+        : 'Show password'
+    );
+
+    toggleLoginPassword.setAttribute(
+      'aria-pressed',
+      String(shouldShow)
+    );
+  }
+);
+
   document.querySelectorAll('.tab-btn').forEach((button) => {
     button.addEventListener('click', () => switchTab(button.dataset.tab));
   });

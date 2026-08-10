@@ -133,6 +133,45 @@
   box-shadow: 0 0 0 4px rgba(224, 13, 146, 0.09);
 }
 
+.admin-password-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.admin-password-wrap input {
+  padding-right: 74px;
+}
+
+.admin-password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+
+  padding: 6px 8px;
+
+  color: #931451;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 800;
+
+  cursor: pointer;
+}
+
+.admin-password-toggle:hover {
+  color: #e00d92;
+  background: rgba(224, 13, 146, 0.06);
+}
+
+.admin-password-toggle:focus-visible {
+  outline: 2px solid #e00d92;
+  outline-offset: 2px;
+}
+
 .admin-login-options {
   display: flex;
   justify-content: flex-end;
