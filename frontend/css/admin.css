@@ -16,7 +16,18 @@
   box-sizing: border-box;
 }
 
+html {
+  width: 100%;
+  max-width: 100%;
+
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
 body {
+
+  width: 100%;
+  max-width: 100%;
   margin: 0;
   background: var(--bg);
   color: var(--ink);

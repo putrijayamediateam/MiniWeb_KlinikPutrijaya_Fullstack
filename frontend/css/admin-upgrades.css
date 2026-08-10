@@ -2408,6 +2408,12 @@ html body .gallery-manager-card small {
 }
 
 @media (max-width: 680px) {
+  #tab-performance {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
   #tab-performance .panel-head {
     align-items: stretch;
     flex-direction: column;
@@ -2419,19 +2425,70 @@ html body .gallery-manager-card small {
 
   #tab-performance .performance-toolbar {
     grid-template-columns: 1fr;
+    width: 100%;
+    min-width: 0;
   }
 
-  .performance-summary-grid {
+  #tab-performance .performance-summary-grid {
     grid-template-columns: 1fr;
+    width: 100%;
+    min-width: 0;
   }
 
-  .performance-card,
-  .performance-summary-card {
+  #tab-performance .performance-visual-grid,
+  #tab-performance .performance-two-column {
+    grid-template-columns: minmax(0, 1fr);
+
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  #tab-performance .google-search-performance-card,
+  #tab-performance .performance-card,
+  #tab-performance .performance-panel {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+
     border-radius: 13px;
   }
 
-  .performance-chart,
-  .performance-device-chart {
+  /*
+    Search Queries / Landing Pages:
+    scroll hanya berlaku dalam table.
+  */
+  #tab-performance .performance-panel .table-wrap {
+    position: relative;
+
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+
+    overflow-x: auto;
+    overflow-y: hidden;
+
+    -webkit-overflow-scrolling: touch;
+
+    overscroll-behavior-x: contain;
+  }
+
+  /*
+    Table boleh kekal lebar supaya column
+    readable, tetapi tidak membesarkan page.
+  */
+  #tab-performance .performance-table {
+    width: 570px;
+    min-width: 570px;
+    max-width: none;
+  }
+
+  #tab-performance .performance-chart,
+  #tab-performance .performance-device-chart {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+
     height: 300px;
   }
 }
@@ -2473,6 +2530,16 @@ html body .gallery-manager-card small {
 
   .performance-summary-card {
     min-height: 125px;
+  }
+
+    /*
+    Prevent iPhone/Safari from automatically
+    zooming when an input/select receives focus.
+  */
+  html body input,
+  html body select,
+  html body textarea {
+    font-size: 16px !important;
   }
 }
 
