@@ -4075,19 +4075,20 @@ async function exportBookingsToCSV() {
 
     downloadCsv(`klinik-putrijaya-bookings-${new Date().toISOString().slice(0, 10)}.csv`, [headers, ...rows]);
   } catch (error) {
-  if (
-    !handleAuthError(error)
-  ) {
-    showKpToast({
-      title:
-        'Unable to export bookings',
+    if (
+      !handleAuthError(error)
+    ) {
+      showKpToast({
+        title:
+          'Unable to export bookings',
 
-      message:
-        error.message ||
-        'Please try again.',
+        message:
+          error.message ||
+          'Please try again.',
 
-      duration: 7000,
-    });
+        duration: 7000,
+      });
+    }
   }
 }
 
@@ -10867,5 +10868,4 @@ function escapeAttribute(value) {
     .replaceAll("'", '&#039;')
     .replaceAll('<', '&lt;')
     .replaceAll('>', '&gt;');
-}
 }
