@@ -5768,16 +5768,17 @@ function renderGalleryManager(service) {
         </label>
 
         <input
-          id="m-gallery-file"
-          type="file"
-          accept="image/jpeg,image/png,image/webp"
-        >
+        id="m-gallery-file"
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        multiple
+      >
 
         <div class="upload-help">
-          Select an image when adding a new item.
-          When editing, leave this empty to keep
-          the existing image.
-        </div>
+  You can select multiple images when adding
+  gallery items. When editing an existing image,
+  only one replacement image will be used.
+</div>
 
         <img
           id="m-gallery-preview"
@@ -5874,118 +5875,213 @@ function renderGalleryManager(service) {
           'm-gallery-existing-url'
         ).value;
 
-      const file =
-        document.getElementById(
-          'm-gallery-file'
-        ).files[0];
+      const fileInput =
+  document.getElementById(
+    'm-gallery-file'
+  );
 
-      if (!galleryId && !file) {
-        setMessage(
-          message,
-          'Please select an image.',
-          'error'
-        );
+const files =
+  Array.from(
+    fileInput?.files || []
+  );
 
-        return;
-      }
+if (
+  !galleryId &&
+  !files.length
+) {
+  setMessage(
+    message,
+    'Please select at least one image.',
+    'error'
+  );
 
-      let imageUrl =
-        existingImageUrl || '';
-
-      try {
-        setMessage(message, '');
-
-        if (file) {
-          const upload =
-            await authedApi.uploadImage(
-              file,
-              'services'
-            );
-
-          imageUrl = upload.url;
-        }
-
-        if (!imageUrl) {
-          setMessage(
-            message,
-            'A gallery image is required.',
-            'error'
-          );
-
-          return;
-        }
-
-        const payload = {
-          image_url: imageUrl,
-
-          caption:
-            document
-              .getElementById(
-                'm-gallery-caption'
-              )
-              .value.trim() || null,
-
-          alt_text:
-            document
-              .getElementById(
-                'm-gallery-alt'
-              )
-              .value.trim() || null,
-
-          sort_order: Number(
-            document.getElementById(
-              'm-gallery-order'
-            ).value || 0
-          ),
-
-          is_active: Number(
-            document.getElementById(
-              'm-gallery-active'
-            ).value
-          ),
-        };
-
-        const isEditGallery =
-  Boolean(galleryId);
-
-if (isEditGallery) {
-  await authedApi
-    .updateGalleryItem(
-      galleryId,
-      payload
-    );
-} else {
-  await authedApi
-    .createGalleryItem(
-      service.id,
-      payload
-    );
+  return;
 }
 
-await openGalleryManager(
-  service.id
-);
+      try {
+  setMessage(
+    message,
+    ''
+  );
 
-showKpToast({
-  title: isEditGallery
-    ? 'Gallery image updated'
-    : 'Gallery image added',
+  const caption =
+    document
+      .getElementById(
+        'm-gallery-caption'
+      )
+      .value.trim() ||
+    null;
 
-  message:
-    'The service gallery has been updated successfully.',
+  const altText =
+    document
+      .getElementById(
+        'm-gallery-alt'
+      )
+      .value.trim() ||
+    null;
 
-  duration: 5000,
-});
-      } catch (error) {
-        if (!handleAuthError(error)) {
-          setMessage(
-            message,
-            error.message ||
-              'Unable to save gallery image.',
-            'error'
+  const startOrder =
+    Number(
+      document.getElementById(
+        'm-gallery-order'
+      ).value || 0
+    );
+
+  const isActive =
+    Number(
+      document.getElementById(
+        'm-gallery-active'
+      ).value
+    );
+
+  const isEditGallery =
+    Boolean(galleryId);
+
+  /*
+    EDIT MODE
+    Existing gallery item remains
+    a single record.
+  */
+  if (isEditGallery) {
+    let imageUrl =
+      existingImageUrl || '';
+
+    if (files[0]) {
+      const upload =
+        await authedApi
+          .uploadImage(
+            files[0],
+            'services'
           );
+
+      imageUrl =
+        upload.url;
+    }
+
+    if (!imageUrl) {
+      setMessage(
+        message,
+        'A gallery image is required.',
+        'error'
+      );
+
+      return;
+    }
+
+    await authedApi
+      .updateGalleryItem(
+        galleryId,
+        {
+          image_url:
+            imageUrl,
+
+          caption,
+
+          alt_text:
+            altText,
+
+          sort_order:
+            startOrder,
+
+          is_active:
+            isActive,
         }
-      }
+      );
+
+    await openGalleryManager(
+      service.id
+    );
+
+    showKpToast({
+      title:
+        'Gallery image updated',
+
+      message:
+        'The gallery image has been updated successfully.',
+
+      duration: 5000,
+    });
+
+    return;
+  }
+
+  /*
+    ADD MODE
+    Each selected image becomes
+    its own gallery record.
+  */
+  let uploadedCount = 0;
+
+  for (
+    let index = 0;
+    index < files.length;
+    index += 1
+  ) {
+    const file =
+      files[index];
+
+    const upload =
+      await authedApi
+        .uploadImage(
+          file,
+          'services'
+        );
+
+    await authedApi
+      .createGalleryItem(
+        service.id,
+        {
+          image_url:
+            upload.url,
+
+          caption,
+
+          alt_text:
+            altText,
+
+          sort_order:
+            startOrder +
+            index,
+
+          is_active:
+            isActive,
+        }
+      );
+
+    uploadedCount += 1;
+  }
+
+  await openGalleryManager(
+    service.id
+  );
+
+  showKpToast({
+    title:
+      uploadedCount === 1
+        ? 'Gallery image added'
+        : 'Gallery images added',
+
+    message:
+      `${uploadedCount} image${
+        uploadedCount === 1
+          ? ''
+          : 's'
+      } added successfully.`,
+
+    duration: 5000,
+  });
+} catch (error) {
+  if (
+    !handleAuthError(error)
+  ) {
+    setMessage(
+      message,
+      error.message ||
+        'Unable to save gallery image.',
+      'error'
+    );
+  }
+}
     }
   );
 
@@ -6065,6 +6161,8 @@ showKpToast({
             );
 
           fileInput.value = '';
+          fileInput.multiple =
+  false;
 
           const preview =
             document.getElementById(
@@ -6229,8 +6327,10 @@ function clearGalleryForm() {
     );
 
   if (fileInput) {
-    fileInput.value = '';
-  }
+  fileInput.value = '';
+  fileInput.multiple =
+    true;
+}
 
   const order =
     document.getElementById(
