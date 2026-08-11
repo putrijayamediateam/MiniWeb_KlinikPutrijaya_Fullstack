@@ -96,7 +96,12 @@ router.post('/login', async (req, res) => {
   await db.query(
     `
       UPDATE admins
-      SET last_login_at = NOW()
+      SET last_login_at =
+        CONVERT_TZ(
+          UTC_TIMESTAMP(),
+          '+00:00',
+          '+08:00'
+        )
       WHERE id = ?
     `,
     [admin.id]
