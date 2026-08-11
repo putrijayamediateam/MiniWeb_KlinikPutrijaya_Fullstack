@@ -55,6 +55,7 @@ let performanceReportCache = null;
 let performanceTrendChartInstance = null;
 let performanceDeviceChartInstance = null;
 let performanceGenderChartInstance = null;
+let sessionExpiryPromptOpen = false;
 
 const ADMIN_API_BASE = String(
   window.KP_API_BASE ||
@@ -760,12 +761,46 @@ function switchTab(tab) {
 }
 
 function handleAuthError(error) {
-  if (error?.status === 401 || /token|expired|authentication/i.test(error?.message || '')) {
-    alert('Your session has expired. Please log in again.');
-    handleLogout();
-    return true;
+  const isAuthError =
+    error?.status === 401 ||
+    /token|expired|authentication/i.test(
+      error?.message || ''
+    );
+
+  if (!isAuthError) {
+    return false;
   }
-  return false;
+
+  if (!sessionExpiryPromptOpen) {
+    sessionExpiryPromptOpen = true;
+
+    openKpActionModal({
+      eyebrow:
+        'Session expired',
+
+      title:
+        'Please log in again',
+
+      message:
+        'Your administrator session has expired for security reasons.',
+
+      confirmText:
+        'Log in again',
+
+      cancelText:
+        'Close',
+
+      variant:
+        'warning',
+    }).then(() => {
+      sessionExpiryPromptOpen =
+        false;
+
+      handleLogout();
+    });
+  }
+
+  return true;
 }
 
 function populateBookingBranchFilter() {
@@ -2333,26 +2368,36 @@ function appendPerformanceMetricSheet(
 }
 
 function exportPerformanceWorkbook() {
+  if (!performanceReportCache) {
+  showKpToast({
+    title:
+      'Report not ready',
+
+    message:
+      'Load the performance report before exporting.',
+
+    duration: 6000,
+  });
+
+  return;
+}
+
   if (
-    !performanceReportCache
-  ) {
-    alert(
-      'Load the performance report before exporting.'
-    );
+  typeof XLSX ===
+  'undefined'
+) {
+  showKpToast({
+    title:
+      'Export unavailable',
 
-    return;
-  }
+    message:
+      'The Excel export library could not be loaded. Please refresh the page and try again.',
 
-  if (
-    typeof XLSX ===
-    'undefined'
-  ) {
-    alert(
-      'Excel export library could not be loaded.'
-    );
+    duration: 7000,
+  });
 
-    return;
-  }
+  return;
+}
 
   const report =
     performanceReportCache;
@@ -2877,40 +2922,174 @@ tbody
     );
   });
 
-  tbody.querySelectorAll('.status-select').forEach((select) => {
-    select.addEventListener('change', async () => {
-      const previous = select.dataset.previous || '';
-      select.disabled = true;
+  tbody
+  .querySelectorAll(
+    '.status-select'
+  )
+  .forEach((select) => {
+    select.addEventListener(
+      'change',
+      async () => {
+        const previous =
+          select.dataset.previous ||
+          '';
 
-      try {
-        await authedApi.updateBookingStatus(
-  select.dataset.id,
-  select.value
-);
-        select.dataset.previous = select.value;
-        select.className = `status-select status-${select.value}`;
+        const nextStatus =
+          select.value;
 
-        await loadBookings();
-      } catch (error) {
-        if (!handleAuthError(error)) alert(`Failed to update status: ${error.message}`);
-        if (previous) select.value = previous;
-      } finally {
-        select.disabled = false;
+        const booking =
+          bookings.find(
+            (item) =>
+              String(item.id) ===
+              String(
+                select.dataset.id
+              )
+          );
+
+        const reference =
+          formatBookingRef(
+            select.dataset.id
+          );
+
+        select.disabled = true;
+
+        try {
+          await authedApi
+            .updateBookingStatus(
+              select.dataset.id,
+              nextStatus
+            );
+
+          select.dataset.previous =
+            nextStatus;
+
+          select.className =
+            `status-select status-${nextStatus}`;
+
+          await loadBookings();
+
+          showKpToast({
+            title:
+              'Booking status updated',
+
+            message:
+              `${reference} is now ${formatBookingStatusLabel(
+                nextStatus
+              )}.`,
+
+            duration: 4500,
+          });
+        } catch (error) {
+          if (previous) {
+            select.value =
+              previous;
+
+            select.className =
+              `status-select status-${previous}`;
+          }
+
+          if (
+            !handleAuthError(error)
+          ) {
+            showKpToast({
+              title:
+                'Unable to update booking',
+
+              message:
+                error.message ||
+                'Please try again.',
+
+              duration: 7000,
+            });
+          }
+        } finally {
+          select.disabled = false;
+        }
       }
-    });
-    select.dataset.previous = select.value;
+    );
+
+    select.dataset.previous =
+      select.value;
   });
 
-  tbody.querySelectorAll('[data-action="delete-booking"]').forEach((button) => {
-    button.addEventListener('click', async () => {
-      if (!confirm('Delete this booking permanently?')) return;
-      try {
-        await authedApi.deleteBooking(button.dataset.id);
-        await loadBookings();
-      } catch (error) {
-        if (!handleAuthError(error)) alert(`Failed to delete booking: ${error.message}`);
+  tbody
+  .querySelectorAll(
+    '[data-action="delete-booking"]'
+  )
+  .forEach((button) => {
+    button.addEventListener(
+      'click',
+      async () => {
+        const booking =
+          bookings.find(
+            (item) =>
+              String(item.id) ===
+              String(
+                button.dataset.id
+              )
+          );
+
+        const reference =
+          formatBookingRef(
+            button.dataset.id
+          );
+
+        const patientName =
+          booking?.patient_name ||
+          'this patient';
+
+        const confirmed =
+          await confirmDelete({
+            title:
+              `Delete ${reference}?`,
+
+            message:
+              `The booking for ${patientName} will be permanently removed. This action cannot be undone.`,
+          });
+
+        if (!confirmed) {
+          return;
+        }
+
+        button.disabled = true;
+
+        try {
+          await authedApi
+            .deleteBooking(
+              button.dataset.id
+            );
+
+          await loadBookings();
+
+          showKpToast({
+            title:
+              'Booking deleted',
+
+            message:
+              `${reference} has been permanently removed.`,
+
+            duration: 5000,
+          });
+        } catch (error) {
+          if (
+            !handleAuthError(error)
+          ) {
+            showKpToast({
+              title:
+                'Unable to delete booking',
+
+              message:
+                error.message ||
+                'Please try again.',
+
+              duration: 7000,
+            });
+          }
+        } finally {
+          button.disabled = false;
+        }
       }
-    });
+    );
   });
 }
 
@@ -3281,11 +3460,18 @@ function downloadBookingTicket(
     );
 
   if (!ticketWindow) {
-    alert(
-      'Popup blocked. Please allow popups to download the ticket.'
-    );
-    return;
-  }
+  showKpToast({
+    title:
+      'Popup blocked',
+
+    message:
+      'Please allow popups for this website, then try downloading the booking ticket again.',
+
+    duration: 8000,
+  });
+
+  return;
+}
 
   const reference =
     formatBookingRef(
@@ -3856,9 +4042,18 @@ async function exportBookingsToCSV() {
 
     const bookings = response.data || [];
     if (!bookings.length) {
-      alert('No booking data to export.');
-      return;
-    }
+  showKpToast({
+    title:
+      'No bookings to export',
+
+    message:
+      'No booking records match the current filters.',
+
+    duration: 6000,
+  });
+
+  return;
+}
 
     const headers = [
       'Reference', 'Patient Name', 'Phone', 'Branch', 'Doctor',
@@ -3880,7 +4075,19 @@ async function exportBookingsToCSV() {
 
     downloadCsv(`klinik-putrijaya-bookings-${new Date().toISOString().slice(0, 10)}.csv`, [headers, ...rows]);
   } catch (error) {
-    if (!handleAuthError(error)) alert(`Unable to export bookings: ${error.message}`);
+  if (
+    !handleAuthError(error)
+  ) {
+    showKpToast({
+      title:
+        'Unable to export bookings',
+
+      message:
+        error.message ||
+        'Please try again.',
+
+      duration: 7000,
+    });
   }
 }
 
@@ -3931,28 +4138,107 @@ async function loadFeedback() {
       }
     );
 
-    tbody.querySelectorAll('[data-action="approve-feedback"]').forEach((button) => {
-      button.addEventListener('click', async () => {
-        try {
-          await authedApi.approveFeedback(button.dataset.id);
-          await loadFeedback();
-        } catch (error) {
-          if (!handleAuthError(error)) alert(`Failed to approve feedback: ${error.message}`);
-        }
-      });
-    });
+    tbody
+  .querySelectorAll(
+    '[data-action="approve-feedback"]'
+  )
+  .forEach((button) => {
+    button.addEventListener(
+      'click',
+      async () => {
+        button.disabled = true;
 
-    tbody.querySelectorAll('[data-action="delete-feedback"]').forEach((button) => {
-      button.addEventListener('click', async () => {
-        if (!confirm('Delete this feedback?')) return;
         try {
-          await authedApi.deleteFeedback(button.dataset.id);
+          await authedApi
+            .approveFeedback(
+              button.dataset.id
+            );
+
           await loadFeedback();
+
+          showKpToast({
+            title:
+              'Feedback approved',
+            message:
+              'The feedback is now approved and ready for display.',
+            duration: 5000,
+          });
         } catch (error) {
-          if (!handleAuthError(error)) alert(`Failed to delete feedback: ${error.message}`);
+          if (
+            !handleAuthError(error)
+          ) {
+            showKpToast({
+              title:
+                'Unable to approve feedback',
+              message:
+                error.message ||
+                'Please try again.',
+              duration: 7000,
+            });
+          }
+        } finally {
+          button.disabled = false;
         }
-      });
-    });
+      }
+    );
+  });
+
+    tbody
+  .querySelectorAll(
+    '[data-action="delete-feedback"]'
+  )
+  .forEach((button) => {
+    button.addEventListener(
+      'click',
+      async () => {
+        const confirmed =
+          await confirmDelete({
+            title:
+              'Delete this feedback?',
+            message:
+              'This feedback will be permanently removed and cannot be recovered.',
+          });
+
+        if (!confirmed) {
+          return;
+        }
+
+        button.disabled = true;
+
+        try {
+          await authedApi
+            .deleteFeedback(
+              button.dataset.id
+            );
+
+          await loadFeedback();
+
+          showKpToast({
+            title:
+              'Feedback deleted',
+            message:
+              'The feedback has been permanently removed.',
+            duration: 5000,
+          });
+        } catch (error) {
+          if (
+            !handleAuthError(error)
+          ) {
+            showKpToast({
+              title:
+                'Unable to delete feedback',
+              message:
+                error.message ||
+                'Please try again.',
+              duration: 7000,
+            });
+          }
+        } finally {
+          button.disabled = false;
+        }
+      }
+    );
+  });
   } catch (error) {
     if (!handleAuthError(error)) {
       tbody.innerHTML = `<tr><td colspan="6" class="empty-row">${escapeHtml(error.message)}</td></tr>`;
@@ -4003,17 +4289,76 @@ async function loadDoctors() {
       });
     });
 
-    tbody.querySelectorAll('[data-action="delete-doctor"]').forEach((button) => {
-      button.addEventListener('click', async () => {
-        if (!confirm('Delete this doctor? Use inactive status if the doctor has previous bookings.')) return;
-        try {
-          await authedApi.deleteDoctor(button.dataset.id);
-          await loadDoctors();
-        } catch (error) {
-          if (!handleAuthError(error)) alert(`Failed to delete doctor: ${error.message}`);
+    tbody
+  .querySelectorAll(
+    '[data-action="delete-doctor"]'
+  )
+  .forEach((button) => {
+    button.addEventListener(
+      'click',
+      async () => {
+        const doctor =
+          doctorsCache.find(
+            (item) =>
+              String(item.id) ===
+              String(
+                button.dataset.id
+              )
+          );
+
+        const doctorName =
+          doctor?.name ||
+          'this doctor';
+
+        const confirmed =
+          await confirmDelete({
+            title:
+              `Delete ${doctorName}?`,
+
+            message:
+              'Permanent deletion may not be allowed if this doctor has previous bookings. Use Inactive status instead when historical records must be retained.',
+          });
+
+        if (!confirmed) {
+          return;
         }
-      });
-    });
+
+        button.disabled = true;
+
+        try {
+          await authedApi
+            .deleteDoctor(
+              button.dataset.id
+            );
+
+          await loadDoctors();
+
+          showKpToast({
+            title:
+              'Doctor deleted',
+            message:
+              `${doctorName} has been removed.`,
+            duration: 5000,
+          });
+        } catch (error) {
+          if (
+            !handleAuthError(error)
+          ) {
+            showKpToast({
+              title:
+                'Unable to delete doctor',
+              message:
+                error.message ||
+                'The doctor may have existing records. Try setting the doctor to Inactive instead.',
+              duration: 8000,
+            });
+          }
+        } finally {
+          button.disabled = false;
+        }
+      }
+    );
+  });
   } catch (error) {
     if (!handleAuthError(error)) {
       tbody.innerHTML = `<tr><td colspan="6" class="empty-row">${escapeHtml(error.message)}</td></tr>`;
@@ -4091,13 +4436,33 @@ function openDoctorModal(doctor = null) {
       };
 
       if (isEdit) {
-        await authedApi.updateDoctor(doctor.id, payload);
-      } else {
-        await authedApi.createDoctor(payload);
-      }
+  await authedApi
+    .updateDoctor(
+      doctor.id,
+      payload
+    );
+} else {
+  await authedApi
+    .createDoctor(
+      payload
+    );
+}
 
-      closeModal();
-      await loadDoctors();
+closeModal();
+
+await loadDoctors();
+
+showKpToast({
+  title: isEdit
+    ? 'Doctor updated successfully'
+    : 'Doctor added successfully',
+
+  message: isEdit
+    ? `${payload.name}'s information has been updated.`
+    : `${payload.name} has been added to the doctor list.`,
+
+  duration: 5000,
+});
     } catch (error) {
       if (!handleAuthError(error)) setMessage(message, error.message, 'error');
     }
@@ -4165,17 +4530,76 @@ async function loadServices() {
       button.addEventListener('click', () => openGalleryManager(Number(button.dataset.id)));
     });
 
-    tbody.querySelectorAll('[data-action="delete-service"]').forEach((button) => {
-      button.addEventListener('click', async () => {
-        if (!confirm('Delete this service, its price list and gallery?')) return;
-        try {
-          await authedApi.deleteService(button.dataset.id);
-          await loadServices();
-        } catch (error) {
-          if (!handleAuthError(error)) alert(`Failed to delete service: ${error.message}`);
+    tbody
+  .querySelectorAll(
+    '[data-action="delete-service"]'
+  )
+  .forEach((button) => {
+    button.addEventListener(
+      'click',
+      async () => {
+        const service =
+          servicesCache.find(
+            (item) =>
+              String(item.id) ===
+              String(
+                button.dataset.id
+              )
+          );
+
+        const serviceTitle =
+          service?.title ||
+          'this service';
+
+        const confirmed =
+          await confirmDelete({
+            title:
+              `Delete ${serviceTitle}?`,
+
+            message:
+              'This will permanently remove the service together with its price list and gallery images. This action cannot be undone.',
+          });
+
+        if (!confirmed) {
+          return;
         }
-      });
-    });
+
+        button.disabled = true;
+
+        try {
+          await authedApi
+            .deleteService(
+              button.dataset.id
+            );
+
+          await loadServices();
+
+          showKpToast({
+            title:
+              'Service deleted',
+            message:
+              `${serviceTitle} has been permanently removed.`,
+            duration: 5000,
+          });
+        } catch (error) {
+          if (
+            !handleAuthError(error)
+          ) {
+            showKpToast({
+              title:
+                'Unable to delete service',
+              message:
+                error.message ||
+                'Please try again.',
+              duration: 8000,
+            });
+          }
+        } finally {
+          button.disabled = false;
+        }
+      }
+    );
+  });
   } catch (error) {
     if (!handleAuthError(error)) {
       tbody.innerHTML = `<tr><td colspan="5" class="empty-row">${escapeHtml(error.message)}</td></tr>`;
@@ -4223,13 +4647,19 @@ async function openServiceModal(service = null) {
       branchesCache = branches;
     }
   } catch (error) {
-    alert(
-      `Unable to load the Services V2 form: ${
-        error.message || 'Unknown error'
-      }`
-    );
-    return;
-  }
+  showKpToast({
+    title:
+      'Unable to open service form',
+
+    message:
+      error.message ||
+      'The Services V2 form could not be loaded.',
+
+    duration: 7000,
+  });
+
+  return;
+}
 
   const legacyCategorySlugMap = {
     general: 'family-general-medicine',
@@ -4880,9 +5310,22 @@ async function openServiceModal(service = null) {
         }
 
         closeModal();
-        await loadServices();
 
-        if (!isEdit && savedId) {
+await loadServices();
+
+if (isEdit) {
+  showKpToast({
+    title:
+      'Service updated successfully',
+
+    message:
+      `${payload.title} has been updated.`,
+
+    duration: 5000,
+  });
+}
+
+if (!isEdit && savedId) {
   showKpToast({
     title:
       'Service created successfully',
@@ -4955,12 +5398,34 @@ async function openServiceModal(service = null) {
   );
 }
 
-async function openPriceManager(serviceId) {
+async function openPriceManager(
+  serviceId
+) {
   try {
-    const service = await authedApi.getAdminService(serviceId);
-    renderPriceManager(service);
+    const service =
+      await authedApi
+        .getAdminService(
+          serviceId
+        );
+
+    renderPriceManager(
+      service
+    );
   } catch (error) {
-    if (!handleAuthError(error)) alert(`Unable to load prices: ${error.message}`);
+    if (
+      !handleAuthError(error)
+    ) {
+      showKpToast({
+        title:
+          'Unable to load price list',
+
+        message:
+          error.message ||
+          'Please try again.',
+
+        duration: 7000,
+      });
+    }
   }
 }
 
@@ -5021,12 +5486,37 @@ function renderPriceManager(service) {
     };
 
     try {
-      if (priceId) {
-        await authedApi.updateServicePrice(priceId, payload);
-      } else {
-        await authedApi.createServicePrice(service.id, payload);
-      }
-      await openPriceManager(service.id);
+      const isEditPrice =
+  Boolean(priceId);
+
+if (isEditPrice) {
+  await authedApi
+    .updateServicePrice(
+      priceId,
+      payload
+    );
+} else {
+  await authedApi
+    .createServicePrice(
+      service.id,
+      payload
+    );
+}
+
+await openPriceManager(
+  service.id
+);
+
+showKpToast({
+  title: isEditPrice
+    ? 'Price updated'
+    : 'Price added',
+
+  message:
+    `${payload.package_name} has been saved successfully.`,
+
+  duration: 5000,
+});
     } catch (error) {
       if (!handleAuthError(error)) setMessage(message, error.message, 'error');
     }
@@ -5050,16 +5540,83 @@ function renderPriceManager(service) {
     });
   });
 
-  document.querySelectorAll('[data-delete-price]').forEach((button) => {
-    button.addEventListener('click', async () => {
-      if (!confirm('Delete this price item?')) return;
-      try {
-        await authedApi.deleteServicePrice(button.dataset.deletePrice);
-        await openPriceManager(service.id);
-      } catch (error) {
-        if (!handleAuthError(error)) alert(`Unable to delete price: ${error.message}`);
+  document
+  .querySelectorAll(
+    '[data-delete-price]'
+  )
+  .forEach((button) => {
+    button.addEventListener(
+      'click',
+      async () => {
+        const price =
+          service.prices.find(
+            (item) =>
+              String(item.id) ===
+              String(
+                button.dataset
+                  .deletePrice
+              )
+          );
+
+        const priceName =
+          price?.package_name ||
+          'this price item';
+
+        const confirmed =
+          await confirmDelete({
+            title:
+              `Delete ${priceName}?`,
+
+            message:
+              'This price item will be permanently removed from the service.',
+          });
+
+        if (!confirmed) {
+          return;
+        }
+
+        button.disabled = true;
+
+        try {
+          await authedApi
+            .deleteServicePrice(
+              button.dataset
+                .deletePrice
+            );
+
+          await openPriceManager(
+            service.id
+          );
+
+          showKpToast({
+            title:
+              'Price deleted',
+
+            message:
+              `${priceName} has been removed.`,
+
+            duration: 5000,
+          });
+        } catch (error) {
+          if (
+            !handleAuthError(error)
+          ) {
+            showKpToast({
+              title:
+                'Unable to delete price',
+
+              message:
+                error.message ||
+                'Please try again.',
+
+              duration: 7000,
+            });
+          }
+        } finally {
+          button.disabled = false;
+        }
       }
-    });
+    );
   });
 }
 
@@ -5075,19 +5632,33 @@ function clearPriceForm() {
   if (active) active.value = '1';
 }
 
-async function openGalleryManager(serviceId) {
+async function openGalleryManager(
+  serviceId
+) {
   try {
     const service =
-      await authedApi.getAdminService(
-        serviceId
-      );
+      await authedApi
+        .getAdminService(
+          serviceId
+        );
 
-    renderGalleryManager(service);
+    renderGalleryManager(
+      service
+    );
   } catch (error) {
-    if (!handleAuthError(error)) {
-      alert(
-        `Unable to load gallery: ${error.message}`
-      );
+    if (
+      !handleAuthError(error)
+    ) {
+      showKpToast({
+        title:
+          'Unable to load gallery',
+
+        message:
+          error.message ||
+          'Please try again.',
+
+        duration: 7000,
+      });
     }
   }
 }
@@ -5373,21 +5944,37 @@ function renderGalleryManager(service) {
           ),
         };
 
-        if (galleryId) {
-          await authedApi.updateGalleryItem(
-            galleryId,
-            payload
-          );
-        } else {
-          await authedApi.createGalleryItem(
-            service.id,
-            payload
-          );
-        }
+        const isEditGallery =
+  Boolean(galleryId);
 
-        await openGalleryManager(
-          service.id
-        );
+if (isEditGallery) {
+  await authedApi
+    .updateGalleryItem(
+      galleryId,
+      payload
+    );
+} else {
+  await authedApi
+    .createGalleryItem(
+      service.id,
+      payload
+    );
+}
+
+await openGalleryManager(
+  service.id
+);
+
+showKpToast({
+  title: isEditGallery
+    ? 'Gallery image updated'
+    : 'Gallery image added',
+
+  message:
+    'The service gallery has been updated successfully.',
+
+  duration: 5000,
+});
       } catch (error) {
         if (!handleAuthError(error)) {
           setMessage(
@@ -5521,39 +6108,83 @@ function renderGalleryManager(service) {
     });
 
   document
-    .querySelectorAll(
-      '[data-delete-gallery]'
-    )
-    .forEach((button) => {
-      button.addEventListener(
-        'click',
-        async () => {
-          const confirmed = confirm(
-            'Delete this gallery image?'
+  .querySelectorAll(
+    '[data-delete-gallery]'
+  )
+  .forEach((button) => {
+    button.addEventListener(
+      'click',
+      async () => {
+        const image =
+          gallery.find(
+            (item) =>
+              String(item.id) ===
+              String(
+                button.dataset
+                  .deleteGallery
+              )
           );
 
-          if (!confirmed) {
-            return;
-          }
+        const imageLabel =
+          image?.caption ||
+          'this gallery image';
 
-          try {
-            await authedApi.deleteGalleryItem(
-              button.dataset.deleteGallery
-            );
+        const confirmed =
+          await confirmDelete({
+            title:
+              'Delete gallery image?',
 
-            await openGalleryManager(
-              service.id
-            );
-          } catch (error) {
-            if (!handleAuthError(error)) {
-              alert(
-                `Unable to delete gallery image: ${error.message}`
-              );
-            }
-          }
+            message:
+              `${imageLabel} will be permanently removed from this service.`,
+          });
+
+        if (!confirmed) {
+          return;
         }
-      );
-    });
+
+        button.disabled = true;
+
+        try {
+          await authedApi
+            .deleteGalleryItem(
+              button.dataset
+                .deleteGallery
+            );
+
+          await openGalleryManager(
+            service.id
+          );
+
+          showKpToast({
+            title:
+              'Gallery image deleted',
+
+            message:
+              'The image has been permanently removed.',
+
+            duration: 5000,
+          });
+        } catch (error) {
+          if (
+            !handleAuthError(error)
+          ) {
+            showKpToast({
+              title:
+                'Unable to delete image',
+
+              message:
+                error.message ||
+                'Please try again.',
+
+              duration: 7000,
+            });
+          }
+        } finally {
+          button.disabled = false;
+        }
+      }
+    );
+  });
 }
 
 function clearGalleryForm() {
@@ -5923,64 +6554,101 @@ function renderServiceCategoriesTable() {
     });
 
   tbody
-    .querySelectorAll(
-      '[data-action="toggle-service-category"]'
-    )
-    .forEach((button) => {
-      button.addEventListener(
-        'click',
-        async () => {
-          const currentlyActive =
-            Number(
-              button.dataset.active
-            ) === 1;
+  .querySelectorAll(
+    '[data-action="toggle-service-category"]'
+  )
+  .forEach((button) => {
+    button.addEventListener(
+      'click',
+      async () => {
+        const currentlyActive =
+          Number(
+            button.dataset.active
+          ) === 1;
 
-          const nextActive =
-            currentlyActive
-              ? 0
-              : 1;
+        const nextActive =
+          currentlyActive
+            ? 0
+            : 1;
 
-          const actionLabel =
-            nextActive
-              ? 'activate'
-              : 'deactivate';
+        const category =
+          serviceCategoriesCache.find(
+            (item) =>
+              String(item.id) ===
+              String(
+                button.dataset.id
+              )
+          );
 
-          const confirmed =
-            confirm(
-              `Are you sure you want to ${actionLabel} this category?`
+        const categoryName =
+          category?.name ||
+          'this category';
+
+        const confirmed =
+          await confirmStatusChange({
+            title: nextActive
+              ? `Activate ${categoryName}?`
+              : `Deactivate ${categoryName}?`,
+
+            message: nextActive
+              ? 'This category will become available for active service setup.'
+              : 'Services under this category may no longer appear normally on the public website until the category is activated again.',
+
+            confirmText: nextActive
+              ? 'Activate'
+              : 'Deactivate',
+          });
+
+        if (!confirmed) {
+          return;
+        }
+
+        button.disabled = true;
+
+        try {
+          await authedApi
+            .updateServiceCategoryStatus(
+              button.dataset.id,
+              nextActive
             );
 
-          if (!confirmed) {
-            return;
-          }
+          await loadServiceTaxonomy();
 
-          button.disabled = true;
+          showKpToast({
+            title: nextActive
+              ? 'Category activated'
+              : 'Category deactivated',
 
-          try {
-            await authedApi
-              .updateServiceCategoryStatus(
-                button.dataset.id,
+            message:
+              `${categoryName} is now ${
                 nextActive
-              );
+                  ? 'active'
+                  : 'inactive'
+              }.`,
 
-            await loadServiceTaxonomy();
-          } catch (error) {
-            if (
-              !handleAuthError(
-                error
-              )
-            ) {
-              alert(
+            duration: 5000,
+          });
+        } catch (error) {
+          if (
+            !handleAuthError(error)
+          ) {
+            showKpToast({
+              title:
+                'Unable to update category',
+
+              message:
                 error.message ||
-                `Unable to ${actionLabel} category.`
-              );
-            }
-          } finally {
-            button.disabled = false;
+                'Please try again.',
+
+              duration: 7000,
+            });
           }
+        } finally {
+          button.disabled = false;
         }
-      );
-    });
+      }
+    );
+  });
 }
 
 function populateTaxonomyCategoryFilter() {
@@ -6268,64 +6936,101 @@ function renderServiceSubcategoriesTable(
     });
 
   tbody
-    .querySelectorAll(
-      '[data-action="toggle-service-subcategory"]'
-    )
-    .forEach((button) => {
-      button.addEventListener(
-        'click',
-        async () => {
-          const currentlyActive =
-            Number(
-              button.dataset.active
-            ) === 1;
+  .querySelectorAll(
+    '[data-action="toggle-service-subcategory"]'
+  )
+  .forEach((button) => {
+    button.addEventListener(
+      'click',
+      async () => {
+        const currentlyActive =
+          Number(
+            button.dataset.active
+          ) === 1;
 
-          const nextActive =
-            currentlyActive
-              ? 0
-              : 1;
+        const nextActive =
+          currentlyActive
+            ? 0
+            : 1;
 
-          const actionLabel =
-            nextActive
-              ? 'activate'
-              : 'deactivate';
+        const subcategory =
+          serviceSubcategoriesCache.find(
+            (item) =>
+              String(item.id) ===
+              String(
+                button.dataset.id
+              )
+          );
 
-          const confirmed =
-            confirm(
-              `Are you sure you want to ${actionLabel} this subcategory?`
+        const subcategoryName =
+          subcategory?.name ||
+          'this subcategory';
+
+        const confirmed =
+          await confirmStatusChange({
+            title: nextActive
+              ? `Activate ${subcategoryName}?`
+              : `Deactivate ${subcategoryName}?`,
+
+            message: nextActive
+              ? 'This subcategory will become available for service assignment.'
+              : 'Services assigned to this subcategory may no longer appear normally on the public website until it is activated again.',
+
+            confirmText: nextActive
+              ? 'Activate'
+              : 'Deactivate',
+          });
+
+        if (!confirmed) {
+          return;
+        }
+
+        button.disabled = true;
+
+        try {
+          await authedApi
+            .updateServiceSubcategoryStatus(
+              button.dataset.id,
+              nextActive
             );
 
-          if (!confirmed) {
-            return;
-          }
+          await loadServiceTaxonomy();
 
-          button.disabled = true;
+          showKpToast({
+            title: nextActive
+              ? 'Subcategory activated'
+              : 'Subcategory deactivated',
 
-          try {
-            await authedApi
-              .updateServiceSubcategoryStatus(
-                button.dataset.id,
+            message:
+              `${subcategoryName} is now ${
                 nextActive
-              );
+                  ? 'active'
+                  : 'inactive'
+              }.`,
 
-            await loadServiceTaxonomy();
-          } catch (error) {
-            if (
-              !handleAuthError(
-                error
-              )
-            ) {
-              alert(
+            duration: 5000,
+          });
+        } catch (error) {
+          if (
+            !handleAuthError(error)
+          ) {
+            showKpToast({
+              title:
+                'Unable to update subcategory',
+
+              message:
                 error.message ||
-                `Unable to ${actionLabel} subcategory.`
-              );
-            }
-          } finally {
-            button.disabled = false;
+                'Please try again.',
+
+              duration: 7000,
+            });
           }
+        } finally {
+          button.disabled = false;
         }
-      );
-    });
+      }
+    );
+  });
 }
 
 function openServiceCategoryModal(
@@ -6506,21 +7211,32 @@ function openServiceCategoryModal(
         );
 
         if (isEdit) {
-          await authedApi
-            .updateServiceCategory(
-              category.id,
-              payload
-            );
-        } else {
-          await authedApi
-            .createServiceCategory(
-              payload
-            );
-        }
+  await authedApi
+    .updateServiceCategory(
+      category.id,
+      payload
+    );
+} else {
+  await authedApi
+    .createServiceCategory(
+      payload
+    );
+}
 
-        closeModal();
+closeModal();
 
-        await loadServiceTaxonomy();
+await loadServiceTaxonomy();
+
+showKpToast({
+  title: isEdit
+    ? 'Category updated'
+    : 'Category created',
+
+  message:
+    `${payload.name} has been saved successfully.`,
+
+  duration: 5000,
+});
       } catch (error) {
         if (
           !handleAuthError(
@@ -6793,21 +7509,32 @@ function openServiceSubcategoryModal(
         );
 
         if (isEdit) {
-          await authedApi
-            .updateServiceSubcategory(
-              subcategory.id,
-              payload
-            );
-        } else {
-          await authedApi
-            .createServiceSubcategory(
-              payload
-            );
-        }
+  await authedApi
+    .updateServiceSubcategory(
+      subcategory.id,
+      payload
+    );
+} else {
+  await authedApi
+    .createServiceSubcategory(
+      payload
+    );
+}
 
-        closeModal();
+closeModal();
 
-        await loadServiceTaxonomy();
+await loadServiceTaxonomy();
+
+showKpToast({
+  title: isEdit
+    ? 'Subcategory updated'
+    : 'Subcategory created',
+
+  message:
+    `${payload.name} has been saved successfully.`,
+
+  duration: 5000,
+});
       } catch (error) {
         if (
           !handleAuthError(
@@ -6884,17 +7611,82 @@ async function loadPromotions() {
       });
     });
 
-    tbody.querySelectorAll('[data-delete-promotion]').forEach((button) => {
-      button.addEventListener('click', async () => {
-        if (!confirm('Delete this promotion?')) return;
-        try {
-          await authedApi.deletePromotion(button.dataset.deletePromotion);
-          await loadPromotions();
-        } catch (error) {
-          if (!handleAuthError(error)) alert(`Failed to delete promotion: ${error.message}`);
+    tbody
+  .querySelectorAll(
+    '[data-delete-promotion]'
+  )
+  .forEach((button) => {
+    button.addEventListener(
+      'click',
+      async () => {
+        const promotion =
+          promotionsCache.find(
+            (item) =>
+              String(item.id) ===
+              String(
+                button.dataset
+                  .deletePromotion
+              )
+          );
+
+        const promotionTitle =
+          promotion?.title ||
+          'this promotion';
+
+        const confirmed =
+          await confirmDelete({
+            title:
+              `Delete ${promotionTitle}?`,
+
+            message:
+              'This promotion will be permanently removed and cannot be recovered.',
+          });
+
+        if (!confirmed) {
+          return;
         }
-      });
-    });
+
+        button.disabled = true;
+
+        try {
+          await authedApi
+            .deletePromotion(
+              button.dataset
+                .deletePromotion
+            );
+
+          await loadPromotions();
+
+          showKpToast({
+            title:
+              'Promotion deleted',
+
+            message:
+              `${promotionTitle} has been permanently removed.`,
+
+            duration: 5000,
+          });
+        } catch (error) {
+          if (
+            !handleAuthError(error)
+          ) {
+            showKpToast({
+              title:
+                'Unable to delete promotion',
+
+              message:
+                error.message ||
+                'Please try again.',
+
+              duration: 7000,
+            });
+          }
+        } finally {
+          button.disabled = false;
+        }
+      }
+    );
+  });
   } catch (error) {
     tbody.innerHTML = `<tr><td colspan="6" class="empty-row">${escapeHtml(error.message)}</td></tr>`;
   }
@@ -6948,11 +7740,33 @@ function openPromotionModal(promotion = null) {
         is_active: Number(document.getElementById('m-promo-active').value),
       };
 
-      if (isEdit) await authedApi.updatePromotion(promotion.id, payload);
-      else await authedApi.createPromotion(payload);
+      if (isEdit) {
+  await authedApi
+    .updatePromotion(
+      promotion.id,
+      payload
+    );
+} else {
+  await authedApi
+    .createPromotion(
+      payload
+    );
+}
 
-      closeModal();
-      await loadPromotions();
+closeModal();
+
+await loadPromotions();
+
+showKpToast({
+  title: isEdit
+    ? 'Promotion updated'
+    : 'Promotion created',
+
+  message:
+    `${payload.title} has been saved successfully.`,
+
+  duration: 5000,
+});
     } catch (error) {
       if (!handleAuthError(error)) setMessage(message, error.message, 'error');
     }
@@ -7165,43 +7979,79 @@ async function loadActivities() {
       });
 
     tbody
-      .querySelectorAll(
-        '[data-action="delete-activity"]'
-      )
-      .forEach((button) => {
-        button.addEventListener(
-          'click',
-          async () => {
-            const confirmed =
-              confirm(
-                'Delete this activity and all its gallery images?'
-              );
+  .querySelectorAll(
+    '[data-action="delete-activity"]'
+  )
+  .forEach((button) => {
+    button.addEventListener(
+      'click',
+      async () => {
+        const activity =
+          activitiesCache.find(
+            (item) =>
+              String(item.id) ===
+              String(
+                button.dataset.id
+              )
+          );
 
-            if (!confirmed) {
-              return;
-            }
+        const activityTitle =
+          activity?.title ||
+          'this activity';
 
-            try {
-              await authedApi
-                .deleteActivity(
-                  button.dataset.id
-                );
+        const confirmed =
+          await confirmDelete({
+            title:
+              `Delete ${activityTitle}?`,
 
-              await loadActivities();
-            } catch (error) {
-              if (
-                !handleAuthError(
-                  error
-                )
-              ) {
-                alert(
-                  `Unable to delete activity: ${error.message}`
-                );
-              }
-            }
+            message:
+              'This activity and its associated gallery content will be permanently removed. This action cannot be undone.',
+          });
+
+        if (!confirmed) {
+          return;
+        }
+
+        button.disabled = true;
+
+        try {
+          await authedApi
+            .deleteActivity(
+              button.dataset.id
+            );
+
+          await loadActivities();
+
+          showKpToast({
+            title:
+              'Activity deleted',
+
+            message:
+              `${activityTitle} has been permanently removed.`,
+
+            duration: 5000,
+          });
+        } catch (error) {
+          if (
+            !handleAuthError(error)
+          ) {
+            showKpToast({
+              title:
+                'Unable to delete activity',
+
+              message:
+                error.message ||
+                'Please try again.',
+
+              duration: 7000,
+            });
           }
-        );
-      });
+        } finally {
+          button.disabled = false;
+        }
+      }
+    );
+  });
   } catch (error) {
     if (!handleAuthError(error)) {
       tbody.innerHTML = `
@@ -7779,23 +8629,44 @@ function openActivityModal(
         }
 
         closeModal();
-        await loadActivities();
 
-        if (
-          !isEdit &&
-          savedId
-        ) {
-          const addGallery =
-            confirm(
-              'Activity created. Add gallery images now?'
-            );
+await loadActivities();
 
-          if (addGallery) {
-            openActivityGalleryManager(
-              savedId
-            );
-          }
-        }
+if (isEdit) {
+  showKpToast({
+    title:
+      'Activity updated',
+
+    message:
+      `${payload.title} has been updated successfully.`,
+
+    duration: 5000,
+  });
+}
+
+if (
+  !isEdit &&
+  savedId
+) {
+  showKpToast({
+    title:
+      'Activity created',
+
+    message:
+      `${payload.title} has been saved successfully.`,
+
+    actionText:
+      'Add gallery images',
+
+    onAction: () => {
+      openActivityGalleryManager(
+        savedId
+      );
+    },
+
+    duration: 8000,
+  });
+}
       } catch (error) {
         if (
           !handleAuthError(
@@ -7839,11 +8710,20 @@ async function openActivityGalleryManager(
       activity
     );
   } catch (error) {
-    if (!handleAuthError(error)) {
-      alert(
-        `Unable to load activity gallery: ${error.message}`
-      );
-    }
+    if (
+  !handleAuthError(error)
+) {
+  showKpToast({
+    title:
+      'Unable to load activity gallery',
+
+    message:
+      error.message ||
+      'Please try again.',
+
+    duration: 7000,
+  });
+}
   }
 }
 
@@ -8186,6 +9066,24 @@ function renderActivityGalleryManager(
           await openActivityGalleryManager(
             activity.id
           );
+          showKpToast({
+  title:
+    'Gallery image updated',
+
+  message:
+    'The activity gallery image has been updated successfully.',
+
+  duration: 5000,
+});
+showKpToast({
+  title:
+    'Gallery images added',
+
+  message:
+    `${uploadedImages.length} image(s) added successfully.`,
+
+  duration: 5000,
+});
         } catch (error) {
           if (
             !handleAuthError(
@@ -8445,46 +9343,81 @@ function renderActivityGalleryManager(
     });
 
   document
-    .querySelectorAll(
-      '[data-delete-activity-gallery]'
-    )
-    .forEach((button) => {
-      button.addEventListener(
-        'click',
-        async () => {
-          const confirmed =
-            confirm(
-              'Delete this gallery image?'
-            );
-
-          if (!confirmed) {
-            return;
-          }
-
-          try {
-            await authedApi
-              .deleteActivityGalleryItem(
+  .querySelectorAll(
+    '[data-delete-activity-gallery]'
+  )
+  .forEach((button) => {
+    button.addEventListener(
+      'click',
+      async () => {
+        const image =
+          gallery.find(
+            (item) =>
+              String(item.id) ===
+              String(
                 button.dataset
                   .deleteActivityGallery
-              );
-
-            await openActivityGalleryManager(
-              activity.id
-            );
-          } catch (error) {
-            if (
-              !handleAuthError(
-                error
               )
-            ) {
-              alert(
-                `Unable to delete gallery image: ${error.message}`
-              );
-            }
-          }
+          );
+
+        const confirmed =
+          await confirmDelete({
+            title:
+              'Delete gallery image?',
+
+            message:
+              image?.caption
+                ? `${image.caption} will be permanently removed from this activity.`
+                : 'This image will be permanently removed from the activity gallery.',
+          });
+
+        if (!confirmed) {
+          return;
         }
-      );
-    });
+
+        button.disabled = true;
+
+        try {
+          await authedApi
+            .deleteActivityGalleryItem(
+              button.dataset
+                .deleteActivityGallery
+            );
+
+          await openActivityGalleryManager(
+            activity.id
+          );
+
+          showKpToast({
+            title:
+              'Gallery image deleted',
+
+            message:
+              'The image has been permanently removed.',
+
+            duration: 5000,
+          });
+        } catch (error) {
+          if (
+            !handleAuthError(error)
+          ) {
+            showKpToast({
+              title:
+                'Unable to delete image',
+
+              message:
+                error.message ||
+                'Please try again.',
+
+              duration: 7000,
+            });
+          }
+        } finally {
+          button.disabled = false;
+        }
+      }
+    );
+  });
 }
 
 function clearActivityGalleryForm() {
@@ -9049,11 +9982,18 @@ function bindAdminUserActions() {
             select.value;
 
           const confirmed =
-            confirm(
-              `Change this user's role to ${formatAdminRole(
-                nextRole
-              )}?`
-            );
+  await confirmStatusChange({
+    title:
+      `Change role to ${formatAdminRole(
+        nextRole
+      )}?`,
+
+    message:
+      `This will change the dashboard permissions available to this administrator.`,
+
+    confirmText:
+      'Change role',
+  });
 
           if (!confirmed) {
             select.value =
@@ -9072,6 +10012,17 @@ function bindAdminUserActions() {
               );
 
             await loadAdminUsers();
+            showKpToast({
+  title:
+    'Administrator role updated',
+
+  message:
+    `Role changed to ${formatAdminRole(
+      nextRole
+    )}.`,
+
+  duration: 5000,
+});
           } catch (error) {
             select.value =
               previousRole;
@@ -9081,9 +10032,16 @@ function bindAdminUserActions() {
                 error
               )
             ) {
-              alert(
-                `Unable to change role: ${error.message}`
-              );
+              showKpToast({
+  title:
+    'Unable to change role',
+
+  message:
+    error.message ||
+    'Please try again.',
+
+  duration: 7000,
+});
             }
           } finally {
             select.disabled =
@@ -9101,10 +10059,17 @@ function bindAdminUserActions() {
       button.addEventListener(
         'click',
         async () => {
-          const confirmed =
-            confirm(
-              'Deactivate this administrator account? They will no longer be able to access the dashboard.'
-            );
+            const confirmed =
+  await confirmStatusChange({
+    title:
+      'Deactivate administrator?',
+
+    message:
+      'This account will no longer be able to access the admin dashboard until it is reactivated.',
+
+    confirmText:
+      'Deactivate',
+  });
 
           if (!confirmed) {
             return;
@@ -9117,15 +10082,31 @@ function bindAdminUserActions() {
               );
 
             await loadAdminUsers();
+            showKpToast({
+  title:
+    'Administrator deactivated',
+
+  message:
+    'Dashboard access has been disabled for this account.',
+
+  duration: 5000,
+});
           } catch (error) {
             if (
               !handleAuthError(
                 error
               )
             ) {
-              alert(
-                `Unable to deactivate user: ${error.message}`
-              );
+              showKpToast({
+  title:
+    'Unable to deactivate user',
+
+  message:
+    error.message ||
+    'Please try again.',
+
+  duration: 7000,
+});
             }
           }
         }
@@ -9141,9 +10122,16 @@ function bindAdminUserActions() {
         'click',
         async () => {
           const confirmed =
-            confirm(
-              'Reactivate this administrator account?'
-            );
+  await confirmStatusChange({
+    title:
+      'Reactivate administrator?',
+
+    message:
+      'This account will regain access to the admin dashboard according to its assigned role.',
+
+    confirmText:
+      'Reactivate',
+  });
 
           if (!confirmed) {
             return;
@@ -9156,15 +10144,31 @@ function bindAdminUserActions() {
               );
 
             await loadAdminUsers();
+            showKpToast({
+  title:
+    'Administrator reactivated',
+
+  message:
+    'Dashboard access has been restored.',
+
+  duration: 5000,
+});
           } catch (error) {
             if (
               !handleAuthError(
                 error
               )
             ) {
-              alert(
-                `Unable to reactivate user: ${error.message}`
-              );
+              showKpToast({
+  title:
+    'Unable to reactivate user',
+
+  message:
+    error.message ||
+    'Please try again.',
+
+  duration: 7000,
+});
             }
           }
         }
@@ -9343,47 +10347,162 @@ function closeModal() {
 }
 
 function openKpActionModal({
-  eyebrow = 'Success',
-  title = 'Done',
+  eyebrow = 'Confirm action',
+  title = 'Are you sure?',
   message = '',
-  confirmText = 'OK',
+  confirmText = 'Confirm',
   cancelText = 'Cancel',
+  variant = 'default',
 } = {}) {
   return new Promise((resolve) => {
-    const modal = document.getElementById('kpActionModal');
-    const backdrop = modal?.querySelector('.kp-action-modal__backdrop');
-    const eyebrowEl = document.getElementById('kpActionModalEyebrow');
-    const titleEl = document.getElementById('kpActionModalTitle');
-    const messageEl = document.getElementById('kpActionModalMessage');
-    const confirmBtn = document.getElementById('kpActionModalConfirm');
-    const cancelBtn = document.getElementById('kpActionModalCancel');
+    const modal =
+      document.getElementById(
+        'kpActionModal'
+      );
 
-    if (!modal || !confirmBtn || !cancelBtn) {
+    const backdrop =
+      modal?.querySelector(
+        '.kp-action-modal__backdrop'
+      );
+
+    const dialog =
+      modal?.querySelector(
+        '.kp-action-modal__dialog'
+      );
+
+    const iconEl =
+      modal?.querySelector(
+        '.kp-action-modal__icon'
+      );
+
+    const eyebrowEl =
+      document.getElementById(
+        'kpActionModalEyebrow'
+      );
+
+    const titleEl =
+      document.getElementById(
+        'kpActionModalTitle'
+      );
+
+    const messageEl =
+      document.getElementById(
+        'kpActionModalMessage'
+      );
+
+    const confirmBtn =
+      document.getElementById(
+        'kpActionModalConfirm'
+      );
+
+    const cancelBtn =
+      document.getElementById(
+        'kpActionModalCancel'
+      );
+
+    if (
+      !modal ||
+      !dialog ||
+      !confirmBtn ||
+      !cancelBtn
+    ) {
       resolve(false);
       return;
     }
 
-    eyebrowEl.textContent = eyebrow;
-    titleEl.textContent = title;
-    messageEl.textContent = message;
-    confirmBtn.textContent = confirmText;
-    cancelBtn.textContent = cancelText;
+    const allowedVariants = [
+      'default',
+      'warning',
+      'danger',
+    ];
+
+    const resolvedVariant =
+      allowedVariants.includes(
+        variant
+      )
+        ? variant
+        : 'default';
+
+    dialog.dataset.variant =
+      resolvedVariant;
+
+    if (iconEl) {
+      const icons = {
+        default: '✓',
+        warning: '!',
+        danger: '!',
+      };
+
+      iconEl.textContent =
+        icons[resolvedVariant];
+    }
+
+    if (eyebrowEl) {
+      eyebrowEl.textContent =
+        eyebrow;
+    }
+
+    if (titleEl) {
+      titleEl.textContent =
+        title;
+    }
+
+    if (messageEl) {
+      messageEl.textContent =
+        message;
+    }
+
+    confirmBtn.textContent =
+      confirmText;
+
+    cancelBtn.textContent =
+      cancelText;
 
     modal.hidden = false;
-    modal.setAttribute('aria-hidden', 'false');
 
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
+    modal.setAttribute(
+      'aria-hidden',
+      'false'
+    );
+
+    const previousOverflow =
+      document.body.style.overflow;
+
+    document.body.style.overflow =
+      'hidden';
 
     function cleanup(result) {
       modal.hidden = true;
-      modal.setAttribute('aria-hidden', 'true');
-      document.body.style.overflow = previousOverflow;
 
-      confirmBtn.removeEventListener('click', onConfirm);
-      cancelBtn.removeEventListener('click', onCancel);
-      backdrop?.removeEventListener('click', onCancel);
-      document.removeEventListener('keydown', onKeydown);
+      modal.setAttribute(
+        'aria-hidden',
+        'true'
+      );
+
+      document.body.style.overflow =
+        previousOverflow;
+
+      delete dialog.dataset.variant;
+
+      confirmBtn.removeEventListener(
+        'click',
+        onConfirm
+      );
+
+      cancelBtn.removeEventListener(
+        'click',
+        onCancel
+      );
+
+      backdrop?.removeEventListener(
+        'click',
+        onCancel
+      );
+
+      document.removeEventListener(
+        'keydown',
+        onKeydown
+      );
 
       resolve(result);
     }
@@ -9402,14 +10521,60 @@ function openKpActionModal({
       }
     }
 
-    confirmBtn.addEventListener('click', onConfirm);
-    cancelBtn.addEventListener('click', onCancel);
-    backdrop?.addEventListener('click', onCancel);
-    document.addEventListener('keydown', onKeydown);
+    confirmBtn.addEventListener(
+      'click',
+      onConfirm
+    );
+
+    cancelBtn.addEventListener(
+      'click',
+      onCancel
+    );
+
+    backdrop?.addEventListener(
+      'click',
+      onCancel
+    );
+
+    document.addEventListener(
+      'keydown',
+      onKeydown
+    );
 
     setTimeout(() => {
       confirmBtn.focus();
     }, 30);
+  });
+}
+
+function confirmDelete({
+  title = 'Delete this item?',
+  message =
+    'This action cannot be undone.',
+  confirmText = 'Delete',
+} = {}) {
+  return openKpActionModal({
+    eyebrow: 'Confirm deletion',
+    title,
+    message,
+    confirmText,
+    cancelText: 'Cancel',
+    variant: 'danger',
+  });
+}
+
+function confirmStatusChange({
+  title,
+  message,
+  confirmText = 'Continue',
+} = {}) {
+  return openKpActionModal({
+    eyebrow: 'Confirm change',
+    title,
+    message,
+    confirmText,
+    cancelText: 'Cancel',
+    variant: 'warning',
   });
 }
 
@@ -9702,4 +10867,5 @@ function escapeAttribute(value) {
     .replaceAll("'", '&#039;')
     .replaceAll('<', '&lt;')
     .replaceAll('>', '&gt;');
+}
 }

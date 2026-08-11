@@ -3736,6 +3736,97 @@ html body .gallery-manager-card small {
 }
 
 /* =========================================================
+   ACTION MODAL VARIANTS
+   ========================================================= */
+
+.kp-action-modal__dialog[
+  data-variant="warning"
+]
+.kp-action-modal__icon {
+  background:
+    linear-gradient(
+      135deg,
+      #f6b94a,
+      #d98c16
+    );
+
+  box-shadow:
+    0 10px 24px
+    rgba(217, 140, 22, 0.22);
+}
+
+.kp-action-modal__dialog[
+  data-variant="warning"
+]
+.kp-action-modal__eyebrow {
+  color: #b8730c;
+}
+
+.kp-action-modal__dialog[
+  data-variant="warning"
+]
+.kp-action-modal__btn--primary {
+  background:
+    linear-gradient(
+      135deg,
+      #f4ad38,
+      #cf7d0a
+    );
+
+  box-shadow:
+    0 10px 20px
+    rgba(207, 125, 10, 0.2);
+}
+
+.kp-action-modal__dialog[
+  data-variant="danger"
+]
+.kp-action-modal__icon {
+  background:
+    linear-gradient(
+      135deg,
+      #e96372,
+      #ba3047
+    );
+
+  box-shadow:
+    0 10px 24px
+    rgba(186, 48, 71, 0.22);
+}
+
+.kp-action-modal__dialog[
+  data-variant="danger"
+]
+.kp-action-modal__eyebrow {
+  color: #ba3047;
+}
+
+.kp-action-modal__dialog[
+  data-variant="danger"
+]
+.kp-action-modal__btn--primary {
+  background:
+    linear-gradient(
+      135deg,
+      #d94d63,
+      #ad263e
+    );
+
+  box-shadow:
+    0 10px 20px
+    rgba(173, 38, 62, 0.22);
+}
+
+.kp-action-modal__dialog[
+  data-variant="danger"
+]
+.kp-action-modal__btn--primary:hover {
+  box-shadow:
+    0 12px 25px
+    rgba(173, 38, 62, 0.3);
+}
+
+/* =========================================================
    ADMIN SUCCESS TOAST
    ========================================================= */
 
