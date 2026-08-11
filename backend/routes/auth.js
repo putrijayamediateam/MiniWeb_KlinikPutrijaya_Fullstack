@@ -92,6 +92,17 @@ router.post('/login', async (req, res) => {
       { expiresIn: process.env.JWT_EXPIRES_IN || '8h' }
     );
 
+    if (columns.has('last_login_at')) {
+  await db.query(
+    `
+      UPDATE admins
+      SET last_login_at = NOW()
+      WHERE id = ?
+    `,
+    [admin.id]
+  );
+}
+
     return res.json({
       token,
       username: admin.username,
