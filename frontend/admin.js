@@ -4883,9 +4883,13 @@ async function openServiceModal(service = null) {
         await loadServices();
 
         if (!isEdit && savedId) {
-          const addPriceNow = confirm(
-            'Service created. Add its price list now?'
-          );
+          const addPriceNow = await openKpActionModal({
+             eyebrow: 'Service saved',
+             title: 'Service created successfully',
+             message: 'Do you want to add its price list now?',
+             confirmText: 'Add price list',
+             cancelText: 'Later',
+      });
 
           if (addPriceNow) {
             openPriceManager(savedId);
@@ -9329,6 +9333,77 @@ function closeModal() {
     form.innerHTML = '';
     form.onsubmit = null;
   }
+}
+
+function openKpActionModal({
+  eyebrow = 'Success',
+  title = 'Done',
+  message = '',
+  confirmText = 'OK',
+  cancelText = 'Cancel',
+} = {}) {
+  return new Promise((resolve) => {
+    const modal = document.getElementById('kpActionModal');
+    const backdrop = modal?.querySelector('.kp-action-modal__backdrop');
+    const eyebrowEl = document.getElementById('kpActionModalEyebrow');
+    const titleEl = document.getElementById('kpActionModalTitle');
+    const messageEl = document.getElementById('kpActionModalMessage');
+    const confirmBtn = document.getElementById('kpActionModalConfirm');
+    const cancelBtn = document.getElementById('kpActionModalCancel');
+
+    if (!modal || !confirmBtn || !cancelBtn) {
+      resolve(false);
+      return;
+    }
+
+    eyebrowEl.textContent = eyebrow;
+    titleEl.textContent = title;
+    messageEl.textContent = message;
+    confirmBtn.textContent = confirmText;
+    cancelBtn.textContent = cancelText;
+
+    modal.hidden = false;
+    modal.setAttribute('aria-hidden', 'false');
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    function cleanup(result) {
+      modal.hidden = true;
+      modal.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = previousOverflow;
+
+      confirmBtn.removeEventListener('click', onConfirm);
+      cancelBtn.removeEventListener('click', onCancel);
+      backdrop?.removeEventListener('click', onCancel);
+      document.removeEventListener('keydown', onKeydown);
+
+      resolve(result);
+    }
+
+    function onConfirm() {
+      cleanup(true);
+    }
+
+    function onCancel() {
+      cleanup(false);
+    }
+
+    function onKeydown(event) {
+      if (event.key === 'Escape') {
+        cleanup(false);
+      }
+    }
+
+    confirmBtn.addEventListener('click', onConfirm);
+    cancelBtn.addEventListener('click', onCancel);
+    backdrop?.addEventListener('click', onCancel);
+    document.addEventListener('keydown', onKeydown);
+
+    setTimeout(() => {
+      confirmBtn.focus();
+    }, 30);
+  });
 }
 
 function renderPager(container, pagination, onPage) {

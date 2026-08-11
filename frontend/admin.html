@@ -1274,6 +1274,59 @@
     </div>
   </div>
 
+  <div
+  id="kpActionModal"
+  class="kp-action-modal"
+  hidden
+  aria-hidden="true"
+>
+  <div class="kp-action-modal__backdrop"></div>
+
+  <div
+    class="kp-action-modal__dialog"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="kpActionModalTitle"
+    aria-describedby="kpActionModalMessage"
+  >
+    <div class="kp-action-modal__icon">
+      ✓
+    </div>
+
+    <div class="kp-action-modal__content">
+      <p class="kp-action-modal__eyebrow" id="kpActionModalEyebrow">
+        Success
+      </p>
+
+      <h3 id="kpActionModalTitle">
+        Service created
+      </h3>
+
+      <p id="kpActionModalMessage">
+        Add its price list now?
+      </p>
+    </div>
+
+    <div class="kp-action-modal__actions">
+      <button
+        type="button"
+        class="kp-action-modal__btn kp-action-modal__btn--ghost"
+        id="kpActionModalCancel"
+      >
+        Later
+      </button>
+
+      <button
+        type="button"
+        class="kp-action-modal__btn kp-action-modal__btn--primary"
+        id="kpActionModalConfirm"
+      >
+        Add price list
+      </button>
+    </div>
+  </div>
+</div>
+
 <script
   src="js/api.js?v=20260806-3"
   defer
