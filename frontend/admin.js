@@ -4883,18 +4883,25 @@ async function openServiceModal(service = null) {
         await loadServices();
 
         if (!isEdit && savedId) {
-          const addPriceNow = await openKpActionModal({
-             eyebrow: 'Service saved',
-             title: 'Service created successfully',
-             message: 'Do you want to add its price list now?',
-             confirmText: 'Add price list',
-             cancelText: 'Later',
-      });
+  showKpToast({
+    title:
+      'Service created successfully',
 
-          if (addPriceNow) {
-            openPriceManager(savedId);
-          }
-        }
+    message:
+      'Service has been saved.',
+
+    actionText:
+      'Add price list',
+
+    onAction: () => {
+      openPriceManager(
+        savedId
+      );
+    },
+
+    duration: 8000,
+  });
+}
       } catch (error) {
         if (!handleAuthError(error)) {
           setMessage(
@@ -9450,6 +9457,99 @@ function renderPager(container, pagination, onPage) {
       onPage(Number(button.dataset.page));
     });
   });
+}
+
+function showKpToast({
+  title = 'Success',
+  message = '',
+  actionText = '',
+  onAction = null,
+  duration = 6000,
+} = {}) {
+  const toast =
+    document.getElementById(
+      'kpToast'
+    );
+
+  const titleEl =
+    document.getElementById(
+      'kpToastTitle'
+    );
+
+  const messageEl =
+    document.getElementById(
+      'kpToastMessage'
+    );
+
+  const actionBtn =
+    document.getElementById(
+      'kpToastAction'
+    );
+
+  const dismissBtn =
+    document.getElementById(
+      'kpToastDismiss'
+    );
+
+  if (
+    !toast ||
+    !titleEl ||
+    !messageEl ||
+    !actionBtn ||
+    !dismissBtn
+  ) {
+    return;
+  }
+
+  titleEl.textContent =
+    title;
+
+  messageEl.textContent =
+    message;
+
+  actionBtn.textContent =
+    actionText;
+
+  actionBtn.hidden =
+    !actionText ||
+    typeof onAction !==
+      'function';
+
+  toast.hidden = false;
+
+  let timer = null;
+
+  const closeToast = () => {
+    toast.hidden = true;
+
+    if (timer) {
+      clearTimeout(timer);
+    }
+
+    actionBtn.onclick = null;
+    dismissBtn.onclick = null;
+  };
+
+  actionBtn.onclick = () => {
+    closeToast();
+
+    if (
+      typeof onAction ===
+      'function'
+    ) {
+      onAction();
+    }
+  };
+
+  dismissBtn.onclick =
+    closeToast;
+
+  if (duration > 0) {
+    timer = setTimeout(
+      closeToast,
+      duration
+    );
+  }
 }
 
 function bindImagePreview(inputId, previewId) {
