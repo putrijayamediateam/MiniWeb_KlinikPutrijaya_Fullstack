@@ -77,6 +77,55 @@ const feedbackState = {
   limit: 10,
 };
 
+const doctorState = {
+  page: 1,
+  limit: 10,
+  branch: '',
+};
+
+const serviceListState = {
+  page: 1,
+  limit: 10,
+  search: '',
+  category: '',
+  subcategory: '',
+};
+
+const serviceCategoryState = {
+  page: 1,
+  limit: 10,
+};
+
+const serviceSubcategoryState = {
+  page: 1,
+  limit: 10,
+};
+
+const promotionState = {
+  page: 1,
+  limit: 10,
+  search: '',
+};
+
+const activityState = {
+  page: 1,
+  limit: 10,
+  search: '',
+};
+
+const adminUserState = {
+  page: 1,
+  limit: 10,
+};
+
+const googleSearchState = {
+  queryPage: 1,
+  pagePage: 1,
+  limit: 20,
+  queries: [],
+  pages: [],
+};
+
 document.addEventListener('DOMContentLoaded', () => {
   bindCoreEvents();
   const token = sessionStorage.getItem(TOKEN_KEY);
@@ -191,6 +240,80 @@ document
 
   document.getElementById('exportBookingsBtn')?.addEventListener('click', exportBookingsToCSV);
   document.getElementById('addDoctorBtn')?.addEventListener('click', () => openDoctorModal());
+  document
+  .getElementById(
+    'doctorBranchFilter'
+  )
+  ?.addEventListener(
+    'change',
+    (event) => {
+      doctorState.branch =
+        event.target.value;
+
+      doctorState.page = 1;
+
+      renderDoctors();
+    }
+  );
+
+  document
+  .getElementById(
+    'serviceListSearchInput'
+  )
+  ?.addEventListener(
+    'input',
+    debounce(
+      (event) => {
+        serviceListState.search =
+          String(
+            event.target.value || ''
+          )
+            .trim()
+            .toLowerCase();
+
+        serviceListState.page = 1;
+
+        renderServices();
+      },
+      250
+    )
+  );
+
+document
+  .getElementById(
+    'serviceListCategoryFilter'
+  )
+  ?.addEventListener(
+    'change',
+    (event) => {
+      serviceListState.category =
+        event.target.value;
+
+      serviceListState.subcategory =
+        '';
+
+      serviceListState.page = 1;
+
+      populateServiceListSubcategoryFilter();
+
+      renderServices();
+    }
+  );
+document
+  .getElementById(
+    'serviceListSubcategoryFilter'
+  )
+  ?.addEventListener(
+    'change',
+    (event) => {
+      serviceListState.subcategory =
+        event.target.value;
+
+      serviceListState.page = 1;
+
+      renderServices();
+    }
+  );
   document.getElementById('addServiceBtn')?.addEventListener('click', () => openServiceModal());
     document
     .getElementById(
@@ -222,42 +345,84 @@ document
     );
 
   document
-    .getElementById(
-      'taxonomyCategoryFilter'
-    )
-    ?.addEventListener(
-      'change',
-      (event) => {
-        serviceTaxonomyState
-          .categoryFilter =
-          event.target.value;
+  .getElementById(
+    'taxonomyCategoryFilter'
+  )
+  ?.addEventListener(
+    'change',
+    (event) => {
+      serviceTaxonomyState
+        .categoryFilter =
+        event.target.value;
 
-        renderFilteredServiceSubcategories();
-      }
-    );
+      serviceSubcategoryState.page = 1;
+
+      renderFilteredServiceSubcategories();
+    }
+  );
 
   document
-    .getElementById(
-      'taxonomySearchInput'
-    )
-    ?.addEventListener(
-      'input',
-      debounce(
-        (event) => {
-          serviceTaxonomyState.search =
-            String(
-              event.target.value || ''
-            )
-              .trim()
-              .toLowerCase();
+  .getElementById(
+    'taxonomySearchInput'
+  )
+  ?.addEventListener(
+    'input',
+    debounce(
+      (event) => {
+        serviceTaxonomyState.search =
+          String(
+            event.target.value || ''
+          )
+            .trim()
+            .toLowerCase();
 
-          renderFilteredServiceSubcategories();
-        },
-        250
-      )
-    );
+        serviceSubcategoryState.page = 1;
+
+        renderFilteredServiceSubcategories();
+      },
+      250
+    )
+  );
   document.getElementById('addPromotionBtn')?.addEventListener('click', () => openPromotionModal());
+  document
+  .getElementById('promotionSearchInput')
+  ?.addEventListener(
+    'input',
+    debounce((event) => {
+      promotionState.search =
+        String(event.target.value || '')
+          .trim()
+          .toLowerCase();
+
+      promotionState.page = 1;
+
+      renderPromotions();
+    }, 250)
+  );
   document.getElementById('addActivityBtn')?.addEventListener('click',() => openActivityModal());
+  document
+  .getElementById(
+    'activitySearchInput'
+  )
+  ?.addEventListener(
+    'input',
+    debounce(
+      (event) => {
+        activityState.search =
+          String(
+            event.target.value ||
+            ''
+          )
+            .trim()
+            .toLowerCase();
+
+        activityState.page = 1;
+
+        renderActivities();
+      },
+      250
+    )
+  );
   document
   .getElementById(
     'refreshAdminUsersBtn'
@@ -274,7 +439,11 @@ document
   ?.addEventListener(
     'input',
     debounce(
-      renderFilteredAdminUsers,
+      () => {
+        adminUserState.page = 1;
+
+        renderFilteredAdminUsers();
+      },
       250
     )
   );
@@ -285,7 +454,11 @@ document
   )
   ?.addEventListener(
     'change',
-    renderFilteredAdminUsers
+    () => {
+      adminUserState.page = 1;
+
+      renderFilteredAdminUsers();
+    }
   );
 
 document
@@ -294,7 +467,11 @@ document
   )
   ?.addEventListener(
     'change',
-    renderFilteredAdminUsers
+    () => {
+      adminUserState.page = 1;
+
+      renderFilteredAdminUsers();
+    }
   );
   document.getElementById('modalCloseBtn')?.addEventListener('click', closeModal);
 
@@ -1977,18 +2154,41 @@ function renderGoogleSearchSummary(
 }
 
 function renderGoogleSearchQueries(
-  queries = []
+  queries =
+    googleSearchState.queries
 ) {
   const tbody =
     document.getElementById(
       'searchConsoleQueriesBody'
     );
 
+  const pager =
+    document.getElementById(
+      'searchConsoleQueriesPager'
+    );
+
   if (!tbody) {
     return;
   }
 
-  if (!queries.length) {
+  googleSearchState.queries =
+    Array.isArray(queries)
+      ? queries
+      : [];
+
+  const result =
+    paginateClientItems(
+      googleSearchState.queries,
+      googleSearchState.queryPage,
+      googleSearchState.limit
+    );
+
+  googleSearchState.queryPage =
+    result.pagination.page;
+
+  if (
+    !result.items.length
+  ) {
     tbody.innerHTML = `
       <tr>
         <td
@@ -2002,11 +2202,15 @@ function renderGoogleSearchQueries(
       </tr>
     `;
 
+    if (pager) {
+      pager.innerHTML = '';
+    }
+
     return;
   }
 
   tbody.innerHTML =
-    queries
+    result.items
       .map(
         (row) => `
           <tr>
@@ -2051,21 +2255,55 @@ function renderGoogleSearchQueries(
         `
       )
       .join('');
+
+  renderPager(
+    pager,
+    result.pagination,
+    (page) => {
+      googleSearchState.queryPage =
+        page;
+
+      renderGoogleSearchQueries();
+    }
+  );
 }
 
 function renderGoogleSearchPages(
-  pages = []
+  pages =
+    googleSearchState.pages
 ) {
   const tbody =
     document.getElementById(
       'searchConsolePagesBody'
     );
 
+  const pager =
+    document.getElementById(
+      'searchConsolePagesPager'
+    );
+
   if (!tbody) {
     return;
   }
 
-  if (!pages.length) {
+  googleSearchState.pages =
+    Array.isArray(pages)
+      ? pages
+      : [];
+
+  const result =
+    paginateClientItems(
+      googleSearchState.pages,
+      googleSearchState.pagePage,
+      googleSearchState.limit
+    );
+
+  googleSearchState.pagePage =
+    result.pagination.page;
+
+  if (
+    !result.items.length
+  ) {
     tbody.innerHTML = `
       <tr>
         <td
@@ -2078,11 +2316,15 @@ function renderGoogleSearchPages(
       </tr>
     `;
 
+    if (pager) {
+      pager.innerHTML = '';
+    }
+
     return;
   }
 
   tbody.innerHTML =
-    pages
+    result.items
       .map(
         (row) => `
           <tr>
@@ -2138,6 +2380,17 @@ function renderGoogleSearchPages(
         `
       )
       .join('');
+
+  renderPager(
+    pager,
+    result.pagination,
+    (page) => {
+      googleSearchState.pagePage =
+        page;
+
+      renderGoogleSearchPages();
+    }
+  );
 }
 
 async function loadGoogleSearchPerformance(
@@ -2219,6 +2472,8 @@ async function loadGoogleSearchPerformance(
       data?.summary || {}
     );
 
+    googleSearchState.queryPage = 1;
+    googleSearchState.pagePage = 1;
     renderGoogleSearchQueries(
       Array.isArray(
         data?.queries
@@ -4252,119 +4507,386 @@ async function loadFeedback() {
 // -----------------------------------------------------------------------------
 
 async function loadDoctors() {
-  const tbody = document.getElementById('doctorsTableBody');
-  if (!tbody || !authedApi) return;
+  const tbody =
+    document.getElementById(
+      'doctorsTableBody'
+    );
 
-  tbody.innerHTML = '<tr><td colspan="6" class="loading-row">Loading…</td></tr>';
+  if (
+    !tbody ||
+    !authedApi
+  ) {
+    return;
+  }
+
+  tbody.innerHTML = `
+    <tr>
+      <td
+        colspan="6"
+        class="loading-row"
+      >
+        Loading…
+      </td>
+    </tr>
+  `;
 
   try {
-    doctorsCache = await authedApi.getAdminDoctors();
+    doctorsCache =
+      await authedApi
+        .getAdminDoctors();
 
-    if (!doctorsCache.length) {
-      tbody.innerHTML = '<tr><td colspan="6" class="empty-row">No doctors found.</td></tr>';
-      return;
-    }
+    populateDoctorBranchFilter();
 
-    tbody.innerHTML = doctorsCache.map((doctor) => `
-      <tr data-id="${doctor.id}">
-        <td>
-          <div class="doctor-admin-cell">
-            ${doctor.photo_url ? `<img src="${escapeAttribute(resolveImageUrl(doctor.photo_url))}" alt="">` : '<span class="doctor-admin-placeholder">DR</span>'}
-            <strong>${escapeHtml(doctor.name)}</strong>
-          </div>
-        </td>
-        <td>${escapeHtml(doctor.branch_name)}</td>
-        <td class="wrap-text">${escapeHtml(doctor.qualification)}</td>
-        <td>${escapeHtml(doctor.reg_no)}</td>
-        <td>${Number(doctor.is_active) ? 'Yes' : 'No'}</td>
-        <td>
-          <button class="btn-small" type="button" data-action="edit-doctor" data-id="${doctor.id}">Edit</button>
-          <button class="btn-small danger" type="button" data-action="delete-doctor" data-id="${doctor.id}">Delete</button>
-        </td>
-      </tr>
-    `).join('');
-
-    tbody.querySelectorAll('[data-action="edit-doctor"]').forEach((button) => {
-      button.addEventListener('click', () => {
-        openDoctorModal(doctorsCache.find((doctor) => String(doctor.id) === button.dataset.id));
-      });
-    });
-
-    tbody
-  .querySelectorAll(
-    '[data-action="delete-doctor"]'
-  )
-  .forEach((button) => {
-    button.addEventListener(
-      'click',
-      async () => {
-        const doctor =
-          doctorsCache.find(
-            (item) =>
-              String(item.id) ===
-              String(
-                button.dataset.id
-              )
-          );
-
-        const doctorName =
-          doctor?.name ||
-          'this doctor';
-
-        const confirmed =
-          await confirmDelete({
-            title:
-              `Delete ${doctorName}?`,
-
-            message:
-              'Permanent deletion may not be allowed if this doctor has previous bookings. Use Inactive status instead when historical records must be retained.',
-          });
-
-        if (!confirmed) {
-          return;
-        }
-
-        button.disabled = true;
-
-        try {
-          await authedApi
-            .deleteDoctor(
-              button.dataset.id
-            );
-
-          await loadDoctors();
-
-          showKpToast({
-            title:
-              'Doctor deleted',
-            message:
-              `${doctorName} has been removed.`,
-            duration: 5000,
-          });
-        } catch (error) {
-          if (
-            !handleAuthError(error)
-          ) {
-            showKpToast({
-              title:
-                'Unable to delete doctor',
-              message:
-                error.message ||
-                'The doctor may have existing records. Try setting the doctor to Inactive instead.',
-              duration: 8000,
-            });
-          }
-        } finally {
-          button.disabled = false;
-        }
-      }
-    );
-  });
+    renderDoctors();
   } catch (error) {
-    if (!handleAuthError(error)) {
-      tbody.innerHTML = `<tr><td colspan="6" class="empty-row">${escapeHtml(error.message)}</td></tr>`;
+    if (
+      !handleAuthError(error)
+    ) {
+      tbody.innerHTML = `
+        <tr>
+          <td
+            colspan="6"
+            class="empty-row"
+          >
+            ${escapeHtml(
+              error.message ||
+              'Unable to load doctors.'
+            )}
+          </td>
+        </tr>
+      `;
     }
   }
+}
+
+function populateDoctorBranchFilter() {
+  const select =
+    document.getElementById(
+      'doctorBranchFilter'
+    );
+
+  if (!select) {
+    return;
+  }
+
+  const currentValue =
+    doctorState.branch ||
+    select.value ||
+    '';
+
+  select.innerHTML = [
+    `
+      <option value="">
+        All branches
+      </option>
+    `,
+
+    ...branchesCache.map(
+      (branch) => `
+        <option
+          value="${Number(
+            branch.id
+          )}"
+        >
+          ${escapeHtml(
+            branch.name
+          )}
+        </option>
+      `
+    ),
+  ].join('');
+
+  if (
+    currentValue &&
+    branchesCache.some(
+      (branch) =>
+        String(branch.id) ===
+        String(currentValue)
+    )
+  ) {
+    select.value =
+      currentValue;
+  }
+
+  doctorState.branch =
+    select.value;
+}
+
+function renderDoctors() {
+  const tbody =
+    document.getElementById(
+      'doctorsTableBody'
+    );
+
+  const pager =
+    document.getElementById(
+      'doctorsPager'
+    );
+
+  if (!tbody) {
+    return;
+  }
+
+  const filteredDoctors =
+    doctorsCache.filter(
+      (doctor) => {
+        if (
+          !doctorState.branch
+        ) {
+          return true;
+        }
+
+        return (
+          String(
+            doctor.branch_id
+          ) ===
+          String(
+            doctorState.branch
+          )
+        );
+      }
+    );
+
+  const result =
+    paginateClientItems(
+      filteredDoctors,
+      doctorState.page,
+      doctorState.limit
+    );
+
+  doctorState.page =
+    result.pagination.page;
+
+  if (
+    !result.items.length
+  ) {
+    tbody.innerHTML = `
+      <tr>
+        <td
+          colspan="6"
+          class="empty-row"
+        >
+          No doctors found.
+        </td>
+      </tr>
+    `;
+
+    if (pager) {
+      pager.innerHTML = '';
+    }
+
+    return;
+  }
+
+  tbody.innerHTML =
+    result.items
+      .map(
+        (doctor) => `
+          <tr data-id="${doctor.id}">
+            <td>
+              <div class="doctor-admin-cell">
+                ${
+                  doctor.photo_url
+                    ? `
+                      <img
+                        src="${escapeAttribute(
+                          resolveImageUrl(
+                            doctor.photo_url
+                          )
+                        )}"
+                        alt=""
+                      >
+                    `
+                    : `
+                      <span
+                        class="doctor-admin-placeholder"
+                      >
+                        DR
+                      </span>
+                    `
+                }
+
+                <strong>
+                  ${escapeHtml(
+                    doctor.name
+                  )}
+                </strong>
+              </div>
+            </td>
+
+            <td>
+              ${escapeHtml(
+                doctor.branch_name ||
+                '—'
+              )}
+            </td>
+
+            <td class="wrap-text">
+              ${escapeHtml(
+                doctor.qualification ||
+                '—'
+              )}
+            </td>
+
+            <td>
+              ${escapeHtml(
+                doctor.reg_no ||
+                '—'
+              )}
+            </td>
+
+            <td>
+              ${
+                Number(
+                  doctor.is_active
+                )
+                  ? 'Yes'
+                  : 'No'
+              }
+            </td>
+
+            <td>
+              <button
+                class="btn-small"
+                type="button"
+                data-action="edit-doctor"
+                data-id="${doctor.id}"
+              >
+                Edit
+              </button>
+
+              <button
+                class="btn-small danger"
+                type="button"
+                data-action="delete-doctor"
+                data-id="${doctor.id}"
+              >
+                Delete
+              </button>
+            </td>
+          </tr>
+        `
+      )
+      .join('');
+
+  tbody
+    .querySelectorAll(
+      '[data-action="edit-doctor"]'
+    )
+    .forEach(
+      (button) => {
+        button.addEventListener(
+          'click',
+          () => {
+            const doctor =
+              doctorsCache.find(
+                (item) =>
+                  String(item.id) ===
+                  String(
+                    button.dataset.id
+                  )
+              );
+
+            if (doctor) {
+              openDoctorModal(
+                doctor
+              );
+            }
+          }
+        );
+      }
+    );
+
+  tbody
+    .querySelectorAll(
+      '[data-action="delete-doctor"]'
+    )
+    .forEach(
+      (button) => {
+        button.addEventListener(
+          'click',
+          async () => {
+            const doctor =
+              doctorsCache.find(
+                (item) =>
+                  String(item.id) ===
+                  String(
+                    button.dataset.id
+                  )
+              );
+
+            const doctorName =
+              doctor?.name ||
+              'this doctor';
+
+            const confirmed =
+              await confirmDelete({
+                title:
+                  `Delete ${doctorName}?`,
+
+                message:
+                  'Permanent deletion may not be allowed if this doctor has previous bookings. Use Inactive status instead when historical records must be retained.',
+              });
+
+            if (!confirmed) {
+              return;
+            }
+
+            button.disabled = true;
+
+            try {
+              await authedApi
+                .deleteDoctor(
+                  button.dataset.id
+                );
+
+              await loadDoctors();
+
+              showKpToast({
+                title:
+                  'Doctor deleted',
+
+                message:
+                  `${doctorName} has been removed.`,
+
+                duration: 5000,
+              });
+            } catch (error) {
+              if (
+                !handleAuthError(
+                  error
+                )
+              ) {
+                showKpToast({
+                  title:
+                    'Unable to delete doctor',
+
+                  message:
+                    error.message ||
+                    'The doctor may have existing records. Try setting the doctor to Inactive instead.',
+
+                  duration: 8000,
+                });
+              }
+            } finally {
+              button.disabled =
+                false;
+            }
+          }
+        );
+      }
+    );
+
+  renderPager(
+    pager,
+    result.pagination,
+    (page) => {
+      doctorState.page =
+        page;
+
+      renderDoctors();
+    }
+  );
 }
 
 function openDoctorModal(doctor = null) {
@@ -4593,139 +5115,685 @@ document
 }
 
 // -----------------------------------------------------------------------------
-// SERVICES: detail page content, hero image, prices and gallery
+// SERVICES: list, search, category / subcategory filters and pagination
 // -----------------------------------------------------------------------------
 
 async function loadServices() {
-  const tbody = document.getElementById('servicesTableBody');
-  if (!tbody || !authedApi) return;
+  const tbody =
+    document.getElementById(
+      'servicesTableBody'
+    );
 
-  tbody.innerHTML = '<tr><td colspan="5" class="loading-row">Loading…</td></tr>';
+  if (
+    !tbody ||
+    !authedApi
+  ) {
+    return;
+  }
+
+  tbody.innerHTML = `
+    <tr>
+      <td
+        colspan="5"
+        class="loading-row"
+      >
+        Loading…
+      </td>
+    </tr>
+  `;
 
   try {
-    servicesCache = await authedApi.getAdminServices();
+    servicesCache =
+      await authedApi
+        .getAdminServices();
 
-    if (!servicesCache.length) {
-      tbody.innerHTML = '<tr><td colspan="5" class="empty-row">No services found.</td></tr>';
-      return;
-    }
+    populateServiceListCategoryFilter();
 
-    tbody.innerHTML = servicesCache.map((service) => `
-      <tr data-id="${service.id}">
-        <td>
-          <strong>${escapeHtml(formatCategory(service.category_key))}</strong>
-          <div class="cell-subtext">Order ${Number(service.sort_order || 0)}</div>
-        </td>
-        <td>
-          <strong>${escapeHtml(service.title)}</strong>
-          <div class="cell-subtext">/${escapeHtml(service.slug)}</div>
-        </td>
-        <td class="wrap-text">
-          ${escapeHtml(service.description || '—')}
-          <div class="cell-subtext">${Number(service.price_count || 0)} price item(s) · ${Number(service.gallery_count || 0)} image(s)</div>
-        </td>
-        <td>${Number(service.is_active) ? 'Yes' : 'No'}</td>
-        <td>
-          <div class="table-action-stack">
-            <button class="btn-small" type="button" data-action="edit-service" data-id="${service.id}">Edit details</button>
-            <button class="btn-small" type="button" data-action="manage-prices" data-id="${service.id}">Prices</button>
-            <button class="btn-small" type="button" data-action="manage-gallery" data-id="${service.id}">Gallery</button>
-            <a class="btn-small" href="service-detail.html?slug=${encodeURIComponent(service.slug)}" target="_blank" rel="noopener">Preview</a>
-            <button class="btn-small danger" type="button" data-action="delete-service" data-id="${service.id}">Delete</button>
-          </div>
-        </td>
-      </tr>
-    `).join('');
+    populateServiceListSubcategoryFilter();
 
-    tbody.querySelectorAll('[data-action="edit-service"]').forEach((button) => {
-      button.addEventListener('click', () => {
-        openServiceModal(servicesCache.find((service) => String(service.id) === button.dataset.id));
-      });
-    });
-
-    tbody.querySelectorAll('[data-action="manage-prices"]').forEach((button) => {
-      button.addEventListener('click', () => openPriceManager(Number(button.dataset.id)));
-    });
-
-    tbody.querySelectorAll('[data-action="manage-gallery"]').forEach((button) => {
-      button.addEventListener('click', () => openGalleryManager(Number(button.dataset.id)));
-    });
-
-    tbody
-  .querySelectorAll(
-    '[data-action="delete-service"]'
-  )
-  .forEach((button) => {
-    button.addEventListener(
-      'click',
-      async () => {
-        const service =
-          servicesCache.find(
-            (item) =>
-              String(item.id) ===
-              String(
-                button.dataset.id
-              )
-          );
-
-        const serviceTitle =
-          service?.title ||
-          'this service';
-
-        const confirmed =
-          await confirmDelete({
-            title:
-              `Delete ${serviceTitle}?`,
-
-            message:
-              'This will permanently remove the service together with its price list and gallery images. This action cannot be undone.',
-          });
-
-        if (!confirmed) {
-          return;
-        }
-
-        button.disabled = true;
-
-        try {
-          await authedApi
-            .deleteService(
-              button.dataset.id
-            );
-
-          await loadServices();
-
-          showKpToast({
-            title:
-              'Service deleted',
-            message:
-              `${serviceTitle} has been permanently removed.`,
-            duration: 5000,
-          });
-        } catch (error) {
-          if (
-            !handleAuthError(error)
-          ) {
-            showKpToast({
-              title:
-                'Unable to delete service',
-              message:
-                error.message ||
-                'Please try again.',
-              duration: 8000,
-            });
-          }
-        } finally {
-          button.disabled = false;
-        }
-      }
-    );
-  });
+    renderServices();
   } catch (error) {
-    if (!handleAuthError(error)) {
-      tbody.innerHTML = `<tr><td colspan="5" class="empty-row">${escapeHtml(error.message)}</td></tr>`;
+    if (
+      !handleAuthError(error)
+    ) {
+      tbody.innerHTML = `
+        <tr>
+          <td
+            colspan="5"
+            class="empty-row"
+          >
+            ${escapeHtml(
+              error.message ||
+              'Unable to load services.'
+            )}
+          </td>
+        </tr>
+      `;
     }
   }
+}
+
+function populateServiceListCategoryFilter() {
+  const select =
+    document.getElementById(
+      'serviceListCategoryFilter'
+    );
+
+  if (!select) {
+    return;
+  }
+
+  const currentValue =
+    serviceListState.category ||
+    select.value ||
+    '';
+
+  const categories = [
+    ...new Map(
+      servicesCache
+        .filter(
+          (service) =>
+            service.category_id &&
+            service.category_name
+        )
+        .map(
+          (service) => [
+            String(
+              service.category_id
+            ),
+            {
+              id:
+                service.category_id,
+              name:
+                service.category_name,
+            },
+          ]
+        )
+    ).values(),
+  ];
+
+  select.innerHTML = [
+    `
+      <option value="">
+        All categories
+      </option>
+    `,
+
+    ...categories.map(
+      (category) => `
+        <option
+          value="${Number(
+            category.id
+          )}"
+        >
+          ${escapeHtml(
+            category.name
+          )}
+        </option>
+      `
+    ),
+  ].join('');
+
+  if (
+    currentValue &&
+    categories.some(
+      (category) =>
+        String(category.id) ===
+        String(currentValue)
+    )
+  ) {
+    select.value =
+      currentValue;
+  } else {
+    select.value = '';
+
+    serviceListState.category =
+      '';
+  }
+}
+
+function populateServiceListSubcategoryFilter() {
+  const select =
+    document.getElementById(
+      'serviceListSubcategoryFilter'
+    );
+
+  if (!select) {
+    return;
+  }
+
+  const currentValue =
+    serviceListState.subcategory ||
+    select.value ||
+    '';
+
+  const subcategories = [
+    ...new Map(
+      servicesCache
+        .filter(
+          (service) => {
+            if (
+              !service.subcategory_id ||
+              !service.subcategory_name
+            ) {
+              return false;
+            }
+
+            if (
+              serviceListState.category &&
+              String(
+                service.category_id
+              ) !==
+                String(
+                  serviceListState.category
+                )
+            ) {
+              return false;
+            }
+
+            return true;
+          }
+        )
+        .map(
+          (service) => [
+            String(
+              service.subcategory_id
+            ),
+            {
+              id:
+                service.subcategory_id,
+              name:
+                service.subcategory_name,
+            },
+          ]
+        )
+    ).values(),
+  ];
+
+  select.innerHTML = [
+    `
+      <option value="">
+        All subcategories
+      </option>
+    `,
+
+    ...subcategories.map(
+      (subcategory) => `
+        <option
+          value="${Number(
+            subcategory.id
+          )}"
+        >
+          ${escapeHtml(
+            subcategory.name
+          )}
+        </option>
+      `
+    ),
+  ].join('');
+
+  if (
+    currentValue &&
+    subcategories.some(
+      (subcategory) =>
+        String(
+          subcategory.id
+        ) ===
+        String(
+          currentValue
+        )
+    )
+  ) {
+    select.value =
+      currentValue;
+  } else {
+    select.value = '';
+
+    serviceListState.subcategory =
+      '';
+  }
+}
+
+function renderServices() {
+  const tbody =
+    document.getElementById(
+      'servicesTableBody'
+    );
+
+  const pager =
+    document.getElementById(
+      'servicesPager'
+    );
+
+  if (!tbody) {
+    return;
+  }
+
+  const search =
+    String(
+      serviceListState.search ||
+      ''
+    )
+      .trim()
+      .toLowerCase();
+
+  const filteredServices =
+    servicesCache.filter(
+      (service) => {
+        const matchesCategory =
+          !serviceListState.category ||
+          String(
+            service.category_id
+          ) ===
+            String(
+              serviceListState.category
+            );
+
+        const matchesSubcategory =
+          !serviceListState.subcategory ||
+          String(
+            service.subcategory_id
+          ) ===
+            String(
+              serviceListState.subcategory
+            );
+
+        if (
+          !matchesCategory ||
+          !matchesSubcategory
+        ) {
+          return false;
+        }
+
+        if (!search) {
+          return true;
+        }
+
+        const searchableText = [
+          service.title,
+          service.slug,
+          service.kicker,
+          service.description,
+          service.full_description,
+          service.keywords,
+          service.category_name,
+          service.subcategory_name,
+        ]
+          .filter(Boolean)
+          .join(' ')
+          .toLowerCase();
+
+        return searchableText
+          .includes(search);
+      }
+    );
+
+  const result =
+    paginateClientItems(
+      filteredServices,
+      serviceListState.page,
+      serviceListState.limit
+    );
+
+  serviceListState.page =
+    result.pagination.page;
+
+  if (
+    !result.items.length
+  ) {
+    tbody.innerHTML = `
+      <tr>
+        <td
+          colspan="5"
+          class="empty-row"
+        >
+          No services found.
+        </td>
+      </tr>
+    `;
+
+    if (pager) {
+      pager.innerHTML = '';
+    }
+
+    return;
+  }
+
+  tbody.innerHTML =
+    result.items
+      .map(
+        (service) => `
+          <tr
+            data-id="${service.id}"
+          >
+            <td>
+              <strong>
+                ${escapeHtml(
+                  service.category_name ||
+                  formatCategory(
+                    service.category_key
+                  )
+                )}
+              </strong>
+
+              ${
+                service
+                  .subcategory_name
+                  ? `
+                    <div
+                      class="cell-subtext"
+                    >
+                      ${escapeHtml(
+                        service
+                          .subcategory_name
+                      )}
+                    </div>
+                  `
+                  : ''
+              }
+
+              <div
+                class="cell-subtext"
+              >
+                Order ${Number(
+                  service.sort_order ||
+                  0
+                )}
+              </div>
+            </td>
+
+            <td>
+              <strong>
+                ${escapeHtml(
+                  service.title
+                )}
+              </strong>
+
+              <div
+                class="cell-subtext"
+              >
+                /${escapeHtml(
+                  service.slug
+                )}
+              </div>
+
+              ${
+                service.keywords
+                  ? `
+                    <div
+                      class="cell-subtext"
+                    >
+                      Keywords:
+                      ${escapeHtml(
+                        service.keywords
+                      )}
+                    </div>
+                  `
+                  : ''
+              }
+            </td>
+
+            <td
+              class="wrap-text"
+            >
+              ${escapeHtml(
+                service.description ||
+                '—'
+              )}
+
+              <div
+                class="cell-subtext"
+              >
+                ${Number(
+                  service.price_count ||
+                  0
+                )}
+                price item(s)
+                ·
+                ${Number(
+                  service.gallery_count ||
+                  0
+                )}
+                image(s)
+              </div>
+            </td>
+
+            <td>
+              ${
+                Number(
+                  service.is_active
+                )
+                  ? 'Yes'
+                  : 'No'
+              }
+            </td>
+
+            <td>
+              <div
+                class="table-action-stack"
+              >
+                <button
+                  class="btn-small"
+                  type="button"
+                  data-action="edit-service"
+                  data-id="${service.id}"
+                >
+                  Edit details
+                </button>
+
+                <button
+                  class="btn-small"
+                  type="button"
+                  data-action="manage-prices"
+                  data-id="${service.id}"
+                >
+                  Prices
+                </button>
+
+                <button
+                  class="btn-small"
+                  type="button"
+                  data-action="manage-gallery"
+                  data-id="${service.id}"
+                >
+                  Gallery
+                </button>
+
+                <a
+                  class="btn-small"
+                  href="service-detail.html?slug=${encodeURIComponent(
+                    service.slug
+                  )}"
+                  target="_blank"
+                  rel="noopener"
+                >
+                  Preview
+                </a>
+
+                <button
+                  class="btn-small danger"
+                  type="button"
+                  data-action="delete-service"
+                  data-id="${service.id}"
+                >
+                  Delete
+                </button>
+              </div>
+            </td>
+          </tr>
+        `
+      )
+      .join('');
+
+  bindServiceTableActions();
+
+  renderPager(
+    pager,
+    result.pagination,
+    (page) => {
+      serviceListState.page =
+        page;
+
+      renderServices();
+    }
+  );
+}
+
+function bindServiceTableActions() {
+  const tbody =
+    document.getElementById(
+      'servicesTableBody'
+    );
+
+  if (!tbody) {
+    return;
+  }
+
+  tbody
+    .querySelectorAll(
+      '[data-action="edit-service"]'
+    )
+    .forEach(
+      (button) => {
+        button.addEventListener(
+          'click',
+          () => {
+            const service =
+              servicesCache.find(
+                (item) =>
+                  String(item.id) ===
+                  String(
+                    button.dataset.id
+                  )
+              );
+
+            if (service) {
+              openServiceModal(
+                service
+              );
+            }
+          }
+        );
+      }
+    );
+
+  tbody
+    .querySelectorAll(
+      '[data-action="manage-prices"]'
+    )
+    .forEach(
+      (button) => {
+        button.addEventListener(
+          'click',
+          () => {
+            openPriceManager(
+              Number(
+                button.dataset.id
+              )
+            );
+          }
+        );
+      }
+    );
+
+  tbody
+    .querySelectorAll(
+      '[data-action="manage-gallery"]'
+    )
+    .forEach(
+      (button) => {
+        button.addEventListener(
+          'click',
+          () => {
+            openGalleryManager(
+              Number(
+                button.dataset.id
+              )
+            );
+          }
+        );
+      }
+    );
+
+  tbody
+    .querySelectorAll(
+      '[data-action="delete-service"]'
+    )
+    .forEach(
+      (button) => {
+        button.addEventListener(
+          'click',
+          async () => {
+            const service =
+              servicesCache.find(
+                (item) =>
+                  String(item.id) ===
+                  String(
+                    button.dataset.id
+                  )
+              );
+
+            const serviceTitle =
+              service?.title ||
+              'this service';
+
+            const confirmed =
+              await confirmDelete({
+                title:
+                  `Delete ${serviceTitle}?`,
+
+                message:
+                  'This will permanently remove the service together with its price list and gallery images. This action cannot be undone.',
+              });
+
+            if (!confirmed) {
+              return;
+            }
+
+            button.disabled = true;
+
+            try {
+              await authedApi
+                .deleteService(
+                  button.dataset.id
+                );
+
+              await loadServices();
+
+              showKpToast({
+                title:
+                  'Service deleted',
+
+                message:
+                  `${serviceTitle} has been permanently removed.`,
+
+                duration: 5000,
+              });
+            } catch (error) {
+              if (
+                !handleAuthError(
+                  error
+                )
+              ) {
+                showKpToast({
+                  title:
+                    'Unable to delete service',
+
+                  message:
+                    error.message ||
+                    'Please try again.',
+
+                  duration: 8000,
+                });
+              }
+            } finally {
+              button.disabled =
+                false;
+            }
+          }
+        );
+      }
+    );
 }
 
 function getServiceCategoryKey(categorySlug) {
@@ -6737,23 +7805,42 @@ function renderServiceCategoriesTable() {
   }
 
   if (!serviceCategoriesCache.length) {
-    tbody.innerHTML = `
-      <tr>
-        <td
-          colspan="7"
-          class="empty-row"
-        >
-          No service categories found.
-        </td>
-      </tr>
-    `;
+  tbody.innerHTML = `
+    <tr>
+      <td
+        colspan="7"
+        class="empty-row"
+      >
+        No service categories found.
+      </td>
+    </tr>
+  `;
 
-    return;
+  const pager =
+    document.getElementById(
+      'serviceCategoriesPager'
+    );
+
+  if (pager) {
+    pager.innerHTML = '';
   }
 
+  return;
+}
+
+  const result =
+  paginateClientItems(
+    serviceCategoriesCache,
+    serviceCategoryState.page,
+    serviceCategoryState.limit
+  );
+
+serviceCategoryState.page =
+  result.pagination.page;
+
   tbody.innerHTML =
-    serviceCategoriesCache
-      .map(
+  result.items
+    .map(
         (category) => {
           const isActive =
             Number(
@@ -6983,6 +8070,19 @@ function renderServiceCategoriesTable() {
       }
     );
   });
+
+  renderPager(
+  document.getElementById(
+    'serviceCategoriesPager'
+  ),
+  result.pagination,
+  (page) => {
+    serviceCategoryState.page =
+      page;
+
+    renderServiceCategoriesTable();
+  }
+);
 }
 
 function populateTaxonomyCategoryFilter() {
@@ -7084,8 +8184,42 @@ function renderFilteredServiceSubcategories() {
       }
     );
 
+  const result =
+    paginateClientItems(
+      filtered,
+      serviceSubcategoryState.page,
+      serviceSubcategoryState.limit
+    );
+
+  serviceSubcategoryState.page =
+    result.pagination.page;
+
   renderServiceSubcategoriesTable(
-    filtered
+    result.items
+  );
+
+  const pager =
+    document.getElementById(
+      'serviceSubcategoriesPager'
+    );
+
+  if (!filtered.length) {
+    if (pager) {
+      pager.innerHTML = '';
+    }
+
+    return;
+  }
+
+  renderPager(
+    pager,
+    result.pagination,
+    (page) => {
+      serviceSubcategoryState.page =
+        page;
+
+      renderFilteredServiceSubcategories();
+    }
   );
 }
 
@@ -7912,118 +9046,316 @@ showKpToast({
 // -----------------------------------------------------------------------------
 
 async function loadPromotions() {
-  const tbody = document.getElementById('promotionsTableBody');
-  if (!tbody || !authedApi?.getAdminPromotions) return;
+  const tbody =
+    document.getElementById(
+      'promotionsTableBody'
+    );
 
-  tbody.innerHTML = '<tr><td colspan="6" class="loading-row">Loading…</td></tr>';
+  if (
+    !tbody ||
+    !authedApi?.getAdminPromotions
+  ) {
+    return;
+  }
+
+  tbody.innerHTML = `
+    <tr>
+      <td
+        colspan="6"
+        class="loading-row"
+      >
+        Loading…
+      </td>
+    </tr>
+  `;
 
   try {
-    promotionsCache = await authedApi.getAdminPromotions();
+    promotionsCache =
+      await authedApi.getAdminPromotions();
 
-    if (!promotionsCache.length) {
-      tbody.innerHTML = '<tr><td colspan="6" class="empty-row">No promotions found.</td></tr>';
-      return;
+    renderPromotions();
+  } catch (error) {
+    if (
+      !handleAuthError(error)
+    ) {
+      tbody.innerHTML = `
+        <tr>
+          <td
+            colspan="6"
+            class="empty-row"
+          >
+            ${escapeHtml(
+              error.message ||
+              'Unable to load promotions.'
+            )}
+          </td>
+        </tr>
+      `;
     }
+  }
+}
 
-    tbody.innerHTML = promotionsCache.map((promotion) => `
-      <tr>
-        <td>${Number(promotion.sort_order || 0)}</td>
-        <td>${escapeHtml(promotion.badge || '—')}</td>
-        <td>${escapeHtml(promotion.title)}</td>
-        <td class="wrap-text">${escapeHtml(promotion.description || '—')}</td>
-        <td>${Number(promotion.is_active) ? 'Yes' : 'No'}</td>
-        <td>
-          <button class="btn-small" type="button" data-edit-promotion="${promotion.id}">Edit</button>
-          <button class="btn-small danger" type="button" data-delete-promotion="${promotion.id}">Delete</button>
-        </td>
-      </tr>
-    `).join('');
+function renderPromotions() {
+  const tbody =
+    document.getElementById(
+      'promotionsTableBody'
+    );
 
-    tbody.querySelectorAll('[data-edit-promotion]').forEach((button) => {
-      button.addEventListener('click', () => {
-        openPromotionModal(promotionsCache.find((promotion) => String(promotion.id) === button.dataset.editPromotion));
-      });
-    });
+  const pager =
+    document.getElementById(
+      'promotionsPager'
+    );
 
-    tbody
-  .querySelectorAll(
-    '[data-delete-promotion]'
-  )
-  .forEach((button) => {
-    button.addEventListener(
-      'click',
-      async () => {
-        const promotion =
-          promotionsCache.find(
-            (item) =>
-              String(item.id) ===
-              String(
-                button.dataset
-                  .deletePromotion
-              )
-          );
+  if (!tbody) {
+    return;
+  }
 
-        const promotionTitle =
-          promotion?.title ||
-          'this promotion';
+  const search =
+    String(
+      promotionState.search ||
+      ''
+    )
+      .trim()
+      .toLowerCase();
 
-        const confirmed =
-          await confirmDelete({
-            title:
-              `Delete ${promotionTitle}?`,
-
-            message:
-              'This promotion will be permanently removed and cannot be recovered.',
-          });
-
-        if (!confirmed) {
-          return;
+  const filteredPromotions =
+    promotionsCache.filter(
+      (promotion) => {
+        if (!search) {
+          return true;
         }
 
-        button.disabled = true;
+        const searchableText = [
+          promotion.badge,
+          promotion.title,
+          promotion.description,
+          promotion.details,
+          promotion.cta_label,
+          promotion.cta_link,
+        ]
+          .filter(Boolean)
+          .join(' ')
+          .toLowerCase();
 
-        try {
-          await authedApi
-            .deletePromotion(
-              button.dataset
-                .deletePromotion
-            );
-
-          await loadPromotions();
-
-          showKpToast({
-            title:
-              'Promotion deleted',
-
-            message:
-              `${promotionTitle} has been permanently removed.`,
-
-            duration: 5000,
-          });
-        } catch (error) {
-          if (
-            !handleAuthError(error)
-          ) {
-            showKpToast({
-              title:
-                'Unable to delete promotion',
-
-              message:
-                error.message ||
-                'Please try again.',
-
-              duration: 7000,
-            });
-          }
-        } finally {
-          button.disabled = false;
-        }
+        return searchableText
+          .includes(search);
       }
     );
-  });
-  } catch (error) {
-    tbody.innerHTML = `<tr><td colspan="6" class="empty-row">${escapeHtml(error.message)}</td></tr>`;
+
+  const result =
+    paginateClientItems(
+      filteredPromotions,
+      promotionState.page,
+      promotionState.limit
+    );
+
+  promotionState.page =
+    result.pagination.page;
+
+  if (!result.items.length) {
+    tbody.innerHTML = `
+      <tr>
+        <td
+          colspan="6"
+          class="empty-row"
+        >
+          No promotions found.
+        </td>
+      </tr>
+    `;
+
+    if (pager) {
+      pager.innerHTML = '';
+    }
+
+    return;
   }
+
+  tbody.innerHTML =
+    result.items
+      .map(
+        (promotion) => `
+          <tr>
+            <td>
+              ${Number(
+                promotion.sort_order ||
+                0
+              )}
+            </td>
+
+            <td>
+              ${escapeHtml(
+                promotion.badge ||
+                '—'
+              )}
+            </td>
+
+            <td>
+              ${escapeHtml(
+                promotion.title
+              )}
+            </td>
+
+            <td class="wrap-text">
+              ${escapeHtml(
+                promotion.description ||
+                '—'
+              )}
+            </td>
+
+            <td>
+              ${
+                Number(
+                  promotion.is_active
+                )
+                  ? 'Yes'
+                  : 'No'
+              }
+            </td>
+
+            <td>
+              <button
+                class="btn-small"
+                type="button"
+                data-edit-promotion="${promotion.id}"
+              >
+                Edit
+              </button>
+
+              <button
+                class="btn-small danger"
+                type="button"
+                data-delete-promotion="${promotion.id}"
+              >
+                Delete
+              </button>
+            </td>
+          </tr>
+        `
+      )
+      .join('');
+
+  tbody
+    .querySelectorAll(
+      '[data-edit-promotion]'
+    )
+    .forEach(
+      (button) => {
+        button.addEventListener(
+          'click',
+          () => {
+            const promotion =
+              promotionsCache.find(
+                (item) =>
+                  String(item.id) ===
+                  String(
+                    button.dataset
+                      .editPromotion
+                  )
+              );
+
+            if (promotion) {
+              openPromotionModal(
+                promotion
+              );
+            }
+          }
+        );
+      }
+    );
+
+  tbody
+    .querySelectorAll(
+      '[data-delete-promotion]'
+    )
+    .forEach(
+      (button) => {
+        button.addEventListener(
+          'click',
+          async () => {
+            const promotion =
+              promotionsCache.find(
+                (item) =>
+                  String(item.id) ===
+                  String(
+                    button.dataset
+                      .deletePromotion
+                  )
+              );
+
+            const promotionTitle =
+              promotion?.title ||
+              'this promotion';
+
+            const confirmed =
+              await confirmDelete({
+                title:
+                  `Delete ${promotionTitle}?`,
+
+                message:
+                  'This promotion will be permanently removed and cannot be recovered.',
+              });
+
+            if (!confirmed) {
+              return;
+            }
+
+            button.disabled = true;
+
+            try {
+              await authedApi
+                .deletePromotion(
+                  button.dataset
+                    .deletePromotion
+                );
+
+              await loadPromotions();
+
+              showKpToast({
+                title:
+                  'Promotion deleted',
+
+                message:
+                  `${promotionTitle} has been permanently removed.`,
+
+                duration: 5000,
+              });
+            } catch (error) {
+              if (
+                !handleAuthError(
+                  error
+                )
+              ) {
+                showKpToast({
+                  title:
+                    'Unable to delete promotion',
+
+                  message:
+                    error.message ||
+                    'Please try again.',
+
+                  duration: 7000,
+                });
+              }
+            } finally {
+              button.disabled =
+                false;
+            }
+          }
+        );
+      }
+    );
+
+  renderPager(
+    pager,
+    result.pagination,
+    (page) => {
+      promotionState.page =
+        page;
+
+      renderPromotions();
+    }
+  );
 }
 
 function openPromotionModal(promotion = null) {
@@ -8262,138 +9594,226 @@ async function loadActivities() {
       await authedApi
         .getAdminActivities();
 
-    if (!activitiesCache.length) {
+    renderActivities();
+  } catch (error) {
+    if (
+      !handleAuthError(error)
+    ) {
       tbody.innerHTML = `
         <tr>
           <td
             colspan="7"
             class="empty-row"
           >
-            No activities found.
+            ${escapeHtml(
+              error.message ||
+              'Unable to load activities.'
+            )}
           </td>
         </tr>
       `;
+    }
+  }
+}
 
-      return;
+function renderActivities() {
+  const tbody =
+    document.getElementById(
+      'activitiesTableBody'
+    );
+
+  const pager =
+    document.getElementById(
+      'activitiesPager'
+    );
+
+  if (!tbody) {
+    return;
+  }
+
+  const search =
+    String(
+      activityState.search ||
+      ''
+    )
+      .trim()
+      .toLowerCase();
+
+  const filteredActivities =
+    activitiesCache.filter(
+      (activity) => {
+        if (!search) {
+          return true;
+        }
+
+        const searchableText = [
+          activity.category,
+          activity.title,
+          activity.slug,
+          activity.description,
+          activity.location,
+          activity.cta_label,
+          getActivityMetaText(
+            activity
+          ),
+        ]
+          .filter(Boolean)
+          .join(' ')
+          .toLowerCase();
+
+        return searchableText
+          .includes(search);
+      }
+    );
+
+  const result =
+    paginateClientItems(
+      filteredActivities,
+      activityState.page,
+      activityState.limit
+    );
+
+  activityState.page =
+    result.pagination.page;
+
+  if (!result.items.length) {
+    tbody.innerHTML = `
+      <tr>
+        <td
+          colspan="7"
+          class="empty-row"
+        >
+          No activities found.
+        </td>
+      </tr>
+    `;
+
+    if (pager) {
+      pager.innerHTML = '';
     }
 
-    tbody.innerHTML =
-      activitiesCache
-        .map(
-          (activity) => `
-            <tr data-id="${Number(
-              activity.id
-            )}">
-              <td>
-                <strong>
-                  ${escapeHtml(
-                    activity.category ||
-                    '—'
-                  )}
-                </strong>
-              </td>
+    return;
+  }
 
-              <td>
-                <strong>
-                  ${escapeHtml(
-                    activity.title
-                  )}
-                </strong>
-
-                <div class="cell-subtext">
-                  /${escapeHtml(
-                    activity.slug
-                  )}
-                </div>
-              </td>
-
-              <td class="wrap-text">
+  tbody.innerHTML =
+    result.items
+      .map(
+        (activity) => `
+          <tr data-id="${Number(
+            activity.id
+          )}">
+            <td>
+              <strong>
                 ${escapeHtml(
-                  getActivityMetaText(
-                    activity
-                  )
+                  activity.category ||
+                  '—'
                 )}
-              </td>
+              </strong>
+            </td>
 
-              <td>
-                ${Number(
-                  activity.gallery
-                    ?.length || 0
+            <td>
+              <strong>
+                ${escapeHtml(
+                  activity.title
                 )}
-                image(s)
-              </td>
+              </strong>
 
-              <td>
-                ${Number(
-                  activity.sort_order || 0
+              <div class="cell-subtext">
+                /${escapeHtml(
+                  activity.slug
                 )}
-              </td>
+              </div>
+            </td>
 
-              <td>
-                ${
-                  Number(
-                    activity.is_active
-                  )
-                    ? 'Yes'
-                    : 'No'
-                }
-              </td>
+            <td class="wrap-text">
+              ${escapeHtml(
+                getActivityMetaText(
+                  activity
+                )
+              )}
+            </td>
 
-              <td>
-                <div class="table-action-stack">
-                  <button
-                    class="btn-small"
-                    type="button"
-                    data-action="edit-activity"
-                    data-id="${Number(
-                      activity.id
-                    )}"
-                  >
-                    Edit
-                  </button>
+            <td>
+              ${Number(
+                activity.gallery
+                  ?.length || 0
+              )}
+              image(s)
+            </td>
 
-                  <button
-                    class="btn-small"
-                    type="button"
-                    data-action="manage-activity-gallery"
-                    data-id="${Number(
-                      activity.id
-                    )}"
-                  >
-                    Gallery
-                  </button>
+            <td>
+              ${Number(
+                activity.sort_order ||
+                0
+              )}
+            </td>
 
-                  <a
-                    class="btn-small"
-                    href="activities.html"
-                    target="_blank"
-                    rel="noopener"
-                  >
-                    Preview
-                  </a>
+            <td>
+              ${
+                Number(
+                  activity.is_active
+                )
+                  ? 'Yes'
+                  : 'No'
+              }
+            </td>
 
-                  <button
-                    class="btn-small danger"
-                    type="button"
-                    data-action="delete-activity"
-                    data-id="${Number(
-                      activity.id
-                    )}"
-                  >
-                    Delete
-                  </button>
-                </div>
-              </td>
-            </tr>
-          `
-        )
-        .join('');
+            <td>
+              <div class="table-action-stack">
+                <button
+                  class="btn-small"
+                  type="button"
+                  data-action="edit-activity"
+                  data-id="${Number(
+                    activity.id
+                  )}"
+                >
+                  Edit
+                </button>
 
-    tbody
-      .querySelectorAll(
-        '[data-action="edit-activity"]'
+                <button
+                  class="btn-small"
+                  type="button"
+                  data-action="manage-activity-gallery"
+                  data-id="${Number(
+                    activity.id
+                  )}"
+                >
+                  Gallery
+                </button>
+
+                <a
+                  class="btn-small"
+                  href="activities.html"
+                  target="_blank"
+                  rel="noopener"
+                >
+                  Preview
+                </a>
+
+                <button
+                  class="btn-small danger"
+                  type="button"
+                  data-action="delete-activity"
+                  data-id="${Number(
+                    activity.id
+                  )}"
+                >
+                  Delete
+                </button>
+              </div>
+            </td>
+          </tr>
+        `
       )
-      .forEach((button) => {
+      .join('');
+
+  tbody
+    .querySelectorAll(
+      '[data-action="edit-activity"]'
+    )
+    .forEach(
+      (button) => {
         button.addEventListener(
           'click',
           () => {
@@ -8413,13 +9833,15 @@ async function loadActivities() {
             }
           }
         );
-      });
+      }
+    );
 
-    tbody
-      .querySelectorAll(
-        '[data-action="manage-activity-gallery"]'
-      )
-      .forEach((button) => {
+  tbody
+    .querySelectorAll(
+      '[data-action="manage-activity-gallery"]'
+    )
+    .forEach(
+      (button) => {
         button.addEventListener(
           'click',
           () => {
@@ -8430,99 +9852,99 @@ async function loadActivities() {
             );
           }
         );
-      });
-
-    tbody
-  .querySelectorAll(
-    '[data-action="delete-activity"]'
-  )
-  .forEach((button) => {
-    button.addEventListener(
-      'click',
-      async () => {
-        const activity =
-          activitiesCache.find(
-            (item) =>
-              String(item.id) ===
-              String(
-                button.dataset.id
-              )
-          );
-
-        const activityTitle =
-          activity?.title ||
-          'this activity';
-
-        const confirmed =
-          await confirmDelete({
-            title:
-              `Delete ${activityTitle}?`,
-
-            message:
-              'This activity and its associated gallery content will be permanently removed. This action cannot be undone.',
-          });
-
-        if (!confirmed) {
-          return;
-        }
-
-        button.disabled = true;
-
-        try {
-          await authedApi
-            .deleteActivity(
-              button.dataset.id
-            );
-
-          await loadActivities();
-
-          showKpToast({
-            title:
-              'Activity deleted',
-
-            message:
-              `${activityTitle} has been permanently removed.`,
-
-            duration: 5000,
-          });
-        } catch (error) {
-          if (
-            !handleAuthError(error)
-          ) {
-            showKpToast({
-              title:
-                'Unable to delete activity',
-
-              message:
-                error.message ||
-                'Please try again.',
-
-              duration: 7000,
-            });
-          }
-        } finally {
-          button.disabled = false;
-        }
       }
     );
-  });
-  } catch (error) {
-    if (!handleAuthError(error)) {
-      tbody.innerHTML = `
-        <tr>
-          <td
-            colspan="7"
-            class="empty-row"
-          >
-            ${escapeHtml(
-              error.message ||
-              'Unable to load activities.'
-            )}
-          </td>
-        </tr>
-      `;
+
+  tbody
+    .querySelectorAll(
+      '[data-action="delete-activity"]'
+    )
+    .forEach(
+      (button) => {
+        button.addEventListener(
+          'click',
+          async () => {
+            const activity =
+              activitiesCache.find(
+                (item) =>
+                  String(item.id) ===
+                  String(
+                    button.dataset.id
+                  )
+              );
+
+            const activityTitle =
+              activity?.title ||
+              'this activity';
+
+            const confirmed =
+              await confirmDelete({
+                title:
+                  `Delete ${activityTitle}?`,
+
+                message:
+                  'This activity and its associated gallery content will be permanently removed. This action cannot be undone.',
+              });
+
+            if (!confirmed) {
+              return;
+            }
+
+            button.disabled = true;
+
+            try {
+              await authedApi
+                .deleteActivity(
+                  button.dataset.id
+                );
+
+              await loadActivities();
+
+              showKpToast({
+                title:
+                  'Activity deleted',
+
+                message:
+                  `${activityTitle} has been permanently removed.`,
+
+                duration: 5000,
+              });
+            } catch (error) {
+              if (
+                !handleAuthError(
+                  error
+                )
+              ) {
+                showKpToast({
+                  title:
+                    'Unable to delete activity',
+
+                  message:
+                    error.message ||
+                    'Please try again.',
+
+                  duration: 7000,
+                });
+              }
+            } finally {
+              button.disabled =
+                false;
+            }
+          }
+        );
+      }
+    );
+
+  renderPager(
+    pager,
+    result.pagination,
+    (page) => {
+      activityState.page =
+        page;
+
+      renderActivities();
     }
-  }
+  );
 }
 
 function getActivityMetaText(
@@ -10181,6 +11603,11 @@ function renderFilteredAdminUsers() {
       'adminUsersTableBody'
     );
 
+  const pager =
+    document.getElementById(
+      'adminUsersPager'
+    );
+
   if (!tbody) {
     return;
   }
@@ -10254,8 +11681,39 @@ function renderFilteredAdminUsers() {
       }
     );
 
+  const result =
+    paginateClientItems(
+      filteredUsers,
+      adminUserState.page,
+      adminUserState.limit
+    );
+
+  adminUserState.page =
+    result.pagination.page;
+
+  if (!result.items.length) {
+    renderAdminUsersTable([]);
+
+    if (pager) {
+      pager.innerHTML = '';
+    }
+
+    return;
+  }
+
   renderAdminUsersTable(
-    filteredUsers
+    result.items
+  );
+
+  renderPager(
+    pager,
+    result.pagination,
+    (page) => {
+      adminUserState.page =
+        page;
+
+      renderFilteredAdminUsers();
+    }
   );
 }
 
@@ -11113,6 +12571,68 @@ function confirmStatusChange({
     cancelText: 'Cancel',
     variant: 'warning',
   });
+}
+
+function paginateClientItems(
+  items,
+  requestedPage = 1,
+  limit = 10
+) {
+  const safeItems =
+    Array.isArray(items)
+      ? items
+      : [];
+
+  const safeLimit =
+    Math.max(
+      1,
+      Number(limit) || 10
+    );
+
+  const total =
+    safeItems.length;
+
+  const totalPages =
+    Math.max(
+      1,
+      Math.ceil(
+        total / safeLimit
+      )
+    );
+
+  const page =
+    Math.min(
+      Math.max(
+        1,
+        Number(requestedPage) || 1
+      ),
+      totalPages
+    );
+
+  const startIndex =
+    (page - 1) *
+    safeLimit;
+
+  return {
+    items:
+      safeItems.slice(
+        startIndex,
+        startIndex +
+          safeLimit
+      ),
+
+    pagination: {
+      page,
+      limit:
+        safeLimit,
+      total,
+      totalPages,
+      hasNext:
+        page < totalPages,
+      hasPrevious:
+        page > 1,
+    },
+  };
 }
 
 function renderPager(container, pagination, onPage) {

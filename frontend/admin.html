@@ -448,6 +448,18 @@
           </tbody>
         </table>
       </div>
+
+      <div
+  class="booking-table-footer"
+  id="searchConsoleQueriesPager"
+  aria-label="Search queries pagination"
+></div>
+
+<div
+  class="booking-table-footer"
+  id="searchConsolePagesPager"
+  aria-label="Landing pages pagination"
+></div>
     </section>
 
     <section class="performance-panel">
@@ -806,6 +818,16 @@
           <h2>Doctors</h2>
           <button class="btn-primary" id="addDoctorBtn">+ Add doctor</button>
         </div>
+        <div class="booking-toolbar">
+  <select
+    id="doctorBranchFilter"
+    aria-label="Filter doctors by branch"
+  >
+    <option value="">
+      All branches
+    </option>
+  </select>
+</div>
         <div class="table-wrap">
           <table>
             <thead>
@@ -816,6 +838,11 @@
             </tbody>
           </table>
         </div>
+        <div
+  class="booking-table-footer"
+  id="doctorsPager"
+  aria-label="Doctor pagination"
+></div>
       </section>
 
       <!-- SERVICES TAB -->
@@ -824,6 +851,34 @@
           <h2>Services</h2>
           <button class="btn-primary" id="addServiceBtn">+ Add service</button>
         </div>
+        <div class="booking-toolbar">
+  <div class="booking-search-wrap">
+    <input
+      type="search"
+      id="serviceListSearchInput"
+      aria-label="Search services"
+      placeholder="Search service, keyword, description..."
+    >
+  </div>
+
+  <select
+    id="serviceListCategoryFilter"
+    aria-label="Filter services by category"
+  >
+    <option value="">
+      All categories
+    </option>
+  </select>
+
+  <select
+    id="serviceListSubcategoryFilter"
+    aria-label="Filter services by subcategory"
+  >
+    <option value="">
+      All subcategories
+    </option>
+  </select>
+</div>
         <div class="table-wrap">
           <table>
             <thead>
@@ -834,6 +889,11 @@
             </tbody>
           </table>
         </div>
+        <div
+  class="booking-table-footer"
+  id="servicesPager"
+  aria-label="Services pagination"
+></div>
       </section>
 
       <!-- SERVICE SETUP TAB -->
@@ -906,6 +966,11 @@
         </tbody>
       </table>
     </div>
+    <div
+  class="booking-table-footer"
+  id="serviceCategoriesPager"
+  aria-label="Service category pagination"
+></div>
   </article>
 
   <!-- SUBCATEGORY SECTION -->
@@ -974,6 +1039,11 @@
         </tbody>
       </table>
     </div>
+    <div
+  class="booking-table-footer"
+  id="serviceSubcategoriesPager"
+  aria-label="Service subcategory pagination"
+></div>
   </article>
 
   <p class="performance-privacy-note">
@@ -988,6 +1058,16 @@
           <h2>Promotions</h2>
           <button class="btn-primary" id="addPromotionBtn">+ Add promotion</button>
         </div>
+        <div class="booking-toolbar">
+  <div class="booking-search-wrap">
+    <input
+      type="search"
+      id="promotionSearchInput"
+      aria-label="Search promotions"
+      placeholder="Search promotion..."
+    >
+  </div>
+</div>
         <div class="table-wrap">
           <table>
             <thead>
@@ -998,6 +1078,11 @@
             </tbody>
           </table>
         </div>
+        <div
+  class="booking-table-footer"
+  id="promotionsPager"
+  aria-label="Promotion pagination"
+></div>
       </section>
 
       <!-- ACTIVITIES & CSR TAB -->
@@ -1023,6 +1108,16 @@
       + Add activity
     </button>
   </div>
+  <div class="booking-toolbar">
+  <div class="booking-search-wrap">
+    <input
+      type="search"
+      id="activitySearchInput"
+      aria-label="Search activities"
+      placeholder="Search activity, category, location..."
+    >
+  </div>
+</div>
 
   <div class="table-wrap">
     <table class="activities-admin-table">
@@ -1050,6 +1145,11 @@
       </tbody>
     </table>
   </div>
+  <div
+  class="booking-table-footer"
+  id="activitiesPager"
+  aria-label="Activity pagination"
+></div>
 </section>
 
 <!-- USER MANAGEMENT TAB -->
@@ -1255,6 +1355,12 @@
       </tbody>
     </table>
   </div>
+
+  <div
+  class="booking-table-footer"
+  id="adminUsersPager"
+  aria-label="Administrator pagination"
+></div>
 
   <p class="performance-privacy-note">
     Only superadmin accounts can view or change administrator
