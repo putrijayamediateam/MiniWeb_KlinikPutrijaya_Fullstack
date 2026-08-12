@@ -317,7 +317,7 @@ function escapeSharedAttribute(value) {
               <h4>Branches</h4>
               <a href="https://wa.link/ohje1h" target="_blank" rel="noopener">Cheras — 018-314 4588</a>
               <a href="https://wa.link/edexo9" target="_blank" rel="noopener">Sungai Besi — 019-347 0448</a>
-              <a href="https://wa.link/s5e9zp" target="_blank" rel="noopener">Puchong — 019-387 0448</a>
+              <a href="https://wa.link/c6jnt3" target="_blank" rel="noopener">Puchong — 019-387 0448</a>
             </div>
           </div>
           <div class="footer-bottom">
@@ -368,7 +368,7 @@ function escapeSharedAttribute(value) {
 </span>
               <span><b>Klinik Putrijaya Sungai Besi</b><small>019-347 0448</small></span>
             </a>
-            <a class="branch-whatsapp-card" href="https://wa.link/s5e9zp" target="_blank" rel="noopener">
+            <a class="branch-whatsapp-card" href="https://wa.link/c6jnt3" target="_blank" rel="noopener">
               <span class="wa-icon" aria-hidden="true">
   <svg
     viewBox="0 0 32 32"

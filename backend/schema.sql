@@ -24,7 +24,7 @@ CREATE TABLE branches (
 INSERT INTO branches (name, slug, phone, whatsapp_link) VALUES
   ('Klinik Putrijaya Cheras',       'cheras',      '018-314 4588', 'https://wa.link/ohje1h'),
   ('Klinik Putrijaya Sungai Besi',  'sungai-besi', '019-347 0448', 'https://wa.link/edexo9'),
-  ('Klinik Putrijaya Puchong',      'puchong',     '019-387 0448', 'https://wa.link/s5e9zp');
+  ('Klinik Putrijaya Puchong',      'puchong',     '019-387 0448', 'https://wa.link/c6jnt3');
 
 -- ------------------------------------------------------------
 -- Doctors  (feeds the "Resident Doctors" section + dynamic content + search)
