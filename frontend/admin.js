@@ -4396,12 +4396,57 @@ function openDoctorModal(doctor = null) {
     </label>
 
     <div class="admin-upload-field">
-      <label for="m-doctor-photo">Doctor photo</label>
-      <input id="m-doctor-photo" type="file" accept="image/jpeg,image/png,image/webp">
-      <input id="m-doctor-photo-url" type="hidden" value="${escapeAttribute(doctor?.photo_url || '')}">
-      <div class="upload-help">JPEG, PNG or WebP. Maximum 5 MB. Portrait images work best.</div>
-      <img id="m-doctor-preview" class="admin-image-preview portrait ${doctor?.photo_url ? '' : 'hidden'}" src="${doctor?.photo_url ? escapeAttribute(resolveImageUrl(doctor.photo_url)) : ''}" alt="Doctor photo preview">
-    </div>
+  <label for="m-doctor-photo">
+    Doctor photo
+  </label>
+
+  <input
+    id="m-doctor-photo"
+    type="file"
+    accept="image/jpeg,image/png,image/webp"
+  >
+
+  <input
+    id="m-doctor-photo-url"
+    type="hidden"
+    value="${escapeAttribute(
+      doctor?.photo_url || ''
+    )}"
+  >
+
+  <div class="upload-help">
+    JPEG, PNG or WebP. Maximum 5 MB.
+    Portrait images work best.
+  </div>
+
+  <div
+    id="m-doctor-preview-wrap"
+    class="${doctor?.photo_url ? '' : 'hidden'}"
+  >
+    <img
+      id="m-doctor-preview"
+      class="admin-image-preview portrait"
+      src="${
+        doctor?.photo_url
+          ? escapeAttribute(
+              resolveImageUrl(
+                doctor.photo_url
+              )
+            )
+          : ''
+      }"
+      alt="Doctor photo preview"
+    >
+
+    <button
+      type="button"
+      class="btn-small danger"
+      id="removeDoctorPhotoBtn"
+    >
+      Delete photo
+    </button>
+  </div>
+</div>
 
     <label>
       <span>Active</span>
@@ -4470,6 +4515,81 @@ showKpToast({
   });
 
   bindImagePreview('m-doctor-photo', 'm-doctor-preview');
+
+  const doctorPhotoInput =
+  document.getElementById(
+    'm-doctor-photo'
+  );
+
+const doctorPhotoUrl =
+  document.getElementById(
+    'm-doctor-photo-url'
+  );
+
+const doctorPreview =
+  document.getElementById(
+    'm-doctor-preview'
+  );
+
+const doctorPreviewWrap =
+  document.getElementById(
+    'm-doctor-preview-wrap'
+  );
+
+doctorPhotoInput?.addEventListener(
+  'change',
+  () => {
+    if (
+      doctorPhotoInput.files?.length
+    ) {
+      doctorPreviewWrap
+        ?.classList.remove('hidden');
+    }
+  }
+);
+
+document
+  .getElementById(
+    'removeDoctorPhotoBtn'
+  )
+  ?.addEventListener(
+    'click',
+    async () => {
+      const confirmed =
+        await confirmDelete({
+          title:
+            'Delete doctor photo?',
+
+          message:
+            'The doctor photo will be removed after you save the doctor.',
+
+          confirmText:
+            'Remove photo',
+        });
+
+      if (!confirmed) return;
+
+      doctorPhotoInput.value = '';
+      doctorPhotoUrl.value = '';
+
+      if (doctorPreview) {
+        doctorPreview.src = '';
+      }
+
+      doctorPreviewWrap
+        ?.classList.add('hidden');
+
+      showKpToast({
+        title:
+          'Doctor photo removed',
+
+        message:
+          'Save the doctor to apply this change.',
+
+        duration: 5000,
+      });
+    }
+  );
 }
 
 // -----------------------------------------------------------------------------
@@ -5004,48 +5124,61 @@ async function openServiceModal(service = null) {
       </div>
 
       <div class="admin-upload-field">
-        <label for="m-service-hero">
-          Hero image
-        </label>
+  <label for="m-service-hero">
+    Hero image
+  </label>
 
-        <input
-          id="m-service-hero"
-          type="file"
-          accept="image/jpeg,image/png,image/webp"
-        >
+  <input
+    id="m-service-hero"
+    type="file"
+    accept="image/jpeg,image/png,image/webp"
+  >
 
-        <input
-          id="m-service-hero-url"
-          type="hidden"
-          value="${escapeAttribute(
-            service?.hero_image_url || ''
-          )}"
-        >
+  <input
+    id="m-service-hero-url"
+    type="hidden"
+    value="${escapeAttribute(
+      service?.hero_image_url || ''
+    )}"
+  >
 
-        <div class="upload-help">
-          This image is used on the service card and
-          service detail page.
-        </div>
+  <div class="upload-help">
+    This image is used on the service card and
+    service detail page.
+  </div>
 
-        <img
-          id="m-service-hero-preview"
-          class="admin-image-preview landscape ${
-            service?.hero_image_url
-              ? ''
-              : 'hidden'
-          }"
-          src="${
-            service?.hero_image_url
-              ? escapeAttribute(
-                  resolveImageUrl(
-                    service.hero_image_url
-                  )
-                )
-              : ''
-          }"
-          alt="Service hero preview"
-        >
-      </div>
+  <div
+    id="m-service-hero-preview-wrap"
+    class="${
+      service?.hero_image_url
+        ? ''
+        : 'hidden'
+    }"
+  >
+    <img
+      id="m-service-hero-preview"
+      class="admin-image-preview landscape"
+      src="${
+        service?.hero_image_url
+          ? escapeAttribute(
+              resolveImageUrl(
+                service.hero_image_url
+              )
+            )
+          : ''
+      }"
+      alt="Service hero preview"
+    >
+
+    <button
+      type="button"
+      class="btn-small danger"
+      id="removeServiceHeroBtn"
+    >
+      Delete hero image
+    </button>
+  </div>
+</div>
 
       <label>
         <span>Active</span>
@@ -5391,6 +5524,106 @@ if (!isEdit && savedId) {
     'm-service-hero',
     'm-service-hero-preview'
   );
+
+  const heroInput =
+  document.getElementById(
+    'm-service-hero'
+  );
+
+const heroUrlInput =
+  document.getElementById(
+    'm-service-hero-url'
+  );
+
+const heroPreview =
+  document.getElementById(
+    'm-service-hero-preview'
+  );
+
+const heroPreviewWrap =
+  document.getElementById(
+    'm-service-hero-preview-wrap'
+  );
+
+const removeHeroButton =
+  document.getElementById(
+    'removeServiceHeroBtn'
+  );
+
+heroInput?.addEventListener(
+  'change',
+  () => {
+    if (
+      heroInput.files?.length
+    ) {
+      heroPreviewWrap
+        ?.classList.remove(
+          'hidden'
+        );
+    }
+  }
+);
+
+removeHeroButton?.addEventListener(
+  'click',
+  async () => {
+    const hasHero =
+      Boolean(
+        heroUrlInput?.value ||
+        heroInput?.files?.length
+      );
+
+    if (!hasHero) {
+      return;
+    }
+
+    const confirmed =
+      await confirmDelete({
+        title:
+          'Delete hero image?',
+
+        message:
+          'The hero image will be removed from this service after you save the service.',
+
+        confirmText:
+          'Remove image',
+      });
+
+    if (!confirmed) {
+      return;
+    }
+
+    if (heroInput) {
+      heroInput.value = '';
+    }
+
+    if (heroUrlInput) {
+      heroUrlInput.value = '';
+    }
+
+    if (heroPreview) {
+      heroPreview.src = '';
+      heroPreview.classList.add(
+        'hidden'
+      );
+    }
+
+    heroPreviewWrap
+      ?.classList.add(
+        'hidden'
+      );
+
+    showKpToast({
+      title:
+        'Hero image removed',
+
+      message:
+        'Save the service to apply this change.',
+
+      duration: 5000,
+    });
+  }
+);
 
   bindSlugGenerator(
     'm-service-title',
@@ -7809,11 +8042,56 @@ function openPromotionModal(promotion = null) {
       <label><span>CTA link</span><input id="m-promo-cta-link" type="url" value="${escapeAttribute(promotion?.cta_link || '')}"></label>
     </div>
     <div class="admin-upload-field">
-      <label for="m-promo-image">Poster image</label>
-      <input id="m-promo-image" type="file" accept="image/jpeg,image/png,image/webp">
-      <input id="m-promo-image-url" type="hidden" value="${escapeAttribute(promotion?.image_url || '')}">
-      <img id="m-promo-preview" class="admin-image-preview portrait ${promotion?.image_url ? '' : 'hidden'}" src="${promotion?.image_url ? escapeAttribute(resolveImageUrl(promotion.image_url)) : ''}" alt="Promotion preview">
-    </div>
+  <label for="m-promo-image">
+    Poster image
+  </label>
+
+  <input
+    id="m-promo-image"
+    type="file"
+    accept="image/jpeg,image/png,image/webp"
+  >
+
+  <input
+    id="m-promo-image-url"
+    type="hidden"
+    value="${escapeAttribute(
+      promotion?.image_url || ''
+    )}"
+  >
+
+  <div
+    id="m-promo-preview-wrap"
+    class="${
+      promotion?.image_url
+        ? ''
+        : 'hidden'
+    }"
+  >
+    <img
+      id="m-promo-preview"
+      class="admin-image-preview portrait"
+      src="${
+        promotion?.image_url
+          ? escapeAttribute(
+              resolveImageUrl(
+                promotion.image_url
+              )
+            )
+          : ''
+      }"
+      alt="Promotion preview"
+    >
+
+    <button
+      type="button"
+      class="btn-small danger"
+      id="removePromotionImageBtn"
+    >
+      Delete poster image
+    </button>
+  </div>
+</div>
     <label><span>Active</span><select id="m-promo-active"><option value="1" ${!promotion || Number(promotion.is_active) ? 'selected' : ''}>Yes</option><option value="0" ${promotion && !Number(promotion.is_active) ? 'selected' : ''}>No</option></select></label>
     <div id="modalFormMessage" class="form-message"></div>
     <div class="modal-actions"><button class="btn-primary" type="submit">${isEdit ? 'Save promotion' : 'Add promotion'}</button></div>
@@ -7874,6 +8152,81 @@ showKpToast({
   });
 
   bindImagePreview('m-promo-image', 'm-promo-preview');
+
+  const promoImageInput =
+  document.getElementById(
+    'm-promo-image'
+  );
+
+const promoImageUrl =
+  document.getElementById(
+    'm-promo-image-url'
+  );
+
+const promoPreview =
+  document.getElementById(
+    'm-promo-preview'
+  );
+
+const promoPreviewWrap =
+  document.getElementById(
+    'm-promo-preview-wrap'
+  );
+
+promoImageInput?.addEventListener(
+  'change',
+  () => {
+    if (
+      promoImageInput.files?.length
+    ) {
+      promoPreviewWrap
+        ?.classList.remove('hidden');
+    }
+  }
+);
+
+document
+  .getElementById(
+    'removePromotionImageBtn'
+  )
+  ?.addEventListener(
+    'click',
+    async () => {
+      const confirmed =
+        await confirmDelete({
+          title:
+            'Delete promotion image?',
+
+          message:
+            'The poster image will be removed after you save the promotion.',
+
+          confirmText:
+            'Remove image',
+        });
+
+      if (!confirmed) return;
+
+      promoImageInput.value = '';
+      promoImageUrl.value = '';
+
+      if (promoPreview) {
+        promoPreview.src = '';
+      }
+
+      promoPreviewWrap
+        ?.classList.add('hidden');
+
+      showKpToast({
+        title:
+          'Promotion image removed',
+
+        message:
+          'Save the promotion to apply this change.',
+
+        duration: 5000,
+      });
+    }
+  );
 }
 
 // -----------------------------------------------------------------------------
@@ -8434,53 +8787,61 @@ function openActivityModal(
       </div>
 
       <div class="admin-upload-field">
-        <label for="m-activity-cover">
-          Cover image
-        </label>
+  <label for="m-activity-cover">
+    Cover image
+  </label>
 
-        <input
-          id="m-activity-cover"
-          type="file"
-          accept="image/jpeg,image/png,image/webp"
-        >
+  <input
+    id="m-activity-cover"
+    type="file"
+    accept="image/jpeg,image/png,image/webp"
+  >
 
-        <input
-          id="m-activity-cover-url"
-          type="hidden"
-          value="${escapeAttribute(
-            activity
-              ?.cover_image_url ||
-            ''
-          )}"
-        >
+  <input
+    id="m-activity-cover-url"
+    type="hidden"
+    value="${escapeAttribute(
+      activity?.cover_image_url || ''
+    )}"
+  >
 
-        <div class="upload-help">
-          Used as the first image when the
-          activity has no gallery images.
-        </div>
+  <div class="upload-help">
+    Used as the first image when the
+    activity has no gallery images.
+  </div>
 
-        <img
-          id="m-activity-cover-preview"
-          class="admin-image-preview landscape ${
-            activity
-              ?.cover_image_url
-              ? ''
-              : 'hidden'
-          }"
-          src="${
-            activity
-              ?.cover_image_url
-              ? escapeAttribute(
-                  resolveImageUrl(
-                    activity
-                      .cover_image_url
-                  )
-                )
-              : ''
-          }"
-          alt="Activity cover preview"
-        >
-      </div>
+  <div
+    id="m-activity-cover-preview-wrap"
+    class="${
+      activity?.cover_image_url
+        ? ''
+        : 'hidden'
+    }"
+  >
+    <img
+      id="m-activity-cover-preview"
+      class="admin-image-preview landscape"
+      src="${
+        activity?.cover_image_url
+          ? escapeAttribute(
+              resolveImageUrl(
+                activity.cover_image_url
+              )
+            )
+          : ''
+      }"
+      alt="Activity cover preview"
+    >
+
+    <button
+      type="button"
+      class="btn-small danger"
+      id="removeActivityCoverBtn"
+    >
+      Delete cover image
+    </button>
+  </div>
+</div>
 
       <div class="admin-form-grid two-column">
         <label>
@@ -8788,6 +9149,81 @@ if (
   bindImagePreview(
     'm-activity-cover',
     'm-activity-cover-preview'
+  );
+
+  const activityCoverInput =
+  document.getElementById(
+    'm-activity-cover'
+  );
+
+const activityCoverUrl =
+  document.getElementById(
+    'm-activity-cover-url'
+  );
+
+const activityCoverPreview =
+  document.getElementById(
+    'm-activity-cover-preview'
+  );
+
+const activityCoverWrap =
+  document.getElementById(
+    'm-activity-cover-preview-wrap'
+  );
+
+activityCoverInput?.addEventListener(
+  'change',
+  () => {
+    if (
+      activityCoverInput.files?.length
+    ) {
+      activityCoverWrap
+        ?.classList.remove('hidden');
+    }
+  }
+);
+
+document
+  .getElementById(
+    'removeActivityCoverBtn'
+  )
+  ?.addEventListener(
+    'click',
+    async () => {
+      const confirmed =
+        await confirmDelete({
+          title:
+            'Delete cover image?',
+
+          message:
+            'The activity cover image will be removed after you save the activity.',
+
+          confirmText:
+            'Remove image',
+        });
+
+      if (!confirmed) return;
+
+      activityCoverInput.value = '';
+      activityCoverUrl.value = '';
+
+      if (activityCoverPreview) {
+        activityCoverPreview.src = '';
+      }
+
+      activityCoverWrap
+        ?.classList.add('hidden');
+
+      showKpToast({
+        title:
+          'Cover image removed',
+
+        message:
+          'Save the activity to apply this change.',
+
+        duration: 5000,
+      });
+    }
   );
 
   bindSlugGenerator(
