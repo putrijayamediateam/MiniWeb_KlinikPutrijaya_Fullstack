@@ -250,3 +250,52 @@
     grid-column: 1;
   }
 }
+
+/* ============================================================
+   APPOINTMENT MOBILE — prevent horizontal page sliding
+   ============================================================ */
+
+body[data-page="appointment"] {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+body[data-page="appointment"] main,
+body[data-page="appointment"] .form-section,
+body[data-page="appointment"] .form-section .wrap,
+body[data-page="appointment"] .kp-form,
+body[data-page="appointment"] .kp-form > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
+body[data-page="appointment"] .kp-form input,
+body[data-page="appointment"] .kp-form select,
+body[data-page="appointment"] .kp-form textarea {
+  min-width: 0;
+  max-width: 100%;
+}
+
+@media (max-width: 680px) {
+  body[data-page="appointment"] .kp-form {
+    width: 100%;
+    min-width: 0;
+  }
+
+  body[data-page="appointment"] .kp-form input[type="date"],
+  body[data-page="appointment"] .kp-form input[type="time"],
+  body[data-page="appointment"] .kp-form select {
+    width: 100%;
+    min-width: 0;
+  }
+
+  body[data-page="appointment"] .booking-radio-group {
+    min-width: 0;
+    width: 100%;
+  }
+
+  body[data-page="appointment"] .booking-radio-option {
+    min-width: 0;
+  }
+}
