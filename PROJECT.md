@@ -1,6 +1,6 @@
 # Klinik Putrijaya Website — PROJECT.md
 
-_Last reviewed against `main`: 2026-08-10_
+_Last reviewed against `main` at `d07b077`: 2026-08-13_
 
 ## Purpose
 
@@ -171,7 +171,7 @@ Safe `.env.example` files are explicitly allowed.
 4. Do not change an approved desktop layout when solving a mobile-only problem.
 5. Keep horizontal scrolling for wide admin tables inside their table wrapper, never the whole page.
 6. Do not hardcode database-driven service categories into public navigation.
-7. Run syntax checks and `git diff --check` before committing.
+7. Run `npm run check --prefix backend` before requesting review; it includes repository-wide syntax/reference/secret-filename checks and `git diff --check`.
 8. Increment static asset cache-busting query versions when required.
 9. Never paste or commit real `.env` values, patient data, credentials or private keys.
 
@@ -180,3 +180,15 @@ Safe `.env.example` files are explicitly allowed.
 This file documents durable architecture and conventions, but current repository code wins if they conflict.
 
 When a durable architecture decision changes, update this file and `MEMORY.md` in the same workstream.
+
+## Ongoing workspace
+
+- Root contributor/Codex instructions: `AGENTS.md`
+- Local setup and verification: `docs/DEVELOPMENT.md`
+- Architecture and risk map: `docs/ARCHITECTURE.md`
+- Baseline findings: `docs/BASELINE_AUDIT.md`
+- Prioritized delivery plan: `ROADMAP.md`
+- Automated baseline check: `scripts/check-project.js`
+- Pull request/main CI: `.github/workflows/project-checks.yml`
+
+Known P0 limitation: the current SQL files do not yet provide a canonical, automatically tracked fresh-database build. Do not represent `backend/schema.sql` alone as the current production schema.

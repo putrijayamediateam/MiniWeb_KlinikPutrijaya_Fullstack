@@ -1,194 +1,121 @@
-# Klinik Putrijaya — Mini Website (Extended)
+# Klinik Putrijaya Website
 
-This project extends the original static "MiniWeb_KlinikPutrijaya" site with a real
-**Node.js + Express + MySQL backend**, turning it from a static informational page into
-a full-stack web application. It's built for an Industrial Training report that needs to
-demonstrate computing-based development: backend logic, a database, authentication, and
-CRUD operations — not just front-end styling.
+Production-oriented public website and staff admin portal for Klinik Putrijaya's Cheras, Sungai Besi, and Puchong branches.
 
-## What was added
+The application combines a static multi-page frontend with an Express/MySQL API. It supports dynamic clinic content, appointments, patient feedback, services and taxonomy, promotions, community activities, performance reporting, uploads, and role-based administration.
 
-| # | Feature | Where it lives |
-|---|---------|-----------------|
-| 1 | **Appointment Booking System** | "Book with us" section on the homepage → `bookings` table |
-| 2 | **Admin Dashboard** (login + management) | `frontend/admin.html` |
-| 3 | **Dynamic content from a database** | Doctors section now fetches live data from the API instead of hardcoded HTML |
-| 4 | **Patient Feedback / Reviews** | "Patient voices" section, with admin moderation before display |
-| 5 | **Search / filter** | Search box + branch dropdown above the Doctors section |
+## Current Phase
 
-Under the hood this is a genuine 3-tier architecture:
-- **Frontend**: the original HTML/CSS/JS site (unchanged visual identity), now calling a REST API
-- **Backend**: Express.js REST API (`/backend`) with JWT authentication for admin routes
-- **Database**: MySQL (schema in `backend/schema.sql`)
+The project is in **Endgame**: production QA, SEO, cleanup, backup/recovery, security review, and release freeze take priority over major new features.
 
----
+Start with:
 
-## 1. Prerequisites
+| Document | Purpose |
+|---|---|
+| [`AGENTS.md`](AGENTS.md) | Working agreements for Codex and contributors |
+| [`PROJECT.md`](PROJECT.md) | Current production facts and conventions |
+| [`MEMORY.md`](MEMORY.md) | Durable decisions and recurring pitfalls |
+| [`ENDGAME.md`](ENDGAME.md) | Detailed final-release checklist |
+| [`ROADMAP.md`](ROADMAP.md) | Prioritized milestones and acceptance evidence |
+| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Components, data flows, roles, storage, and risks |
+| [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md) | Local setup, checks, smoke tests, and deployment guardrails |
+| [`docs/BASELINE_AUDIT.md`](docs/BASELINE_AUDIT.md) | 2026-08-13 repository-readiness findings |
 
-- [Node.js](https://nodejs.org/) v18 or later
-- [MySQL](https://dev.mysql.com/downloads/) 8.x (or MariaDB) running locally or on a server
-- A code editor and a terminal
+## Stack
 
----
+- Frontend: static HTML, CSS, and vanilla JavaScript
+- Backend: Node.js 24.x and Express 4
+- Database: MySQL/MariaDB-compatible SQL
+- Authentication: JWT, bcrypt, active-account checks, and role middleware
+- Backend hosting: Railway
+- Frontend hosting: documented as Cloudflare Pages; checked-in Firebase files remain and must be reconciled before deployment cleanup
+- Persistent media: Railway volume or `UPLOAD_DIR` in production
+- Email: SMTP/Nodemailer plus Resend-related support
+- Reporting: first-party performance events and Google Search Console integration
 
-## 2. Set up the database
+## Repository Structure
 
-```bash
-# Log into MySQL and run the schema (creates DB, tables, and seed data)
-mysql -u root -p --default-character-set=utf8mb4 < backend/schema.sql
+```text
+backend/             Express API, middleware, services, SQL base, package files
+backend/migrations/  Services V2 and community activity SQL migrations
+database/            Incremental operational SQL migrations
+frontend/            Static pages, scripts, styles, and media
+scripts/             Dependency-free project checks
+docs/                Architecture, development, and audit documentation
+.github/workflows/   Pull-request and main-branch checks
 ```
 
-> **Important:** use `--default-character-set=utf8mb4` or names like "Women's Health" and
-> special characters (—, ') will get corrupted. This matches your DB's utf8mb4 charset.
+Important admin distinction:
 
-This creates a `klinik_putrijaya` database with tables for branches, doctors, services,
-bookings, feedback, and admin_users — pre-filled with the clinic's real content (branches,
-doctors, services) taken from the original site.
+- `frontend/admin.js` is loaded by the current admin page.
+- `frontend/js/admin.js` is an older implementation and should not be edited as production behavior.
 
-**Default admin login:** username `admin`, password `admin123`.
-Change this immediately after your first login (see Section 5).
+## Quick Local Start
 
----
+Prerequisites: Node.js 24.x, npm, MySQL/MariaDB, and Python 3 or another static server.
 
-## 3. Set up and run the backend
-
-```bash
-cd backend
-cp .env.example .env
+```powershell
+Copy-Item backend/.env.example backend/.env
+npm install --prefix backend
+npm run check --prefix backend
+npm run dev --prefix backend
 ```
 
-Edit `.env` and fill in your real MySQL credentials:
+In a second terminal:
 
-```
-DB_HOST=localhost
-DB_PORT=3306
-DB_USER=root
-DB_PASSWORD=your_actual_mysql_password
-DB_NAME=klinik_putrijaya
-JWT_SECRET=make_this_a_long_random_string
-CORS_ORIGIN=http://localhost:5500
+```powershell
+python -m http.server 5500 -d frontend
 ```
 
-> `CORS_ORIGIN` must match whatever URL you'll open the frontend from (see step 4).
-> If you use VS Code's "Live Server" extension, it's usually `http://127.0.0.1:5500`.
+Then open:
 
-Install dependencies and start the server:
+- `http://127.0.0.1:5500/`
+- `http://127.0.0.1:5500/admin.html`
+- `http://localhost:4000/api/health`
 
-```bash
-npm install
-npm start
+If PowerShell blocks `npm.ps1`, use `npm.cmd` instead.
+
+### Database warning
+
+The repository does **not yet have a canonical one-command fresh database bootstrap**. The legacy base schema and later migrations are split between `backend/schema.sql`, `database/`, and `backend/migrations/`, and current authentication uses a different admin table from the legacy seed.
+
+Do not rely on historical default credentials and do not apply the inferred SQL sequence to production. Follow the limitations in `docs/DEVELOPMENT.md` and complete the P0 migration-baseline item in `ROADMAP.md` first.
+
+## Configuration
+
+Copy `backend/.env.example` to `backend/.env` and set local values. The template covers:
+
+- application port, environment, frontend URL, allowed origins, and public backend URL;
+- MySQL host, port, user, password, database, pool limit, and optional TLS;
+- JWT secret and lifetime;
+- SMTP sender configuration;
+- upload storage.
+
+Never commit the real environment file, credentials, private keys, database dumps, access tokens, or patient information.
+
+## Development Checks
+
+```powershell
+npm run check --prefix backend
 ```
 
-You should see:
-```
-Klinik Putrijaya API running on http://localhost:4000
-```
+The command checks JavaScript syntax, JSON, local HTML references, required guidance files, tracked credential filenames, the Node runtime, and Git whitespace. GitHub Actions runs the same command on pull requests and pushes to `main`.
 
-Test it's alive: open `http://localhost:4000/api/health` in a browser — you should see
-`{"status":"ok", ...}`.
+Automated unit, integration, migration, and browser tests are still roadmap work. A passing baseline check does not by itself prove the release is safe.
 
----
+## Change and Release Policy
 
-## 4. Run the frontend
+- Inspect the current implementation and read `AGENTS.md` before changing code.
+- Keep mobile fixes scoped when desktop is already approved.
+- Treat server-side role checks as the security boundary.
+- Never connect the browser directly to MySQL.
+- Do not push, merge, deploy, rotate secrets, change production settings, or run production migrations without explicit approval.
+- Update project documentation when durable architecture or operating decisions change.
 
-The frontend is still plain static files, so any static server works. Easiest options:
+## Production
 
-**Option A — VS Code Live Server extension**
-Right-click `frontend/index.html` → "Open with Live Server".
+- Public domain: [https://klinikputrijaya.com](https://klinikputrijaya.com)
+- Production API currently referenced by frontend code: `https://backend-production-d730.up.railway.app/api`
+- Health endpoint: `/api/health`
 
-**Option B — Python's built-in server**
-```bash
-cd frontend
-python3 -m http.server 5500
-```
-Then open `http://localhost:5500/index.html`.
-
-If your frontend runs on a different port/URL than what you set in `CORS_ORIGIN`, the
-API calls will be blocked by the browser (CORS). Update `.env` and restart the backend
-if needed.
-
-> If you ever deploy the backend somewhere other than `localhost:4000`, update
-> `API_BASE` at the top of `frontend/js/api.js` (or set `window.KP_API_BASE` before
-> that script loads).
-
----
-
-## 5. Using the Admin Dashboard
-
-Go to `http://localhost:5500/admin.html` (also linked at the bottom of the homepage
-footer as "Staff login").
-
-Log in with the default credentials (`admin` / `admin123`), then:
-- **Bookings** — view all appointment requests, change status (pending → confirmed →
-  completed/cancelled), delete
-- **Feedback** — approve patient reviews before they appear publicly, or delete spam
-- **Doctors** — add/edit/deactivate/delete doctors (changes appear live on the homepage)
-- **Services** — same CRUD for services
-
-To change the admin password, call the API directly once logged in (there's no UI for
-this yet — a good improvement to mention in your report as future work):
-```bash
-curl -X POST http://localhost:4000/api/auth/change-password \
-  -H "Authorization: Bearer YOUR_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"newPassword":"your_new_password"}'
-```
-
----
-
-## 6. Project structure
-
-```
-backend/
-  server.js          # Express app entry point
-  db.js              # MySQL connection pool
-  schema.sql          # Database schema + seed data
-  .env.example        # Environment variable template
-  middleware/
-    auth.js           # JWT verification middleware
-  routes/
-    auth.js           # Admin login
-    branches.js        # GET branches
-    doctors.js          # GET (public, search/filter) + POST/PUT/DELETE (admin)
-    services.js          # GET (public) + POST/PUT/DELETE (admin)
-    bookings.js           # POST (public) + GET/PUT/DELETE (admin)
-    feedback.js            # POST + GET approved (public) + moderation (admin)
-
-frontend/
-  index.html          # Main site (booking + feedback sections added, doctors now dynamic)
-  admin.html           # Staff dashboard
-  js/
-    api.js              # Shared fetch wrapper for talking to the backend
-    site-dynamic.js      # Doctors search/filter, booking form, feedback logic
-    admin.js               # Dashboard login, tables, CRUD modals
-  css/
-    admin.css              # Dashboard styling (matches the site's brand colours)
-  images/                  # Unchanged
-```
-
----
-
-## 7. How this maps to "computing-based development"
-
-For your report, here's the honest breakdown of what each feature demonstrates:
-
-- **Backend/server-side programming**: Express routes with input validation (e.g. phone
-  number format, future-date checks for bookings, rating range checks for feedback)
-- **Database design**: a normalized MySQL schema with foreign keys (branches → doctors,
-  branches/doctors/services → bookings) and enum-based status fields
-- **Authentication & authorization**: JWT-based login, protected admin routes, bcrypt
-  password hashing
-- **CRUD operations**: full create/read/update/delete for doctors and services, plus
-  create/read/update(status)/delete for bookings and feedback
-- **Dynamic, data-driven front end**: the doctors section (and booking dropdowns) are no
-  longer hardcoded — they reflect whatever's in the database
-- **Search/filter logic**: client-driven query parameters (`?q=` and `?branch=`) handled
-  server-side with parameterized SQL (protecting against SQL injection)
-
-## Notes / possible improvements to mention as "future work"
-
-- Doctor photo uploads (currently just a text path to an image file)
-- Email/SMS notifications when a booking is confirmed
-- Pagination for the bookings/feedback tables once data grows
-- A proper "forgot password" flow for admin accounts
-- HTTPS + a real deployed hosting environment (currently designed for local development)
+Provider dashboards, credentials, DNS, databases, and deployments are intentionally not documented with secrets in this repository.

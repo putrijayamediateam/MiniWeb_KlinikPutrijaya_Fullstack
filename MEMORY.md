@@ -1,6 +1,6 @@
 # Klinik Putrijaya Website — MEMORY.md
 
-_Last updated: 2026-08-10_
+_Last updated: 2026-08-13_
 
 This file is the persistent project memory for the Klinik Putrijaya website.
 
@@ -16,6 +16,22 @@ This file is the persistent project memory for the Klinik Putrijaya website.
 - When uncertain, inspect the current repository file before proposing exact replacements.
 - Keep mobile fixes scoped to mobile breakpoints when desktop is already approved.
 - Never expose unrestricted database access to an AI integration; use narrowly scoped tools/APIs.
+- Follow the repository-root `AGENTS.md` for every task.
+- Use repository documentation as durable technical memory; generated Codex memory is supplemental.
+- Do not push, merge, deploy, rotate secrets or run production migrations without explicit user approval.
+
+## Ongoing Codex workspace established
+
+On 2026-08-13 the repository was set up for ongoing Codex collaboration:
+
+- `AGENTS.md` defines working agreements and the definition of done.
+- `docs/ARCHITECTURE.md` maps components, data, roles, storage and deployment.
+- `docs/DEVELOPMENT.md` defines local setup and verification.
+- `docs/BASELINE_AUDIT.md` records the initial inspection and limitations.
+- `ROADMAP.md` orders P0-P3 delivery milestones.
+- `scripts/check-project.js` and GitHub Actions provide baseline repository checks.
+
+The next engineering priority is a canonical database baseline and migration runner. Current SQL is split between `backend/schema.sql`, `database/`, and `backend/migrations/`; legacy `admin_users` seed data does not match current `admins` authentication routes.
 
 ## Project identity
 
@@ -142,7 +158,8 @@ Security Pass must still audit whether these controls are correctly configured a
 - Public Services behavior: `frontend/js/services.js`.
 - Dynamic service detail behavior: `frontend/js/service-detail.js`.
 - Homepage interactions: `frontend/js/home.js`.
-- Admin logic: `frontend/js/admin.js`.
+- Production admin logic: `frontend/admin.js`.
+- `frontend/js/admin.js` is an older implementation and is not loaded by the current admin page.
 - API wrapper: `frontend/js/api.js`.
 
 ### Verification
