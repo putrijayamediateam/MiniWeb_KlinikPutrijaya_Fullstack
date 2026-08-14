@@ -3988,3 +3988,65 @@ html body .gallery-manager-card small {
     width: auto;
   }
 }
+
+/* ============================================================
+   SERVICES TABLE — FIT ALL COLUMNS WITHIN THE ADMIN CONTENT
+   ============================================================ */
+
+#tab-services .services-table-wrap {
+  min-width: 0;
+  max-width: 100%;
+}
+
+#tab-services .services-admin-table {
+  width: 100%;
+  min-width: 0;
+  table-layout: fixed;
+}
+
+#tab-services .services-admin-table th,
+#tab-services .services-admin-table td {
+  min-width: 0;
+  white-space: normal;
+}
+
+#tab-services .services-admin-table th:nth-child(1) {
+  width: 17%;
+}
+
+#tab-services .services-admin-table th:nth-child(2) {
+  width: 21%;
+}
+
+#tab-services .services-admin-table th:nth-child(3) {
+  width: 38%;
+}
+
+#tab-services .services-admin-table th:nth-child(4) {
+  width: 9%;
+}
+
+#tab-services .services-admin-table th:nth-child(5) {
+  width: 15%;
+}
+
+#tab-services .services-admin-table th:nth-child(-n + 3),
+#tab-services .services-admin-table td:nth-child(-n + 3) {
+  overflow-wrap: anywhere;
+}
+
+#tab-services .services-admin-table th:nth-child(4),
+#tab-services .services-admin-table td:nth-child(4) {
+  white-space: nowrap;
+}
+
+#tab-services .services-admin-table .table-action-stack {
+  min-width: 0;
+  align-items: flex-start;
+}
+
+#tab-services .services-admin-table .table-action-stack .btn-small {
+  max-width: 100%;
+  margin-right: 0;
+  white-space: normal;
+}
