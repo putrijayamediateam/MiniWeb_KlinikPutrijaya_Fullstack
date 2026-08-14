@@ -7,7 +7,12 @@
 (() => {
   'use strict';
 
-  const PAGE_FILE = window.location.pathname.split('/').pop() || 'index.html';
+  function normalizeRoute(pathname) {
+    const page = String(pathname || '').split('/').pop() || 'index';
+    return page.replace(/\.html$/i, '');
+  }
+
+  const PAGE_ROUTE = normalizeRoute(window.location.pathname);
 
   function headerMarkup() {
   return `
@@ -401,23 +406,25 @@ function escapeSharedAttribute(value) {
       .toLowerCase();
 
   const isServicesPage =
-    PAGE_FILE === 'services.html' ||
-    PAGE_FILE ===
-      'service-detail.html';
+    PAGE_ROUTE === 'services' ||
+    PAGE_ROUTE ===
+      'service-detail';
 
   document
     .querySelectorAll(
       '[data-page-link]'
     )
     .forEach((link) => {
-      const linkedPage =
-        link.dataset.pageLink;
+      const linkedRoute =
+        normalizeRoute(
+          link.dataset.pageLink
+        );
 
       const isActive =
-        linkedPage === PAGE_FILE ||
+        linkedRoute === PAGE_ROUTE ||
         (
-          linkedPage ===
-            'services.html' &&
+          linkedRoute ===
+            'services' &&
           isServicesPage &&
           !selectedCategory
         );
@@ -966,4 +973,4 @@ function escapeSharedAttribute(value) {
 initNavigation();
 initBranchModal();
 });
-})();   
+})();
