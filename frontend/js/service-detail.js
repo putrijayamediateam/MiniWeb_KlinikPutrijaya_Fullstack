@@ -5,6 +5,30 @@ document.addEventListener(
   initServiceDetailV2
 );
 
+function setServicePageNoindex() {
+  let robotsMeta =
+    document.querySelector(
+      'meta[name="robots"]'
+    );
+
+  if (!robotsMeta) {
+    robotsMeta =
+      document.createElement(
+        'meta'
+      );
+
+    robotsMeta.name =
+      'robots';
+
+    document.head.appendChild(
+      robotsMeta
+    );
+  }
+
+  robotsMeta.content =
+    'noindex, follow';
+}
+
 async function initServiceDetailV2() {
   const root = document.getElementById(
     'serviceDetailRoot'
@@ -19,6 +43,8 @@ async function initServiceDetailV2() {
   }
 
   if (!slug) {
+    setServicePageNoindex();
+
     renderServiceError(
       root,
       'No service was selected.'
@@ -90,30 +116,6 @@ async function initServiceDetailV2() {
     )}`;
 }
 
-function setServicePageNoindex() {
-  let robotsMeta =
-    document.querySelector(
-      'meta[name="robots"]'
-    );
-
-  if (!robotsMeta) {
-    robotsMeta =
-      document.createElement(
-        'meta'
-      );
-
-    robotsMeta.name =
-      'robots';
-
-    document.head.appendChild(
-      robotsMeta
-    );
-  }
-
-  robotsMeta.content =
-    'noindex, follow';
-}
-
     updateServiceCanonical(service);
 
     renderServiceDetail(
@@ -129,6 +131,10 @@ function setServicePageNoindex() {
       'Unable to load service detail:',
       error
     );
+
+    if (error.status === 404) {
+      setServicePageNoindex();
+    }
 
     renderServiceError(
       root,
@@ -1026,7 +1032,6 @@ function renderServiceError(
   root,
   message
 ) {
-  setServicePageNoindex();
   root.innerHTML = `
     <section class="service-detail-error">
       <div class="wrap">
