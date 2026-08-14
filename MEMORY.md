@@ -136,6 +136,12 @@ Current repository inspection confirms:
 - `/api/health` database health check
 - API responses receive `Cache-Control: no-store`
 - generic client-facing 404/500 messages
+- post-insert, best-effort internal booking notifications through Resend
+
+Booking notification emails must contain only minimal operational display
+data. They must not include patient identity numbers, contact details, gender,
+clinical reasons, or medical notes, and notification failure must never roll
+back a saved booking.
 
 Security Pass must still audit whether these controls are correctly configured and complete.
 

@@ -3,6 +3,9 @@
 const express = require('express');
 const db = require('../db');
 const {
+  sendBookingNotification,
+} = require('../services/emailService');
+const {
   requireAdmin,
 } = require('../middleware/auth');
 
@@ -251,11 +254,81 @@ if (
   ]
 );
 
+    const bookingReference =
+      `KP-APT-${String(result.insertId).padStart(5, '0')}`;
+
+    try {
+      const [displayRows] = await db.query(
+        `SELECT
+          b.name AS branch_name,
+          d.name AS doctor_name,
+          s.title AS service_title
+        FROM bookings bk
+        INNER JOIN branches b
+          ON b.id = bk.branch_id
+        LEFT JOIN doctors d
+          ON d.id = bk.doctor_id
+        LEFT JOIN services s
+          ON s.id = bk.service_id
+        WHERE bk.id = ?
+        LIMIT 1`,
+        [result.insertId]
+      );
+
+      const displayBooking =
+        displayRows[0] || {};
+      const notificationResult =
+        await sendBookingNotification({
+          reference: bookingReference,
+          branchName:
+            displayBooking.branch_name,
+          serviceTitle:
+            displayBooking.service_title,
+          doctorName:
+            displayBooking.doctor_name,
+          preferredDate,
+          preferredTime,
+          status: 'pending',
+        });
+
+      if (notificationResult.sent) {
+        console.info(
+          'Booking notification sent:',
+          {
+            reference: bookingReference,
+            messageId:
+              notificationResult.messageId,
+          }
+        );
+      } else {
+        console.warn(
+          'Booking notification skipped:',
+          {
+            reference: bookingReference,
+            reason:
+              notificationResult.reason,
+          }
+        );
+      }
+    } catch (notificationError) {
+      console.error(
+        'Booking notification failed:',
+        {
+          reference: bookingReference,
+          errorName:
+            notificationError?.name ||
+            'Error',
+          errorCode:
+            notificationError?.code ||
+            'BOOKING_NOTIFICATION_FAILED',
+        }
+      );
+    }
+
     return res.status(201).json({
       message: 'Appointment request sent successfully.',
       id: result.insertId,
-      reference:
-        `KP-APT-${String(result.insertId).padStart(5, '0')}`,
+      reference: bookingReference,
     });
   } catch (error) {
     console.error('Create booking error:', error);

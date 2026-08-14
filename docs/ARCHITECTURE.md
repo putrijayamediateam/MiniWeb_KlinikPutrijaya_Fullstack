@@ -98,6 +98,12 @@ The database-driven public service sitemap is mounted outside `/api` at
 services whose category and subcategory are also active, and uses a short
 public cache rather than the API-wide `no-store` policy.
 
+Public booking creation treats the MySQL insert as the primary operation. Once
+the insert succeeds, the booking route resolves only branch, service, and doctor
+display names and attempts a best-effort internal notification through the
+shared Resend service. Notification delivery or configuration failures do not
+roll back the booking or change its successful API response.
+
 ### Authentication and roles
 
 Login issues a JWT with the administrator ID, username, and role. The default lifetime is eight hours. Protected routes should compose:
