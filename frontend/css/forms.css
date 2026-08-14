@@ -255,10 +255,12 @@
    APPOINTMENT MOBILE — prevent horizontal page sliding
    ============================================================ */
 
-body[data-page="appointment"] {
+html.appointment-page,
+html.appointment-page body[data-page="appointment"] {
   width: 100%;
   max-width: 100%;
   overflow-x: hidden;
+  overflow-x: clip;
 }
 
 body[data-page="appointment"] main,
@@ -266,7 +268,18 @@ body[data-page="appointment"] .form-section,
 body[data-page="appointment"] .form-section .wrap,
 body[data-page="appointment"] .kp-form > * {
   min-width: 0;
+}
+
+body[data-page="appointment"] main,
+body[data-page="appointment"] .form-section,
+body[data-page="appointment"] .kp-form > * {
   max-width: 100%;
+}
+
+body[data-page="appointment"] .form-section .section-head {
+  max-width: 760px;
+  margin-right: auto;
+  margin-left: auto;
 }
 
 body[data-page="appointment"] .kp-form {
