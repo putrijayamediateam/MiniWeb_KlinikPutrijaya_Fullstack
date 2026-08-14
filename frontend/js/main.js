@@ -8,7 +8,8 @@
   'use strict';
 
   function normalizeRoute(pathname) {
-    const page = String(pathname || '').split('/').pop() || 'index';
+    const normalizedPath = String(pathname || '').replace(/^\/+|\/+$/g, '');
+    const page = normalizedPath.split('/').pop() || 'index';
     return page.replace(/\.html$/i, '');
   }
 
