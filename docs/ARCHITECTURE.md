@@ -93,6 +93,11 @@ Route families mounted below `/api`:
 - feedback;
 - branches, promotions, and activities (mounted by the optional-route helper when files exist).
 
+The database-driven public service sitemap is mounted outside `/api` at
+`/sitemap-services.xml`. It contains canonical service-detail URLs for active
+services whose category and subcategory are also active, and uses a short
+public cache rather than the API-wide `no-store` policy.
+
 ### Authentication and roles
 
 Login issues a JWT with the administrator ID, username, and role. The default lifetime is eight hours. Protected routes should compose:

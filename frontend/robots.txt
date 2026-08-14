@@ -12,3 +12,4 @@ Disallow: /maintenance
 Disallow: /index-backup
 
 Sitemap: https://klinikputrijaya.com/sitemap.xml
+Sitemap: https://backend-production-d730.up.railway.app/sitemap-services.xml

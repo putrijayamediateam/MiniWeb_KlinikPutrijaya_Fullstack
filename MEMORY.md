@@ -185,6 +185,7 @@ git status
 - Admin/auth/utility pages should not be indexed.
 - `index-backup.html` should not be indexed.
 - Service-detail canonical is generated dynamically from the service slug.
+- Active service-detail URLs are published through the Railway-hosted `/sitemap-services.xml` resource.
 - HTTP should redirect to HTTPS.
 - Klinik Putrijaya `P` mark is intended for favicon usage.
 

@@ -59,6 +59,10 @@ Optional route files are mounted when present for:
 - `/api/promotions`
 - `/api/activities`
 
+Public backend resources mounted outside `/api` include:
+
+- `/sitemap-services.xml` — database-driven XML sitemap for active public service pages
+
 ## Confirmed application-level protections already present
 
 `backend/server.js` currently includes:
