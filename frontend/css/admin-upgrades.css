@@ -100,14 +100,16 @@
 }
 
 .pager-actions {
-  display: grid;
-  grid-template-columns: 64px 90px 64px;
+  display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 6px;
+  min-width: 0;
 }
 
 .pager-actions button {
-  width: 64px;
+  width: auto;
+  min-width: 30px;
   min-height: 28px;
   padding: 4px 7px;
 
@@ -129,25 +131,39 @@
     transform 0.2s ease;
 }
 
-.pager-page-info {
-  width: 90px;
-  min-width: 90px;
-  height: 28px;
+.pager-actions .pager-nav-button {
+  min-width: 64px;
+}
 
+.pager-pages {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.pager-pages--mobile {
+  display: none;
+}
+
+.pager-actions .pager-page-button {
+  width: 30px;
+  min-width: 30px;
+  padding-right: 4px;
+  padding-left: 4px;
+}
+
+.pager-ellipsis {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-
-  border: 1px solid rgba(147, 20, 81, 0.12);
-  border-radius: 999px;
-  background: #ffffff;
+  width: 20px;
+  min-width: 20px;
+  min-height: 28px;
   color: #765c69;
-
-  font-family: "Inter", sans-serif;
-  font-size: 0.66rem;
-  font-weight: 600;
+  font-size: 0.72rem;
+  font-weight: 700;
   line-height: 1;
-  white-space: nowrap;
 }
 
 .pager-actions button:hover:not(:disabled) {
@@ -155,6 +171,15 @@
   background: #fff0f7;
   color: #e00d92;
   transform: translateY(-1px);
+}
+
+.pager-actions .pager-page-button.is-current,
+.pager-actions .pager-page-button.is-current:hover {
+  border-color: #e31c79;
+  background: #e31c79;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(227, 28, 121, 0.24);
+  transform: none;
 }
 
 .pager-actions button:disabled {
@@ -2710,6 +2735,40 @@ html body .gallery-manager-card small {
   }
 }
 
+@media (max-width: 640px) {
+  .pager-pages--desktop {
+    display: none;
+  }
+
+  .pager-pages--mobile {
+    display: flex;
+  }
+
+  .pager-actions {
+    gap: 4px;
+  }
+
+  .pager-pages {
+    gap: 3px;
+  }
+
+  .pager-actions .pager-nav-button {
+    min-width: 58px;
+    padding-right: 6px;
+    padding-left: 6px;
+  }
+
+  .pager-actions .pager-page-button {
+    width: 28px;
+    min-width: 28px;
+  }
+
+  .pager-ellipsis {
+    width: 14px;
+    min-width: 14px;
+  }
+}
+
 @media (max-width: 600px) {
   .feedback-toolbar {
     align-items: stretch;
@@ -2724,6 +2783,11 @@ html body .gallery-manager-card small {
 
   .booking-table-footer {
     flex-direction: column;
+    justify-content: center;
+  }
+
+  .pager-actions {
+    width: 100%;
     justify-content: center;
   }
 }

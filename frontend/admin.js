@@ -12635,16 +12635,200 @@ function paginateClientItems(
   };
 }
 
-function renderPager(container, pagination, onPage) {
+function getPagerItems(
+  currentPage,
+  totalPages,
+  {
+    siblingCount = 2,
+    edgeWindow = 5,
+  } = {}
+) {
+  const pages = new Set([
+    1,
+    totalPages,
+  ]);
+
+  for (
+    let page =
+      currentPage - siblingCount;
+    page <=
+    currentPage + siblingCount;
+    page += 1
+  ) {
+    if (
+      page >= 1 &&
+      page <= totalPages
+    ) {
+      pages.add(page);
+    }
+  }
+
+  if (
+    currentPage <=
+    edgeWindow - 1
+  ) {
+    for (
+      let page = 1;
+      page <=
+      Math.min(
+        edgeWindow,
+        totalPages
+      );
+      page += 1
+    ) {
+      pages.add(page);
+    }
+  }
+
+  if (
+    currentPage >=
+    totalPages - edgeWindow + 2
+  ) {
+    for (
+      let page = Math.max(
+        1,
+        totalPages - edgeWindow + 1
+      );
+      page <= totalPages;
+      page += 1
+    ) {
+      pages.add(page);
+    }
+  }
+
+  const sortedPages =
+    Array.from(pages)
+      .sort((a, b) => a - b);
+
+  return sortedPages.reduce(
+    (items, page, index) => {
+      const previousPage =
+        sortedPages[index - 1];
+
+      if (index > 0) {
+        const gap =
+          page - previousPage;
+
+        if (gap === 2) {
+          items.push(
+            previousPage + 1
+          );
+        } else if (gap > 2) {
+          items.push('ellipsis');
+        }
+      }
+
+      items.push(page);
+
+      return items;
+    },
+    []
+  );
+}
+
+function renderPagerPageItems(
+  items,
+  currentPage
+) {
+  return items
+    .map((item) => {
+      if (item === 'ellipsis') {
+        return `
+          <span
+            class="pager-ellipsis"
+            aria-hidden="true"
+          >
+            …
+          </span>
+        `;
+      }
+
+      const isCurrent =
+        item === currentPage;
+
+      return `
+        <button
+          class="pager-page-button${
+            isCurrent
+              ? ' is-current'
+              : ''
+          }"
+          type="button"
+          data-page="${item}"
+          aria-label="${
+            isCurrent
+              ? `Current page, ${item}`
+              : `Go to page ${item}`
+          }"
+          ${
+            isCurrent
+              ? 'aria-current="page"'
+              : ''
+          }
+        >
+          ${item}
+        </button>
+      `;
+    })
+    .join('');
+}
+
+function renderPager(
+  container,
+  pagination,
+  onPage
+) {
   if (!container || !pagination) return;
 
-  const page = Math.max(1, Number(pagination.page || 1));
-  const totalPages = Math.max(1, Number(pagination.totalPages || 1));
-  const total = Math.max(0, Number(pagination.total || 0));
-  const limit = Math.max(1, Number(pagination.limit || 20));
+  const totalPages = Math.max(
+    1,
+    Math.trunc(
+      Number(
+        pagination.totalPages || 1
+      )
+    ) || 1
+  );
+
+  const page = Math.min(
+    totalPages,
+    Math.max(
+      1,
+      Math.trunc(
+        Number(
+          pagination.page || 1
+        )
+      ) || 1
+    )
+  );
+
+  const total = Math.max(
+    0,
+    Number(pagination.total || 0)
+  );
+
+  const limit = Math.max(
+    1,
+    Number(pagination.limit || 20)
+  );
 
   const start = total ? ((page - 1) * limit) + 1 : 0;
   const end = total ? Math.min(page * limit, total) : 0;
+
+  const desktopPageItems =
+    getPagerItems(
+      page,
+      totalPages
+    );
+
+  const mobilePageItems =
+    getPagerItems(
+      page,
+      totalPages,
+      {
+        siblingCount: 0,
+        edgeWindow: 3,
+      }
+    );
 
   container.innerHTML = `
     <span class="booking-showing-info">
@@ -12653,6 +12837,7 @@ function renderPager(container, pagination, onPage) {
 
     <div class="pager-actions">
       <button
+        class="pager-nav-button"
         type="button"
         data-page="${page - 1}"
         ${page <= 1 ? 'disabled' : ''}
@@ -12660,11 +12845,22 @@ function renderPager(container, pagination, onPage) {
         Previous
       </button>
 
-      <span class="pager-page-info">
-        Page ${page} of ${totalPages}
-      </span>
+      <div class="pager-pages pager-pages--desktop">
+        ${renderPagerPageItems(
+          desktopPageItems,
+          page
+        )}
+      </div>
+
+      <div class="pager-pages pager-pages--mobile">
+        ${renderPagerPageItems(
+          mobilePageItems,
+          page
+        )}
+      </div>
 
       <button
+        class="pager-nav-button"
         type="button"
         data-page="${page + 1}"
         ${page >= totalPages ? 'disabled' : ''}
