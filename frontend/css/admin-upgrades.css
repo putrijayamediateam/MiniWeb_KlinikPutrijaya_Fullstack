@@ -4050,3 +4050,32 @@ html body .gallery-manager-card small {
   margin-right: 0;
   white-space: normal;
 }
+
+@media (max-width: 640px) {
+  #tab-services .services-table-wrap {
+    position: relative;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+  }
+
+  #tab-services .services-admin-table {
+    width: 980px;
+    max-width: none;
+    min-width: 980px;
+  }
+
+  #tab-services .services-admin-table th:nth-child(-n + 3),
+  #tab-services .services-admin-table td:nth-child(-n + 3) {
+    overflow-wrap: break-word;
+    word-break: normal;
+  }
+
+  #tab-services .services-admin-table .table-action-stack .btn-small {
+    white-space: nowrap;
+  }
+}
