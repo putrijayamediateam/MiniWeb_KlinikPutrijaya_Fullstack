@@ -264,10 +264,16 @@ body[data-page="appointment"] {
 body[data-page="appointment"] main,
 body[data-page="appointment"] .form-section,
 body[data-page="appointment"] .form-section .wrap,
-body[data-page="appointment"] .kp-form,
 body[data-page="appointment"] .kp-form > * {
   min-width: 0;
   max-width: 100%;
+}
+
+body[data-page="appointment"] .kp-form {
+  width: 100%;
+  max-width: 760px;
+  min-width: 0;
+  margin: 0 auto;
 }
 
 body[data-page="appointment"] .kp-form input,
@@ -280,6 +286,7 @@ body[data-page="appointment"] .kp-form textarea {
 @media (max-width: 680px) {
   body[data-page="appointment"] .kp-form {
     width: 100%;
+    max-width: 100%;
     min-width: 0;
   }
 
