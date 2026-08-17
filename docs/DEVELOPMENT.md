@@ -31,7 +31,7 @@ Required production settings and normal local equivalents are documented in `bac
 - application/origins: `PORT`, `NODE_ENV`, `FRONTEND_URL`, `CORS_ALLOWED_ORIGINS`, `BACKEND_PUBLIC_URL`;
 - MySQL: `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`, `DB_CONNECTION_LIMIT`, optional TLS settings;
 - authentication: `JWT_SECRET`, `JWT_EXPIRES_IN`;
-- mail: Resend values, `BOOKING_NOTIFICATION_EMAILS`, SMTP values, and `MAIL_FROM`;
+- mail: Resend values, global and branch-specific `BOOKING_NOTIFICATION_EMAILS*` lists, SMTP values, and `MAIL_FROM`;
 - uploads: `UPLOAD_DIR` or Railway's injected volume path.
 
 ## Database Setup Status

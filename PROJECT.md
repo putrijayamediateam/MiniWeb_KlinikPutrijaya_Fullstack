@@ -81,9 +81,9 @@ Public backend resources mounted outside `/api` include:
 These are useful controls but do not replace the dedicated Endgame Security Pass.
 
 Public booking creation saves the booking first, then attempts a best-effort
-internal Resend notification to recipients configured through
-`BOOKING_NOTIFICATION_EMAILS`. Notification failure does not roll back the
-booking or change the successful API response.
+internal Resend notification to global `BOOKING_NOTIFICATION_EMAILS` recipients
+plus recipients configured for the selected branch. Notification failure does
+not roll back the booking or change the successful API response.
 
 ## Public website structure
 

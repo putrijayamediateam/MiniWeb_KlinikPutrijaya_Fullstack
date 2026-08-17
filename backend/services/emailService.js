@@ -4,6 +4,15 @@ const { Resend } = require('resend');
 
 let resendClient = null;
 
+const BOOKING_BRANCH_RECIPIENT_ENV = {
+  cheras:
+    'BOOKING_NOTIFICATION_EMAILS_CHERAS',
+  'sungai besi':
+    'BOOKING_NOTIFICATION_EMAILS_SUNGAI_BESI',
+  puchong:
+    'BOOKING_NOTIFICATION_EMAILS_PUCHONG',
+};
+
 /**
  * Check whether Resend settings are available.
  */
@@ -37,18 +46,60 @@ function getResendClient() {
   return resendClient;
 }
 
-function getBookingNotificationRecipients() {
-  return [
-    ...new Set(
-      String(
-        process.env.BOOKING_NOTIFICATION_EMAILS ||
-          ''
-      )
-        .split(',')
-        .map((email) => email.trim())
-        .filter(Boolean)
-    ),
-  ];
+function deduplicateEmailAddresses(values) {
+  const recipients = new Map();
+
+  values.forEach((value) => {
+    const email = String(value || '').trim();
+    const key = email.toLowerCase();
+
+    if (email && !recipients.has(key)) {
+      recipients.set(key, email);
+    }
+  });
+
+  return [...recipients.values()];
+}
+
+function parseEmailList(value) {
+  return deduplicateEmailAddresses(
+    String(value || '').split(',')
+  );
+}
+
+function normalizeBookingBranchName(value) {
+  return String(value || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[-_]+/g, ' ')
+    .replace(/\s+/g, ' ');
+}
+
+function getBookingNotificationRecipients(
+  branchName
+) {
+  const globalRecipients = parseEmailList(
+    process.env.BOOKING_NOTIFICATION_EMAILS
+  );
+  const normalizedBranch =
+    normalizeBookingBranchName(branchName);
+  const branchEnvironmentName =
+    Object.entries(
+      BOOKING_BRANCH_RECIPIENT_ENV
+    ).find(([branchMatch]) =>
+      normalizedBranch.includes(branchMatch)
+    )?.[1];
+  const branchRecipients =
+    branchEnvironmentName
+      ? parseEmailList(
+          process.env[branchEnvironmentName]
+        )
+      : [];
+
+  return deduplicateEmailAddresses([
+    ...globalRecipients,
+    ...branchRecipients,
+  ]);
 }
 
 function getAdminDashboardUrl() {
@@ -208,7 +259,9 @@ async function sendBookingNotification({
   status = 'pending',
 }) {
   const recipients =
-    getBookingNotificationRecipients();
+    getBookingNotificationRecipients(
+      branchName
+    );
 
   if (!recipients.length) {
     return {

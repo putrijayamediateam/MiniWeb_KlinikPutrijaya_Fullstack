@@ -149,6 +149,10 @@ data. They must not include patient identity numbers, contact details, gender,
 clinical reasons, or medical notes, and notification failure must never roll
 back a saved booking.
 
+Booking notification recipients are the deduplicated combination of the global
+recipient list and only the selected branch's list. Unknown branches or missing
+branch configuration use global recipients only.
+
 Security Pass must still audit whether these controls are correctly configured and complete.
 
 ## Important coding conventions

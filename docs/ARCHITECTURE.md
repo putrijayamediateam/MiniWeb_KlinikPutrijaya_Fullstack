@@ -110,6 +110,10 @@ display names and attempts a best-effort internal notification through the
 shared Resend service. Notification delivery or configuration failures do not
 roll back the booking or change its successful API response.
 
+Booking alerts combine the global `BOOKING_NOTIFICATION_EMAILS` list with only
+the matching Cheras, Sungai Besi, or Puchong recipient list. Unknown branches
+and missing branch-specific configuration fall back to global recipients.
+
 ### Authentication and roles
 
 Login issues a JWT with the administrator ID, username, and role. The default lifetime is eight hours. Protected routes should compose:
