@@ -102,8 +102,26 @@ async function handleGoogleCredential(response) {
       method: 'POST',
       body: JSON.stringify({ credential: response.credential }),
     });
+    const token = String(result.token || '').trim();
 
-    sessionStorage.setItem(TOKEN_KEY, result.token);
+    if (result.pendingApproval === true) {
+      sessionStorage.removeItem(TOKEN_KEY);
+      sessionStorage.removeItem(USERNAME_KEY);
+      setMessage(
+        result.message ||
+          'Your account is waiting for superadmin approval.',
+        'success'
+      );
+      return;
+    }
+
+    if (!token) {
+      throw new Error(
+        'Google sign-in could not be completed.'
+      );
+    }
+
+    sessionStorage.setItem(TOKEN_KEY, token);
     sessionStorage.setItem(USERNAME_KEY, result.username || result.email || 'admin');
     window.location.href = 'admin.html';
   } catch (error) {

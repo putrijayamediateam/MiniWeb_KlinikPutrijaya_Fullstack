@@ -135,6 +135,11 @@ Known admin entry points:
 - `/admin`
 - `/admin-approvals`
 
+The staff login supports username/password and Google Identity Services. Google
+credentials are verified by the existing `/api/auth/google` backend route, and
+dashboard roles are resolved from the authenticated `/api/admin-users/me`
+profile rather than frontend or Google-provided role data.
+
 Known operational areas developed in the project include:
 
 - authentication

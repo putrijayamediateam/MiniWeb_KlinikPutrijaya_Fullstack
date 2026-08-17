@@ -69,6 +69,12 @@ Important consequences:
 
 The admin bundle stores its JWT in `sessionStorage` and exposes modules based on a browser-side role map. Server middleware remains the real authorization boundary.
 
+The staff login offers username/password and Google Identity Services. Both
+Google signup and login post the browser-issued credential to `/api/auth/google`
+for server-side verification. Successful login still enters the existing admin
+flow, which loads `/api/admin-users/me` and applies the database account role;
+public-signup configuration never bypasses approval or active-account checks.
+
 ## Backend
 
 The backend targets Node.js 24.x and Express 4. `backend/server.js` applies:

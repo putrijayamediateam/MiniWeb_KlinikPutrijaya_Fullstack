@@ -13,6 +13,7 @@
 <link rel="stylesheet" href="css/signup.css">
 <link rel="stylesheet" href="css/admin-login.css">
 <link rel="stylesheet" href="./css/admin-upgrades.css?v=20260814-3">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body class="admin-page">
 
@@ -107,6 +108,14 @@
           Log in
         </button>
       </form>
+
+      <div class="auth-divider"><span>or</span></div>
+
+      <div
+        id="adminGoogleButton"
+        class="google-button-shell"
+        aria-label="Continue with Google"
+      ></div>
 
       <p class="auth-switch admin-login-signup-link">
         New user? <a href="signup.html">Create an account</a>
@@ -1488,7 +1497,7 @@
 ></script>
 
 <script
-  src="admin.js?v=20260814-1"
+  src="admin.js?v=20260817-1"
   defer
 ></script>
 </body>

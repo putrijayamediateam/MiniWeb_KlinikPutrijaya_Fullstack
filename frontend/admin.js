@@ -128,6 +128,7 @@ const googleSearchState = {
 
 document.addEventListener('DOMContentLoaded', () => {
   bindCoreEvents();
+  initialiseAdminGoogleLogin();
   const token = sessionStorage.getItem(TOKEN_KEY);
   if (token) {
     enterDashboard(
@@ -498,6 +499,229 @@ document
     }
   }, 150)
 );
+}
+
+
+async function initialiseAdminGoogleLogin() {
+  const target = document.getElementById(
+    'adminGoogleButton'
+  );
+
+  if (!target) {
+    return;
+  }
+
+  try {
+    const config = await requestAdminAuth(
+      '/auth/signup-config'
+    );
+
+    await renderAdminGoogleButton(
+      config.googleClientId
+    );
+  } catch {
+    showAdminGoogleUnavailable(
+      'Google sign-in is currently unavailable.'
+    );
+  }
+}
+
+async function renderAdminGoogleButton(
+  clientId
+) {
+  const target = document.getElementById(
+    'adminGoogleButton'
+  );
+
+  if (!target) {
+    return;
+  }
+
+  if (!clientId) {
+    showAdminGoogleUnavailable(
+      'Google sign-in has not been configured yet.'
+    );
+    return;
+  }
+
+  const timeoutAt = Date.now() + 8000;
+
+  while (
+    !window.google?.accounts?.id &&
+    Date.now() < timeoutAt
+  ) {
+    await new Promise((resolve) =>
+      setTimeout(resolve, 150)
+    );
+  }
+
+  if (!window.google?.accounts?.id) {
+    showAdminGoogleUnavailable(
+      'Google sign-in could not be loaded.'
+    );
+    return;
+  }
+
+  window.google.accounts.id.initialize({
+    client_id: clientId,
+    callback: handleAdminGoogleCredential,
+    auto_select: false,
+    cancel_on_tap_outside: true,
+  });
+
+  target.replaceChildren();
+
+  window.google.accounts.id.renderButton(
+    target,
+    {
+      type: 'standard',
+      theme: 'outline',
+      size: 'large',
+      text: 'continue_with',
+      shape: 'pill',
+      logo_alignment: 'left',
+      width: Math.min(
+        target.clientWidth || 380,
+        380
+      ),
+    }
+  );
+}
+
+async function handleAdminGoogleCredential(
+  response
+) {
+  const messageBox = document.getElementById(
+    'loginMessage'
+  );
+  const credential = String(
+    response?.credential || ''
+  ).trim();
+
+  if (!credential) {
+    setMessage(
+      messageBox,
+      'Google sign-in did not return a credential.',
+      'error'
+    );
+    return;
+  }
+
+  setMessage(
+    messageBox,
+    'Signing in with Google…'
+  );
+
+  try {
+    const result = await requestAdminAuth(
+      '/auth/google',
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          credential,
+        }),
+      }
+    );
+    const token = String(
+      result.token || ''
+    ).trim();
+
+    if (result.pendingApproval === true) {
+      sessionStorage.removeItem(TOKEN_KEY);
+      sessionStorage.removeItem(USERNAME_KEY);
+      sessionStorage.removeItem(ROLE_KEY);
+
+      setMessage(
+        messageBox,
+        result.message ||
+          'Your account is waiting for superadmin approval.',
+        'success'
+      );
+      return;
+    }
+
+    if (!token) {
+      throw new Error(
+        'Google sign-in could not be completed.'
+      );
+    }
+
+    const resolvedUsername =
+      result.username ||
+      result.email ||
+      'admin';
+
+    sessionStorage.setItem(
+      TOKEN_KEY,
+      token
+    );
+    sessionStorage.setItem(
+      USERNAME_KEY,
+      resolvedUsername
+    );
+
+    await enterDashboard(
+      token,
+      resolvedUsername
+    );
+  } catch (error) {
+    setMessage(
+      messageBox,
+      error.message ||
+        'Google sign-in failed.',
+      'error'
+    );
+  }
+}
+
+async function requestAdminAuth(
+  path,
+  options = {}
+) {
+  const response = await fetch(
+    `${ADMIN_API_BASE}${path}`,
+    {
+      ...options,
+      headers: {
+        'Content-Type':
+          'application/json',
+        ...(options.headers || {}),
+      },
+    }
+  );
+  const data = await response
+    .json()
+    .catch(() => ({}));
+
+  if (!response.ok) {
+    const error = new Error(
+      data.message ||
+        `Request failed with status ${response.status}.`
+    );
+
+    error.status = response.status;
+    throw error;
+  }
+
+  return data;
+}
+
+function showAdminGoogleUnavailable(message) {
+  const target = document.getElementById(
+    'adminGoogleButton'
+  );
+
+  if (!target) {
+    return;
+  }
+
+  const unavailable = document.createElement(
+    'div'
+  );
+
+  unavailable.className = 'google-unavailable';
+  unavailable.textContent = message;
+  target.replaceChildren(unavailable);
 }
 
 

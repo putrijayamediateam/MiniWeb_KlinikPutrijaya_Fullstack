@@ -89,6 +89,7 @@ Do not expand scope with major new features until Endgame is complete unless the
 Known completed areas include:
 
 - authentication
+- Google Sign-In reusing the existing `/api/auth/google` verification flow
 - bookings
 - performance
 - feedback
@@ -117,6 +118,11 @@ Bookings  Performance  Feedback  Doctors ...
 - Whole page must not horizontally scroll.
 - Wide tables may scroll inside `.table-wrap`.
 - Booking status/action controls must not overlap on mobile.
+
+`PUBLIC_SIGNUP_ENABLED` gates creation of new accounts only. Existing active
+Google or Google-linked accounts must still be able to sign in when public
+signup is disabled; frontend login availability must depend on the public
+Google Client ID, not `signupEnabled`.
 
 ## Confirmed current backend facts
 
