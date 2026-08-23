@@ -329,7 +329,12 @@ function escapeSharedAttribute(value) {
           <div class="footer-bottom">
             <span>© 2026 Klinik Putrijaya. All rights reserved.</span>
             <span>Bumiputera-owned family &amp; general practice clinic group, Malaysia</span>
-            <a href="admin.html" class="admin-footer-link">Staff login</a>
+            <nav class="footer-meta-links" aria-label="Digital tools and legal information">
+              <a href="kp-content-os.html">KP Content OS</a>
+              <a href="kp-content-os-terms.html">Terms</a>
+              <a href="kp-content-os-privacy.html">Privacy</a>
+              <a href="admin.html" class="admin-footer-link">Staff login</a>
+            </nav>
           </div>
         </div>
       </footer>

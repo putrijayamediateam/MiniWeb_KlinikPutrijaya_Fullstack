@@ -73,6 +73,17 @@ Do not expand scope with major new features until Endgame is complete unless the
 - Patient Feedback
 - Appointment / booking flow
 - Responsive mobile layouts
+- Public KP Content OS product information, Terms of Service and bilingual
+  Privacy Policy pages, linked directly from the shared footer
+
+KP Content OS public-policy decisions:
+
+- Operator: AMAZ LEGACY SDN. BHD.
+- Public privacy/support contact: `putrijayamediateam@gmail.com`
+- TikTok access is described as read-only; no posting permission or viral
+  guarantee is claimed.
+- Patient records and identifiable medical information are prohibited.
+- Medical facts and claims require qualified doctor review before publication.
 
 ### Dynamic service taxonomy
 

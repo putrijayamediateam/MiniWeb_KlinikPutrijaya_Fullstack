@@ -4,6 +4,10 @@ Production-oriented public website and staff admin portal for Klinik Putrijaya's
 
 The application combines a static multi-page frontend with an Express/MySQL API. It supports dynamic clinic content, appointments, patient feedback, services and taxonomy, promotions, community activities, performance reporting, uploads, and role-based administration.
 
+The public frontend also hosts the KP Content OS product information, Terms of
+Service and bilingual Privacy Policy required for transparent read-only TikTok
+integration. These pages are linked directly from the shared site footer.
+
 ## Current Phase
 
 The project is in **Endgame**: production QA, SEO, cleanup, backup/recovery, security review, and release freeze take priority over major new features.

@@ -254,6 +254,89 @@ function checkHtmlReferences() {
   );
 }
 
+function checkKpContentOsPublicPages() {
+  const expectations = new Map([
+    [
+      'frontend/kp-content-os.html',
+      [
+        'AMAZ LEGACY SDN. BHD.',
+        'kp-content-os-terms.html',
+        'kp-content-os-privacy.html',
+        'No automatic posting',
+        'No patient data',
+      ],
+    ],
+    [
+      'frontend/kp-content-os-terms.html',
+      [
+        'id="english"',
+        'id="bahasa-melayu"',
+        'putrijayamediateam@gmail.com',
+        'does not guarantee',
+        'tidak menjamin',
+      ],
+    ],
+    [
+      'frontend/kp-content-os-privacy.html',
+      [
+        'id="english"',
+        'id="bahasa-melayu"',
+        'putrijayamediateam@gmail.com',
+        'read-only TikTok integration',
+        'integrasi TikTok read-only',
+      ],
+    ],
+  ]);
+
+  for (const [file, requiredText] of expectations) {
+    const fullPath = path.join(repoRoot, file);
+
+    if (!fs.existsSync(fullPath)) {
+      failures.push(`Required KP Content OS public page is missing: ${file}`);
+      continue;
+    }
+
+    const source = fs.readFileSync(fullPath, 'utf8');
+
+    for (const text of requiredText) {
+      if (!source.includes(text)) {
+        failures.push(`Missing required KP Content OS text in ${file}: ${text}`);
+      }
+    }
+  }
+
+  const sharedFooter = fs.readFileSync(
+    path.join(frontendRoot, 'js', 'main.js'),
+    'utf8'
+  );
+  const sitemap = fs.readFileSync(
+    path.join(frontendRoot, 'sitemap.xml'),
+    'utf8'
+  );
+
+  for (const page of [
+    'kp-content-os.html',
+    'kp-content-os-terms.html',
+    'kp-content-os-privacy.html',
+  ]) {
+    if (!sharedFooter.includes(`href="${page}"`)) {
+      failures.push(`Shared footer is missing KP Content OS link: ${page}`);
+    }
+  }
+
+  for (const canonical of [
+    'https://klinikputrijaya.com/kp-content-os',
+    'https://klinikputrijaya.com/kp-content-os-terms',
+    'https://klinikputrijaya.com/kp-content-os-privacy',
+  ]) {
+    if (!sitemap.includes(`<loc>${canonical}</loc>`)) {
+      failures.push(`Sitemap is missing KP Content OS URL: ${canonical}`);
+    }
+  }
+
+  console.log(`KP Content OS public pages: ${expectations.size} checked`);
+}
+
 function checkTrackedSecrets() {
   const safeDirectory = repoRoot.replaceAll('\\', '/');
   const result = run('git', [
@@ -331,6 +414,7 @@ checkNodeVersion();
 checkJavaScript();
 checkJson();
 checkHtmlReferences();
+checkKpContentOsPublicPages();
 checkTrackedSecrets();
 checkGitWhitespace();
 

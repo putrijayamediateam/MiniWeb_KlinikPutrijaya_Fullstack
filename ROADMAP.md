@@ -68,6 +68,9 @@ Exit criteria: routine changes touch focused modules, checks remain fast, and le
 ## Milestone 4 — Release, Observe, and Improve (P2)
 
 1. Complete SEO/indexing pass and production smoke test.
+   The public KP Content OS product, terms and bilingual privacy pages are now
+   included in the source and require production URL verification during the
+   next release smoke test.
 2. Tag a release and begin a controlled development freeze.
 3. Observe real usage for two to four weeks.
 4. Review booking completion, failures, page performance, admin friction, and staff feedback.

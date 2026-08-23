@@ -36,6 +36,9 @@ Use these labels:
 - [ ] Little Shield
 - [ ] Feedback
 - [ ] Appointment
+- [ ] KP Content OS product information
+- [ ] KP Content OS Terms of Service — English and Bahasa Melayu
+- [ ] KP Content OS Privacy Policy — English and Bahasa Melayu
 - [ ] 404
 
 ## Public interactions
@@ -113,6 +116,7 @@ Use these labels:
 - [ ] meta descriptions
 - [ ] branch local SEO
 - [ ] internal links
+- [ ] KP Content OS product, terms and privacy footer links
 - [ ] Search Console URL inspection
 - [ ] reindex priority pages after final changes
 
