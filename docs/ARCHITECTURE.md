@@ -45,6 +45,20 @@ The public frontend and admin portal are static browser applications. They call 
 
 The frontend is a static multi-page application, not a bundled SPA. Most public pages load `frontend/js/main.js`. Pages that need data also load `frontend/js/api.js` and a page-specific script.
 
+The public KP Content OS surface is intentionally static and secret-free:
+
+- `frontend/kp-content-os.html` explains the restricted workspace and its
+  read-only TikTok, no-patient-data and medical-review boundaries.
+- `frontend/kp-content-os-terms.html` publishes the applicable workplace terms.
+- `frontend/kp-content-os-privacy.html` publishes the data-handling notice in
+  English and Bahasa Melayu.
+- `frontend/css/kp-content-os.css` contains the shared product/policy layout.
+- `frontend/js/main.js` exposes all three pages directly in the shared footer.
+
+These public pages do not connect to TikTok, expose the restricted KP Content
+OS application or contain credentials. OAuth and account data remain inside the
+separate restricted KP Content OS service.
+
 The API base is selected at runtime:
 
 - localhost/127.0.0.1 uses `http://localhost:4000/api`;

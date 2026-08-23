@@ -103,8 +103,17 @@ Known public pages include:
 - `/little-shield`
 - `/feedback`
 - `/appointment`
+- `/kp-content-os`
+- `/kp-content-os-terms`
+- `/kp-content-os-privacy`
 
 The shared public navigation is generated from `frontend/js/main.js`.
+
+The shared footer links directly to the public KP Content OS product, terms and
+privacy pages. These pages identify AMAZ LEGACY SDN. BHD. as the operator,
+publish the privacy notice in English and Bahasa Melayu, and document the
+read-only TikTok, no-patient-data and medical-review boundaries used by the
+restricted KP Content OS workspace.
 
 Current shared navigation structure:
 
