@@ -45,6 +45,12 @@ The public frontend and admin portal are static browser applications. They call 
 
 The frontend is a static multi-page application, not a bundled SPA. Most public pages load `frontend/js/main.js`. Pages that need data also load `frontend/js/api.js` and a page-specific script.
 
+The `/promo` campaign landing page (`frontend/promo.html`, `frontend/css/promo.css`,
+`frontend/js/promo.js`, images in `frontend/images/promo/`) is standalone and
+static: it does not load `main.js`, `global.css` or the API, and its package and
+branch data are constants in `promo.js`. Update that file when the campaign or
+branch details change. It is the target of printed QR codes, so keep the URL.
+
 The public KP Content OS surface is intentionally static and secret-free:
 
 - `frontend/kp-content-os.html` explains the restricted workspace and its
