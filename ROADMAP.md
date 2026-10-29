@@ -76,6 +76,24 @@ Exit criteria: routine changes touch focused modules, checks remain fast, and le
 4. Review booking completion, failures, page performance, admin friction, and staff feedback.
 5. Prioritize a V2 backlog from observed evidence rather than assumptions.
 
+## Parked — KPOne Website Integration (Option A, decided 2026-10-29)
+
+Status: **planning approved; website-side work is parked until KPOne is built, deployed and approved.** Current focus is KPOne's own phases. Nothing in this repo changes for this item yet.
+
+Direction: staff edit website content in KPOne; the public website keeps its look and reads a static published snapshot, never the KPOne application. Full contract: `docs/WEBSITE_SNAPSHOT_CONTRACT.md` in the KPOne repository (`putrijayamediateam/KPOne`, branch `docs/website-snapshot-contract` until merged).
+
+Confirmed decisions:
+
+- A Director explicitly publishes an approved, frozen EN/BM release; approval alone does not publish.
+- Snapshot (JSON plus images) is hosted on Cloudflare R2 behind a dedicated subdomain; the owner holds Cloudflare administration.
+- Doctor registration numbers are never published. Initial public output is English.
+- Migrated service pages use generic appointment links; booking IDs stay Railway/MySQL.
+- Legacy `/admin`, Railway and MySQL stay available; no silent fallback to MySQL for a migrated domain.
+- Last-known-good content uses a website-bundled baseline plus Cache API/IndexedDB (never localStorage); refresh the bundled baseline with every website release and at least monthly.
+- Staff Login redirect and snapshot reading are off by default (`staffLoginEnabled`, `snapshotContentEnabled`, `enabledDomains`) until separately approved deployment and cutover.
+
+Website-side work when unparked (small PRs, each needs approval): configurable flags and URLs; snapshot adapter with validation and fallback; per-domain pilot (promotions first); configured Staff Login link; sitemap from the published service set; timed rollback drill. Prerequisites: KPOne PRs 2-4 (exporter, publication controls, storage publisher) and KPOne deployment readiness.
+
 ## Post-Endgame Options (P3)
 
 Only after the freeze criteria are met:
