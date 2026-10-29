@@ -33,9 +33,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/global.css?v=20260823-1">
-  <link rel="stylesheet" href="css/home.css?v=20260806-3">
+  <link rel="stylesheet" href="css/home.css?v=20261029-1">
   <script src="js/main.js?v=20260823-1" defer></script>
-  <script src="js/home.js?v=20260806-2" defer></script>
+  <script src="js/home.js?v=20261029-1" defer></script>
 
   <script type="application/ld+json">
 {
@@ -156,125 +156,80 @@
     </section>
 
     <!-- ============================================================
-     LITTLE SHIELD FEATURED PROGRAMME
+     FEATURED PROMOTION: HEALTH CHECK-UP (links to /promo)
      ============================================================ -->
-<div
-  id="little-shield"
-  class="featured-programme little-shield-campaign"
+<section
+  id="health-checkup-promo"
+  class="featured-programme home-campaign"
+  aria-labelledby="homePromoTitle"
 >
   <!-- LEFT CONTENT -->
   <div class="campaign-content">
     <div class="programme-badge">
-      Featured Community Programme
+      Promotion · 1 Nov – 31 Dec 2026
     </div>
 
-    <h3>Little Shield Programme</h3>
+    <h3 id="homePromoTitle">Beyond Physical Health</h3>
 
     <p class="tagline">
-      Kecil Sihat, Taska Lebih Selamat
+      Pakej Pemeriksaan Kesihatan Fizikal &amp; Mental
     </p>
 
     <p class="programme-desc">
-      A preschool health programme for taska and tadika communities
-      that combines influenza awareness, hygiene education, parent
-      communication and optional vaccination with consent and medical
-      screening.
+      Check your body and your mind in one visit. Every package includes a
+      doctor's consultation, free DASS-21 mental health screening and an
+      InBody body composition scan.
     </p>
 
     <div class="campaign-flow">
-      <!-- STEP 1 -->
       <article class="flow-card">
-        <div class="flow-number">1</div>
-
-        <h4>Health Awareness</h4>
-
-        <p>
-          Doctor-led influenza, hygiene and child-health education.
-        </p>
+        <div class="flow-price">RM99</div>
+        <h4>Basic</h4>
+        <p>Physical exam, blood pressure, BMI, FBC and fasting blood sugar.</p>
       </article>
 
-      <!-- STEP 2 -->
       <article class="flow-card">
-        <div class="flow-number">2</div>
-
-        <h4>Interactive Learning</h4>
-
-        <p>
-          Child-friendly activities, colouring and practical prevention
-          messages.
-        </p>
+        <div class="flow-price">RM159</div>
+        <h4>Silver</h4>
+        <p>Everything in Basic, plus cholesterol, kidney and liver tests.</p>
       </article>
 
-      <!-- STEP 3 -->
       <article class="flow-card">
-        <div class="flow-number">3</div>
-
-        <h4>Optional Vaccination</h4>
-
-        <p>
-          On-site influenza vaccination with parent consent and medical
-          screening.
-        </p>
+        <div class="flow-price">RM239</div>
+        <h4>Premium</h4>
+        <p>Full physical exam, HbA1c, urine test and ECG (Premium only).</p>
       </article>
     </div>
 
     <div class="campaign-actions">
-      <a
-        class="programme-btn"
-        href="little-shield.html"
-      >
-        Explore full programme
+      <a class="programme-btn" href="promo.html#plans">
+        See packages
       </a>
 
-      <a
-        class="programme-btn"
-        href="https://forms.gle/vKgb6aJpmNTiCzCw9"
-        target="_blank"
-        rel="noopener"
-      >
-        Register taska / tadika
+      <a class="programme-btn" href="promo.html#branches">
+        Book at your nearest branch
       </a>
     </div>
   </div>
 
   <!-- RIGHT POSTER -->
   <div class="campaign-side">
-    <div class="poster-slider">
+    <a class="poster-slider" href="promo.html" aria-label="Open the Beyond Physical Health promotion page">
       <div class="poster-track">
         <img
-          src="images/little-shield-poster-2.jpeg"
-          alt="Little Shield Programme poster"
-        >
-
-        <img
-          src="images/little-shield-poster-1.jpeg"
-          alt="Little Shield Programme second poster"
+          src="images/promo/beyond-physical-health-poster.jpg"
+          alt="Beyond Physical Health promotion poster: Basic RM99, Silver RM159, Premium RM239"
+          loading="lazy"
         >
       </div>
-
-      <button
-        class="poster-btn prev"
-        type="button"
-        aria-label="Previous poster"
-      >
-        ‹
-      </button>
-
-      <button
-        class="poster-btn next"
-        type="button"
-        aria-label="Next poster"
-      >
-        ›
-      </button>
-    </div>
+    </a>
 
     <div class="mini-highlight">
-      <b>Open For Taska &amp; Tadika</b>
-      <span>Cheras · Sungai Besi · Puchong</span>
+      <b>Free DASS-21 + InBody</b>
+      <span>In every package · Cheras · Sungai Besi · Puchong</span>
     </div>
   </div>
-</div>
+</section>
 
   <div id="site-footer"></div>
 </body>

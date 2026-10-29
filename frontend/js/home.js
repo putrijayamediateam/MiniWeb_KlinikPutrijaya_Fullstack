@@ -1,4 +1,4 @@
-// Homepage interactions: panel scroller, counters and Little Shield poster slider.
+// Homepage interactions: panel scroller, counters and featured-promo poster slider (inactive when the promo shows a single poster).
 
 document.addEventListener("DOMContentLoaded", () => {
   initPanelScroller();
