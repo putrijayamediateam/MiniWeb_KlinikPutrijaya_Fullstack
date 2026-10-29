@@ -99,6 +99,7 @@ Known public pages include:
 - `/services`
 - `/service-detail`
 - `/promotions`
+- `/promo` (standalone campaign landing page; QR code target)
 - `/activities`
 - `/little-shield`
 - `/feedback`
