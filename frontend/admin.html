@@ -14,6 +14,7 @@
 <link rel="stylesheet" href="css/admin-login.css">
 <link rel="stylesheet" href="./css/admin-upgrades.css?v=20260814-3">
 <link rel="stylesheet" href="./css/admin-branch-access.css?v=20261112-1">
+<link rel="stylesheet" href="./css/admin-booking-alerts.css?v=20261112-1">
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body class="admin-page">
@@ -703,6 +704,21 @@
     </small>
   </article>
 </div>
+
+  <div class="booking-alert-bar">
+    <button
+      type="button"
+      class="btn-small booking-alert-toggle"
+      id="bookingAlertToggle"
+      aria-pressed="true"
+    >
+      Sound alerts: On
+    </button>
+
+    <span class="booking-alert-hint">
+      New appointments are checked every 30 seconds while this page is open.
+    </span>
+  </div>
 
   <p id="bookingBranchScopeNote" class="booking-branch-scope-note" hidden></p>
 
@@ -1495,6 +1511,11 @@
 ></script>
 
 <script
+  src="js/admin-booking-alerts.js?v=20261112-1"
+  defer
+></script>
+
+<script
   src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"
   defer
 ></script>
@@ -1505,7 +1526,7 @@
 ></script>
 
 <script
-  src="admin.js?v=20261112-1"
+  src="admin.js?v=20261112-2"
   defer
 ></script>
 </body>
