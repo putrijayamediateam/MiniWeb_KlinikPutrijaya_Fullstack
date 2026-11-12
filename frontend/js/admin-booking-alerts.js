@@ -52,32 +52,38 @@
     return Boolean(audioContext && audioContext.state === 'running');
   }
 
-  function playTone(context, frequency, startAt, duration) {
-    const oscillator = context.createOscillator();
-    const gain = context.createGain();
+  // One mallet note: the fundamental plus a quieter 4th harmonic, struck
+  // quickly and decaying like a marimba bar.
+  function playMalletNote(context, frequency, startAt, duration) {
+    [[1, 0.3], [4, 0.06]].forEach(([multiple, peak]) => {
+      const oscillator = context.createOscillator();
+      const gain = context.createGain();
 
-    oscillator.type = 'sine';
-    oscillator.frequency.value = frequency;
+      oscillator.type = 'sine';
+      oscillator.frequency.value = frequency * multiple;
 
-    gain.gain.setValueAtTime(0.0001, startAt);
-    gain.gain.exponentialRampToValueAtTime(0.35, startAt + 0.02);
-    gain.gain.exponentialRampToValueAtTime(0.0001, startAt + duration);
+      gain.gain.setValueAtTime(0.0001, startAt);
+      gain.gain.exponentialRampToValueAtTime(peak, startAt + 0.008);
+      gain.gain.exponentialRampToValueAtTime(0.0001, startAt + duration);
 
-    oscillator.connect(gain);
-    gain.connect(context.destination);
-    oscillator.start(startAt);
-    oscillator.stop(startAt + duration + 0.05);
+      oscillator.connect(gain);
+      gain.connect(context.destination);
+      oscillator.start(startAt);
+      oscillator.stop(startAt + duration + 0.05);
+    });
   }
 
-  // Two rising chimes, played twice so it is noticeable at a busy counter.
+  // Rising marimba "ta-da-ding" (C6, E6, G6), played twice so it is
+  // noticeable at a busy counter.
   function playChime() {
     if (!isAudioReady()) return false;
 
     const now = audioContext.currentTime;
 
-    [0, 0.9].forEach((offset) => {
-      playTone(audioContext, 880, now + offset, 0.35);
-      playTone(audioContext, 1318.5, now + offset + 0.18, 0.5);
+    [0, 1.1].forEach((offset) => {
+      playMalletNote(audioContext, 1046.5, now + offset, 0.45);
+      playMalletNote(audioContext, 1318.5, now + offset + 0.13, 0.45);
+      playMalletNote(audioContext, 1568, now + offset + 0.26, 0.8);
     });
 
     return true;
