@@ -1,0 +1,20 @@
+/* New-booking sound alert toggle on the Bookings tab. */
+
+.booking-alert-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin: 0 0 12px;
+}
+
+.booking-alert-toggle[aria-pressed="true"] {
+  border-color: var(--primary);
+  color: var(--primary-deep);
+  background: var(--pink-tint);
+}
+
+.booking-alert-hint {
+  color: var(--muted);
+  font-size: 13px;
+}

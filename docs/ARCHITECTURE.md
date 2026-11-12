@@ -89,6 +89,11 @@ Important consequences:
 
 The admin bundle stores its JWT in `sessionStorage` and exposes modules based on a browser-side role map. Server middleware remains the real authorization boundary.
 
+`frontend/js/admin-booking-alerts.js` polls `GET /api/bookings?page=1&limit=10`
+every 30 seconds after login and plays a Web Audio chime for bookings newer than
+the last one seen. Each open dashboard adds about 30 requests per 15 minutes
+against the general API rate limit (500 per IP per 15 minutes).
+
 The staff login offers username/password and Google Identity Services. Both
 Google signup and login post the browser-issued credential to `/api/auth/google`
 for server-side verification. Successful login still enters the existing admin

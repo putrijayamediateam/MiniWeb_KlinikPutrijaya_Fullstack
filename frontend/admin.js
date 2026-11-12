@@ -240,6 +240,7 @@ document
   }, 350));
 
   document.getElementById('exportBookingsBtn')?.addEventListener('click', exportBookingsToCSV);
+  document.getElementById('bookingAlertToggle')?.addEventListener('click', toggleBookingAlertSound);
   document.getElementById('addDoctorBtn')?.addEventListener('click', () => openDoctorModal());
   document
   .getElementById(
@@ -764,6 +765,7 @@ function handleLogout() {
   sessionStorage.removeItem(TOKEN_KEY);
   sessionStorage.removeItem(USERNAME_KEY);
   sessionStorage.removeItem(ROLE_KEY);
+  window.KPBookingAlerts?.stop();
   authedApi = null;
   currentAdmin = null;
   currentAdminRole = 'admin';
@@ -863,6 +865,8 @@ async function enterDashboard(
   initialisePerformanceDates();
 
   await loadAllowedDashboardModules();
+
+  startBookingAlerts();
 }
 
 async function loadCurrentAdminProfile(
@@ -3189,6 +3193,77 @@ XLSX.utils
 // -----------------------------------------------------------------------------
 // BOOKINGS: server-side pagination, filtering and notifications
 // -----------------------------------------------------------------------------
+
+// New-booking chime and tab badge; polling lives in js/admin-booking-alerts.js.
+function startBookingAlerts() {
+  const alerts = window.KPBookingAlerts;
+  if (!alerts || !authedApi) return;
+
+  renderBookingAlertToggle();
+
+  alerts.start({
+    async fetchLatest() {
+      try {
+        const response = await authedApi.getBookings({ page: 1, limit: 10 });
+        return response.data || [];
+      } catch (error) {
+        if (handleAuthError(error)) alerts.stop();
+        throw error;
+      }
+    },
+    onNewBookings: handleNewBookings,
+  });
+}
+
+function handleNewBookings(bookings, { played, soundOn }) {
+  const latest = bookings[0];
+
+  // Reference and branch only: the screen may be visible at the counter.
+  const message = bookings.length > 1
+    ? `${bookings.length} new appointment requests.`
+    : `${formatBookingRef(latest.id)} · ${latest.branch_name || 'Branch'}`;
+
+  const soundBlocked = soundOn && !played;
+
+  showKpToast({
+    title: 'New appointment request',
+    message: soundBlocked
+      ? `${message} Click "Turn on sound" so you can hear the next one.`
+      : message,
+    actionText: soundBlocked ? 'Turn on sound' : '',
+    onAction: soundBlocked
+      ? () => window.KPBookingAlerts.unlockAudio().then(() => window.KPBookingAlerts.playChime())
+      : null,
+    duration: 12000,
+  });
+
+  if (document.getElementById('tab-bookings')?.classList.contains('active')) {
+    loadBookings();
+  }
+}
+
+function renderBookingAlertToggle() {
+  const button = document.getElementById('bookingAlertToggle');
+  const alerts = window.KPBookingAlerts;
+  if (!button || !alerts) return;
+
+  const on = alerts.isSoundOn();
+  button.textContent = on ? 'Sound alerts: On' : 'Sound alerts: Off';
+  button.setAttribute('aria-pressed', String(on));
+}
+
+function toggleBookingAlertSound() {
+  const alerts = window.KPBookingAlerts;
+  if (!alerts) return;
+
+  alerts.setSoundOn(!alerts.isSoundOn());
+  renderBookingAlertToggle();
+
+  // Play a sample so staff can check their speaker volume.
+  if (alerts.isSoundOn()) {
+    alerts.unlockAudio().then(() => alerts.playChime());
+  }
+}
 
 async function loadBookings() {
   const tbody = document.getElementById('bookingsTableBody');

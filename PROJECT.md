@@ -180,6 +180,15 @@ API filters the list, summary counts, status updates and deletes by the
 account's branches, and returns 404 for bookings outside them. The Performance
 tab's aggregate booking counts are not branch-limited.
 
+New-booking sound alerts: while the admin dashboard is open, it checks the
+bookings API every 30 seconds and plays a chime (Web Audio, no sound file) plus
+a toast showing only the booking reference and branch, and refreshes the list
+on the Bookings tab. It uses the normal branch-scoped list, so branch-limited
+staff only hear their branches. Browsers block sound until the user clicks or
+types on the page; the toast then offers "Turn on sound". Staff can mute it
+with the "Sound alerts" toggle (saved per browser). Code:
+`frontend/js/admin-booking-alerts.js`.
+
 ## Git / secret hygiene
 
 The repository `.gitignore` currently excludes:
