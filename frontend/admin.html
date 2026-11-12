@@ -13,6 +13,7 @@
 <link rel="stylesheet" href="css/signup.css">
 <link rel="stylesheet" href="css/admin-login.css">
 <link rel="stylesheet" href="./css/admin-upgrades.css?v=20260814-3">
+<link rel="stylesheet" href="./css/admin-branch-access.css?v=20261112-1">
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body class="admin-page">
@@ -702,6 +703,8 @@
     </small>
   </article>
 </div>
+
+  <p id="bookingBranchScopeNote" class="booking-branch-scope-note" hidden></p>
 
   <!-- FILTER BAR -->
   <div class="booking-toolbar">
@@ -1482,7 +1485,12 @@
 </div>
 
 <script
-  src="js/api.js?v=20260812-1"
+  src="js/api.js?v=20261112-1"
+  defer
+></script>
+
+<script
+  src="js/admin-branch-access.js?v=20261112-1"
   defer
 ></script>
 
@@ -1497,7 +1505,7 @@
 ></script>
 
 <script
-  src="admin.js?v=20260817-1"
+  src="admin.js?v=20261112-1"
   defer
 ></script>
 </body>

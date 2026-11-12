@@ -1,0 +1,82 @@
+/* Branch-scoped booking access: superadmin editor dialog and booking notice. */
+
+.branch-access-dialog {
+  width: min(92vw, 420px);
+  padding: 24px 22px 20px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: 0 24px 60px rgba(58, 24, 41, 0.16);
+}
+
+.branch-access-dialog::backdrop {
+  background: rgba(36, 20, 28, 0.45);
+}
+
+.branch-access-dialog__eyebrow {
+  margin: 0 0 4px;
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.branch-access-dialog__title {
+  margin: 0 0 8px;
+  font-size: 18px;
+  overflow-wrap: anywhere;
+}
+
+.branch-access-dialog__hint {
+  margin: 0 0 16px;
+  color: var(--ink-soft);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.branch-access-dialog__list {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.branch-access-dialog__option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.branch-access-dialog__option input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--primary);
+}
+
+.branch-access-dialog__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.branch-access-dialog__save {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: #fff;
+}
+
+.branch-access-dialog__save:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.booking-branch-scope-note {
+  margin: 0 0 12px;
+  color: var(--ink-soft);
+  font-size: 14px;
+}

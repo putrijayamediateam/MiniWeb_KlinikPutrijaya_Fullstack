@@ -164,6 +164,14 @@ Booking notification recipients are the deduplicated combination of the global
 recipient list and only the selected branch's list. Unknown branches or missing
 branch configuration use global recipients only.
 
+Booking access can be limited per branch. A superadmin picks branches for an
+admin or manager account in User Management (stored in `admin_branch_access`,
+migration `database/08_admin_branch_access.sql`). An account with no branches
+assigned sees every branch; superadmins always see every branch. The bookings
+API filters the list, summary counts, status updates and deletes by the
+account's branches, and returns 404 for bookings outside them. The Performance
+tab's aggregate booking counts are not branch-limited.
+
 Security Pass must still audit whether these controls are correctly configured and complete.
 
 ## Important coding conventions

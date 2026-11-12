@@ -150,9 +150,19 @@ Current roles:
 | `manager` | Admin access plus content/operational management |
 | `superadmin` | Manager access plus user approval and role management |
 
+Booking access is also branch-scoped. `backend/services/adminBranchAccess.js`
+reads `admin_branch_access` (migration `database/08_admin_branch_access.sql`):
+an admin or manager with no rows sees every branch, otherwise only the listed
+branches. Superadmins are never restricted. `backend/routes/bookings.js` applies
+the scope to the list, summary counts, status updates and deletes (out-of-scope
+bookings return 404). Superadmins set the scope through
+`PUT /api/admin-users/:id/branches`; the dashboard UI is
+`frontend/js/admin-branch-access.js`. If the table is missing, every account is
+unrestricted, which matches the behaviour before the migration.
+
 ## Data and Storage
 
-Core data areas include branches, doctors, services, service taxonomy, service prices/gallery, bookings, feedback, administrators/password resets, promotions, community activities/gallery, and website performance events.
+Core data areas include branches, doctors, services, service taxonomy, service prices/gallery, bookings, feedback, administrators/password resets, per-admin booking branch access, promotions, community activities/gallery, and website performance events.
 
 The schema history is not yet canonical:
 

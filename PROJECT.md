@@ -172,6 +172,14 @@ Role decisions previously established:
 
 Server-side authorization is the real security boundary. Hiding a button or tab in frontend JavaScript is UX only.
 
+Booking access can be limited per branch. A superadmin picks branches for an
+admin or manager account in User Management (stored in `admin_branch_access`,
+migration `database/08_admin_branch_access.sql`). An account with no branches
+assigned sees every branch; superadmins always see every branch. The bookings
+API filters the list, summary counts, status updates and deletes by the
+account's branches, and returns 404 for bookings outside them. The Performance
+tab's aggregate booking counts are not branch-limited.
+
 ## Git / secret hygiene
 
 The repository `.gitignore` currently excludes:

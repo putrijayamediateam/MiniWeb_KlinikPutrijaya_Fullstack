@@ -19,6 +19,16 @@ const {
 );
 
 const {
+  getAdminBranchIds,
+  getBranchIdsByAdmin,
+  isMissingTableError,
+  parseBranchIds,
+  setAdminBranchIds,
+} = require(
+  '../services/adminBranchAccess'
+);
+
+const {
   sendAccountApproved,
   sendAccountRejected,
 } = require(
@@ -92,6 +102,15 @@ router.get(
               'Administrator account was not found.',
           });
       }
+
+      /*
+        Empty list means every branch.
+        Superadmins are never restricted.
+      */
+      admin.branch_ids =
+        String(admin.role || '').toLowerCase() === 'superadmin'
+          ? []
+          : await getAdminBranchIds(admin.id);
 
       return res.json(admin);
     } catch (error) {
@@ -259,6 +278,14 @@ router.get(
             id DESC
         `
       );
+
+      const branchIdsByAdmin =
+        await getBranchIdsByAdmin();
+
+      rows.forEach((row) => {
+        row.branch_ids =
+          branchIdsByAdmin.get(Number(row.id)) || [];
+      });
 
       return res.json({
         data: rows,
@@ -447,6 +474,115 @@ router.put(
       return res.status(500).json({
         message:
           'Unable to change administrator role.',
+      });
+    }
+  }
+);
+
+/* =========================================================
+   SET BOOKING BRANCH ACCESS
+   An empty branch_ids list gives access to every branch.
+   ========================================================= */
+
+router.put(
+  '/:id/branches',
+  async (req, res) => {
+    try {
+      const targetId =
+        parseAdminId(req.params.id);
+
+      const branchIds =
+        parseBranchIds(req.body.branch_ids);
+
+      if (!targetId) {
+        return res.status(400).json({
+          message:
+            'A valid administrator ID is required.',
+        });
+      }
+
+      if (!branchIds) {
+        return res.status(400).json({
+          message:
+            'branch_ids must be a list of branch IDs.',
+        });
+      }
+
+      const [rows] = await db.query(
+        `
+          SELECT
+            id,
+            email,
+            role
+          FROM admins
+          WHERE id = ?
+          LIMIT 1
+        `,
+        [targetId]
+      );
+
+      const target = rows[0];
+
+      if (!target) {
+        return res.status(404).json({
+          message:
+            'Administrator account was not found.',
+        });
+      }
+
+      if (
+        normalizeRole(target.role) ===
+        'superadmin'
+      ) {
+        return res.status(403).json({
+          message:
+            'Superadmin accounts always have access to every branch.',
+        });
+      }
+
+      if (branchIds.length) {
+        const [branchRows] = await db.query(
+          'SELECT id FROM branches WHERE id IN (?)',
+          [branchIds]
+        );
+
+        if (branchRows.length !== branchIds.length) {
+          return res.status(400).json({
+            message:
+              'One or more selected branches do not exist.',
+          });
+        }
+      }
+
+      await setAdminBranchIds(
+        targetId,
+        branchIds
+      );
+
+      return res.json({
+        message: branchIds.length
+          ? `${target.email} can now see bookings for the selected branches only.`
+          : `${target.email} can now see bookings for every branch.`,
+
+        id: targetId,
+        branch_ids: branchIds,
+      });
+    } catch (error) {
+      if (isMissingTableError(error)) {
+        return res.status(503).json({
+          message:
+            'Branch access is not set up yet. Apply database migration 08_admin_branch_access.sql first.',
+        });
+      }
+
+      console.error(
+        'Set admin branch access error:',
+        error
+      );
+
+      return res.status(500).json({
+        message:
+          'Unable to update branch access.',
       });
     }
   }
