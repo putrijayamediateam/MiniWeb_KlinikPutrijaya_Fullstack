@@ -1204,16 +1204,36 @@ function handleAuthError(error) {
   return true;
 }
 
+// Branches this account is limited to; empty means every branch.
+// The server enforces this, the dashboard only mirrors it.
+function getCurrentAdminBranchIds() {
+  return (currentAdmin?.branch_ids || []).map(Number);
+}
+
 function populateBookingBranchFilter() {
   const select = document.getElementById('bookingBranchFilter');
   if (!select) return;
 
+  const allowedIds = getCurrentAdminBranchIds();
+  const branches = allowedIds.length
+    ? branchesCache.filter((branch) => allowedIds.includes(Number(branch.id)))
+    : branchesCache;
+
   select.innerHTML = [
-    '<option value="">All branches</option>',
-    ...branchesCache.map((branch) => (
+    `<option value="">${allowedIds.length ? 'All my branches' : 'All branches'}</option>`,
+    ...branches.map((branch) => (
       `<option value="${branch.id}">${escapeHtml(branch.name)}</option>`
     )),
   ].join('');
+
+  const note = document.getElementById('bookingBranchScopeNote');
+
+  if (note) {
+    note.hidden = !allowedIds.length;
+    note.textContent = allowedIds.length
+      ? `You can see appointments for: ${window.KPBranchAccess.describe(allowedIds, branchesCache)}.`
+      : '';
+  }
 }
 
 // -----------------------------------------------------------------------------
@@ -12070,6 +12090,21 @@ function renderAdminUsersTable(
                     </select>
                   `
               }
+
+              ${
+                role !== 'superadmin'
+                  ? `
+                    <div class="cell-subtext">
+                      Bookings: ${escapeHtml(
+                        window.KPBranchAccess.describe(
+                          user.branch_ids,
+                          branchesCache
+                        )
+                      )}
+                    </div>
+                  `
+                  : ''
+              }
             </td>
 
             <td>
@@ -12123,6 +12158,7 @@ function renderAdminUsersTable(
       .join('');
 
   bindAdminUserActions();
+  bindAdminBranchAccessActions();
 }
 
 function renderAdminUserActions(
@@ -12165,15 +12201,72 @@ function renderAdminUserActions(
   }
 
   return `
-    <button
-      class="btn-small danger"
-      type="button"
-      data-action="deactivate-admin"
-      data-id="${Number(user.id)}"
-    >
-      Deactivate
-    </button>
+    <div class="table-action-stack">
+      <button
+        class="btn-small"
+        type="button"
+        data-action="edit-admin-branches"
+        data-id="${Number(user.id)}"
+      >
+        Branches
+      </button>
+
+      <button
+        class="btn-small danger"
+        type="button"
+        data-action="deactivate-admin"
+        data-id="${Number(user.id)}"
+      >
+        Deactivate
+      </button>
+    </div>
   `;
+}
+
+function bindAdminBranchAccessActions() {
+  document
+    .querySelectorAll(
+      '[data-action="edit-admin-branches"]'
+    )
+    .forEach((button) => {
+      button.addEventListener('click', async () => {
+        const user = adminUsersCache.find(
+          (item) => Number(item.id) === Number(button.dataset.id)
+        );
+
+        if (!user) return;
+
+        const branchIds = await window.KPBranchAccess.openEditor({
+          user,
+          branches: branchesCache,
+        });
+
+        if (!branchIds) return;
+
+        button.disabled = true;
+
+        try {
+          await authedApi.setAdminBranches(user.id, branchIds);
+          await loadAdminUsers();
+
+          showKpToast({
+            title: 'Booking access updated',
+            message: `${user.email || user.username} can see: ${window.KPBranchAccess.describe(branchIds, branchesCache)}.`,
+            duration: 5000,
+          });
+        } catch (error) {
+          if (!handleAuthError(error)) {
+            showKpToast({
+              title: 'Unable to update booking access',
+              message: error.message || 'Please try again.',
+              duration: 7000,
+            });
+          }
+        } finally {
+          button.disabled = false;
+        }
+      });
+    });
 }
 
 function bindAdminUserActions() {

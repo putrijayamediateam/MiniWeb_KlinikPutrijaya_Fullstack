@@ -8,6 +8,9 @@ const {
 const {
   requireAdmin,
 } = require('../middleware/auth');
+const {
+  getBookingBranchScope,
+} = require('../services/adminBranchAccess');
 
 const {
   requireActiveAdmin,
@@ -54,9 +57,14 @@ function cleanText(value) {
   return text || null;
 }
 
-function buildAdminFilters(query) {
+function buildAdminFilters(query, branchScope) {
   const conditions = [];
   const params = [];
+
+  if (branchScope) {
+    conditions.push('bk.branch_id IN (?)');
+    params.push(branchScope);
+  }
 
   if (
     query.status &&
@@ -356,10 +364,13 @@ router.get(
       offset,
     } = parsePagination(req.query);
 
+    const branchScope =
+      await getBookingBranchScope(req.admin);
+
     const {
       whereSql,
       params,
-    } = buildAdminFilters(req.query);
+    } = buildAdminFilters(req.query, branchScope);
 
     const [rows] = await db.query(
       `SELECT
@@ -414,7 +425,9 @@ router.get(
         SUM(status = 'confirmed') AS confirmed,
         SUM(status = 'completed') AS completed,
         SUM(status = 'cancelled') AS cancelled
-      FROM bookings`
+      FROM bookings
+      ${branchScope ? 'WHERE branch_id IN (?)' : ''}`,
+      branchScope ? [branchScope] : []
     );
 
     const total = Number(countRows[0].total || 0);
@@ -485,11 +498,17 @@ router.put(
         });
       }
 
+      const branchScope =
+        await getBookingBranchScope(req.admin);
+
       const [result] = await db.query(
         `UPDATE bookings
          SET status = ?
-         WHERE id = ?`,
-        [newStatus, id]
+         WHERE id = ?
+         ${branchScope ? 'AND branch_id IN (?)' : ''}`,
+        branchScope
+          ? [newStatus, id, branchScope]
+          : [newStatus, id]
       );
 
       if (!result.affectedRows) {
@@ -537,9 +556,14 @@ router.delete(
         });
       }
 
+      const branchScope =
+        await getBookingBranchScope(req.admin);
+
       const [result] = await db.query(
-        'DELETE FROM bookings WHERE id = ?',
-        [id]
+        `DELETE FROM bookings
+         WHERE id = ?
+         ${branchScope ? 'AND branch_id IN (?)' : ''}`,
+        branchScope ? [id, branchScope] : [id]
       );
 
       if (!result.affectedRows) {

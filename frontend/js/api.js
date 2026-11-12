@@ -415,6 +415,23 @@ changeAdminRole(
   );
 },
 
+setAdminBranches(
+  id,
+  branchIds
+) {
+  return apiRequest(
+    `/admin-users/${id}/branches`,
+    {
+      method: 'PUT',
+      headers,
+
+      body: jsonBody({
+        branch_ids: branchIds,
+      }),
+    }
+  );
+},
+
 deactivateAdmin(id) {
   return apiRequest(
     `/admin-users/${id}/deactivate`,
