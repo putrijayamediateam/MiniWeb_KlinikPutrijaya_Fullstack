@@ -1,9 +1,9 @@
-// Homepage interactions: panel scroller, counters and featured-promo poster slider (inactive when the promo shows a single poster).
+// Homepage interactions: panel scroller, database-driven service list and care chips, and visit-step tabs.
 
 document.addEventListener("DOMContentLoaded", () => {
   initPanelScroller();
-  initCounters();
-  initPosterSlider();
+  initServiceCategories();
+  initStepTabs();
 });
 
 function initPanelScroller() {
@@ -336,132 +336,137 @@ function initPanelScroller() {
   );
 }
 
-function initCounters() {
-  const counters = document.querySelectorAll(".counter");
-  const statBar = document.querySelector(".stat-bar");
-  if (!counters.length) return;
+// Same API base rule as js/api.js, which this page does not load.
+function homeApiBase() {
+  if (window.KP_API_BASE) {
+    return window.KP_API_BASE;
+  }
 
-  let hasAnimated = false;
-  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  return ['localhost', '127.0.0.1'].includes(window.location.hostname)
+    ? 'http://localhost:4000/api'
+    : 'https://backend-production-d730.up.railway.app/api';
+}
 
-  function animateCounter(counter, delay = 0) {
-    const target = Number(counter.dataset.target);
-    const suffix = counter.dataset.suffix || "";
+const HOME_ARROW_ICON =
+  '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
 
-    if (reduceMotion) {
-      counter.textContent = `${target}${suffix}`;
-      return;
+function homeServiceRow(name, description, href) {
+  const row = document.createElement('a');
+  row.className = 'home-service-row';
+  row.href = href;
+
+  const text = document.createElement('span');
+  text.className = 'home-service-text';
+
+  const title = document.createElement('span');
+  title.className = 'home-service-name';
+  title.textContent = name;
+  text.append(title);
+
+  if (description) {
+    const desc = document.createElement('span');
+    desc.className = 'home-service-desc';
+    desc.textContent = description;
+    text.append(desc);
+  }
+
+  const arrow = document.createElement('span');
+  arrow.className = 'home-arrow';
+  arrow.setAttribute('aria-hidden', 'true');
+  arrow.innerHTML = HOME_ARROW_ICON;
+
+  row.append(text, arrow);
+  return row;
+}
+
+// Service categories are database-driven: never hardcode them here.
+async function initServiceCategories() {
+  const list = document.querySelector('[data-home-service-list]');
+  const chips = document.querySelector('[data-home-care-chips]');
+
+  if (!list && !chips) return;
+
+  try {
+    const response = await fetch(`${homeApiBase()}/service-categories`);
+
+    if (!response.ok) {
+      throw new Error(`Service categories request failed (${response.status}).`);
     }
 
-    window.setTimeout(() => {
-      const duration = 2000;
-      const startTime = performance.now();
+    const data = await response.json();
 
-      function update(now) {
-        const progress = Math.min((now - startTime) / duration, 1);
-        const eased = 1 - Math.pow(1 - progress, 3);
-        counter.textContent = `${Math.floor(target * eased)}${suffix}`;
+    if (!Array.isArray(data)) {
+      throw new Error('Invalid service categories response.');
+    }
 
-        if (progress < 1) {
-          window.requestAnimationFrame(update);
-        } else {
-          counter.textContent = `${target}${suffix}`;
-          counter.classList.add("is-final");
-          window.setTimeout(() => counter.classList.remove("is-final"), 450);
-        }
-      }
+    const categories = data
+      .filter((category) => Number(category.is_active) === 1 && category.name && category.slug)
+      .sort((first, second) => (
+        Number(first.sort_order || 0) - Number(second.sort_order || 0) ||
+        String(first.name).localeCompare(String(second.name))
+      ))
+      .slice(0, 6);
 
-      window.requestAnimationFrame(update);
-    }, delay);
-  }
+    if (!categories.length) return;
 
-  function startCounters() {
-    if (hasAnimated) return;
-    hasAnimated = true;
-    counters.forEach((counter, index) => animateCounter(counter, index * 160));
-  }
+    const categoryHref = (category) => `services.html?category=${encodeURIComponent(category.slug)}`;
 
-  if ("IntersectionObserver" in window && statBar) {
-    const observer = new IntersectionObserver((entries) => {
-      if (entries[0].isIntersecting) {
-        startCounters();
-        observer.disconnect();
-      }
-    }, { threshold: 0.35 });
+    if (chips) {
+      chips.replaceChildren(...categories.map((category) => {
+        const chip = document.createElement('a');
+        chip.href = categoryHref(category);
+        chip.textContent = category.name;
+        return chip;
+      }));
+      chips.hidden = false;
+    }
 
-    observer.observe(statBar);
-  } else {
-    startCounters();
+    if (list) {
+      list.replaceChildren(
+        ...categories.map((category) => homeServiceRow(
+          category.name,
+          category.short_description,
+          categoryHref(category)
+        )),
+        homeServiceRow('Semua rawatan', 'Lihat senarai penuh rawatan kami', 'services.html')
+      );
+    }
+  } catch (error) {
+    // The static "Semua rawatan" link stays in place and the chips stay hidden.
+    console.warn('Could not load service categories:', error);
   }
 }
 
-function initPosterSlider() {
-  const slider = document.querySelector(".poster-slider");
-  const track = slider?.querySelector(".poster-track");
-  const previous = slider?.querySelector(".poster-btn.prev");
-  const next = slider?.querySelector(".poster-btn.next");
+function initStepTabs() {
+  const container = document.querySelector('[data-home-steps]');
+  const tabs = container ? Array.from(container.querySelectorAll('[role="tab"]')) : [];
 
-  if (!slider || !track || !previous || !next) return;
+  if (!tabs.length) return;
 
-  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  let timer = null;
-  let paused = false;
-
-  const total = () => track.querySelectorAll("img").length;
-  const current = () => Math.round(track.scrollLeft / track.clientWidth);
-
-  function goTo(index) {
-    track.scrollTo({
-      left: track.clientWidth * index,
-      behavior: reduceMotion ? "auto" : "smooth",
+  function select(nextTab, moveFocus) {
+    tabs.forEach((tab) => {
+      const selected = tab === nextTab;
+      tab.setAttribute('aria-selected', String(selected));
+      tab.tabIndex = selected ? 0 : -1;
+      document.getElementById(tab.getAttribute('aria-controls')).hidden = !selected;
     });
+
+    if (moveFocus) nextTab.focus();
   }
 
-  function goNext() {
-    goTo(current() >= total() - 1 ? 0 : current() + 1);
-  }
+  tabs.forEach((tab, index) => {
+    tab.addEventListener('click', () => select(tab, false));
 
-  function goPrevious() {
-    goTo(current() <= 0 ? total() - 1 : current() - 1);
-  }
+    tab.addEventListener('keydown', (event) => {
+      const keys = { ArrowRight: 1, ArrowLeft: -1 };
 
-  function start() {
-    window.clearInterval(timer);
-    if (reduceMotion) return;
-    timer = window.setInterval(() => {
-      if (!paused) goNext();
-    }, 3000);
-  }
-
-  next.addEventListener("click", () => {
-    goNext();
-    start();
+      if (event.key in keys) {
+        event.preventDefault();
+        select(tabs[(index + keys[event.key] + tabs.length) % tabs.length], true);
+      } else if (event.key === 'Home' || event.key === 'End') {
+        event.preventDefault();
+        select(event.key === 'Home' ? tabs[0] : tabs[tabs.length - 1], true);
+      }
+    });
   });
-
-  previous.addEventListener("click", () => {
-    goPrevious();
-    start();
-  });
-
-  slider.addEventListener("mouseenter", () => {
-    paused = true;
-    window.clearInterval(timer);
-  });
-
-  slider.addEventListener("mouseleave", () => {
-    paused = false;
-    start();
-  });
-
-  slider.addEventListener("touchstart", () => {
-    paused = true;
-    window.clearInterval(timer);
-  }, { passive: true });
-
-  slider.addEventListener("touchend", () => {
-    paused = false;
-    start();
-  });
-
-  start();
 }

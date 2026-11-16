@@ -45,6 +45,12 @@ The public frontend and admin portal are static browser applications. They call 
 
 The frontend is a static multi-page application, not a bundled SPA. Most public pages load `frontend/js/main.js`. Pages that need data also load `frontend/js/api.js` and a page-specific script.
 
+The homepage (`frontend/index.html`, `frontend/css/home.css`, `frontend/js/home.js`)
+keeps the shared header and footer from `main.js`. Its service list and hero care
+chips are filled from `/api/service-categories` by `home.js`, never hardcoded. The
+announcement bar and the packages section belong to the Beyond Physical Health
+campaign (until 31 December 2026) and must be updated or removed when it ends.
+
 The `/promo` campaign landing page (`frontend/promo.html`, `frontend/css/promo.css`,
 `frontend/js/promo.js`, images in `frontend/images/promo/`) is standalone and
 static: it does not load `main.js`, `global.css` or the API, and its package and
