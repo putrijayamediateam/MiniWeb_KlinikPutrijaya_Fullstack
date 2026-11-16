@@ -273,6 +273,15 @@
       );
     },
 
+    getBookingAvailability(branchId, date) {
+      return apiRequest(
+        `/bookings/availability${buildQuery({
+          branch_id: branchId,
+          date,
+        })}`
+      );
+    },
+
     /* ---------------------------------------------------------
        Website performance tracking
        --------------------------------------------------------- */

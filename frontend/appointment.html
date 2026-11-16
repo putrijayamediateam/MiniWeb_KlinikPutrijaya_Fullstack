@@ -17,16 +17,16 @@
   <link rel="stylesheet" href="css/global.css?v=20261117-1">
   <link
   rel="stylesheet"
-  href="css/forms.css?v=20261117-1"
+  href="css/forms.css?v=20261117-2"
 >
   <script
-  src="js/api.js?v=20260729-2"
+  src="js/api.js?v=20261117-1"
   defer
 ></script>
   <script src="js/utils.js" defer></script>
   <script src="js/main.js?v=20261116-1" defer></script>
   <script
-  src="js/appointment.js?v=20260731-1"
+  src="js/appointment.js?v=20261117-1"
   defer
 ></script>
 </head>
@@ -167,7 +167,10 @@
         </div>
         <div>
           <label for="bk-time">Preferred time *</label>
-          <input type="time" id="bk-time" name="preferred_time" required>
+          <select id="bk-time" name="preferred_time" required disabled aria-describedby="bk-time-hint">
+            <option value="">Choose branch and date first</option>
+          </select>
+          <small class="kp-field-hint" id="bk-time-hint">30-minute slots. Times already booked cannot be chosen.</small>
         </div>
 
         <div class="full">

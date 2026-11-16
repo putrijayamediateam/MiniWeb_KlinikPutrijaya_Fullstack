@@ -181,6 +181,25 @@ types on the page; the toast then offers "Turn on sound". Staff can mute it
 with the "Sound alerts" toggle (saved per browser). Code:
 `frontend/js/admin-booking-alerts.js`.
 
+Booking time slots: patients pick a 30-minute slot from a dropdown instead of
+typing a time. Slot hours per branch live in `backend/services/bookingSlots.js`
+(Cheras 08:00-23:00, last slot 22:30; Sungai Besi and Puchong 08:00-22:00,
+last slot 21:30; other branches default to 08:00-22:00). One active booking per
+branch, date and slot; cancelled bookings free the slot. Dates run from today
+to 90 days ahead (Asia/Kuala_Lumpur). `GET /api/bookings/availability?branch_id=&date=`
+returns only times and availability, no patient data. `POST /api/bookings`
+locks the branch row (`SELECT ... FOR UPDATE`) inside a transaction before
+checking the slot, so two patients cannot take the same slot; the loser gets
+409. No schema change was needed. Changing a branch's hours means editing
+`BRANCH_HOURS` in that file.
+
+Admin Bookings tab is an inbox: Pending / Today / All tabs and filters, a list
+on the left and the selected booking's details and actions on the right
+(stacked on mobile), plus a small day calendar below with branch and day
+controls showing each slot as free, booked or passed. Code:
+`frontend/js/admin-bookings-inbox.js` and `frontend/css/admin-bookings-inbox.css`;
+`admin.js` only passes in shared helpers via `bookingsInboxDeps()`.
+
 Security Pass must still audit whether these controls are correctly configured and complete.
 
 ## Important coding conventions

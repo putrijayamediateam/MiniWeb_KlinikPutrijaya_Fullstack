@@ -45,6 +45,18 @@
   resize: vertical;
 }
 
+.kp-form select:disabled {
+  color: var(--muted);
+  cursor: not-allowed;
+}
+
+.kp-field-hint {
+  display: block;
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
 .kp-form input:focus,
 .kp-form select:focus,
 .kp-form textarea:focus {

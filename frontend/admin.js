@@ -67,11 +67,6 @@ const ADMIN_API_BASE = String(
   )
 ).replace(/\/+$/, '');
 
-const bookingState = {
-  page: 1,
-  limit: 10,
-};
-
 const feedbackState = {
   page: 1,
   limit: 10,
@@ -214,20 +209,10 @@ document
     exportPerformanceWorkbook
   );
 
-  document.getElementById('bookingStatusFilter')?.addEventListener('change', () => {
-    bookingState.page = 1;
-    loadBookings();
-  });
-
-  document.getElementById('bookingBranchFilter')?.addEventListener('change', () => {
-    bookingState.page = 1;
-    loadBookings();
-  });
-
-  document.getElementById('bookingSearchInput')?.addEventListener('input', debounce(() => {
-    bookingState.page = 1;
-    loadBookings();
-  }, 350));
+  // The bookings inbox resets to page 1 itself when a filter changes.
+  document.getElementById('bookingStatusFilter')?.addEventListener('change', () => loadBookings());
+  document.getElementById('bookingBranchFilter')?.addEventListener('change', () => loadBookings());
+  document.getElementById('bookingSearchInput')?.addEventListener('input', debounce(() => loadBookings(), 350));
 
   document.getElementById('feedbackStatusFilter')?.addEventListener('change', () => {
     feedbackState.page = 1;
@@ -484,22 +469,6 @@ document
   document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') closeModal();
   });
-
-  window.addEventListener(
-  'resize',
-  debounce(() => {
-    const tbody =
-      document.getElementById(
-        'bookingsTableBody'
-      );
-
-    if (tbody) {
-      updateReasonReadButtons(
-        tbody
-      );
-    }
-  }, 150)
-);
 }
 
 
@@ -1238,6 +1207,8 @@ function populateBookingBranchFilter() {
       ? `You can see appointments for: ${window.KPBranchAccess.describe(allowedIds, branchesCache)}.`
       : '';
   }
+
+  window.KPBookingsInbox?.populateCalendarBranches();
 }
 
 // -----------------------------------------------------------------------------
@@ -3265,452 +3236,32 @@ function toggleBookingAlertSound() {
   }
 }
 
-async function loadBookings() {
-  const tbody = document.getElementById('bookingsTableBody');
-  if (!tbody || !authedApi) return;
-
-  tbody.innerHTML = '<tr><td colspan="11" class="loading-row">Loading…</td></tr>';
-
-  const params = {
-    page: bookingState.page,
-    limit: bookingState.limit,
-    status: document.getElementById('bookingStatusFilter')?.value || '',
-    branch: document.getElementById('bookingBranchFilter')?.value || '',
-    q: document.getElementById('bookingSearchInput')?.value.trim() || '',
+// The Bookings tab (inbox list, detail panel and day calendar) lives in
+// js/admin-bookings-inbox.js. admin.js hands it the shared helpers.
+function bookingsInboxDeps() {
+  return {
+    getApi: () => authedApi,
+    handleAuthError,
+    toast: showKpToast,
+    confirmDelete,
+    confirmStatusChange,
+    canDelete: hasManagementAccess,
+    formatRef: formatBookingRef,
+    formatStatus: formatBookingStatusLabel,
+    formatGender: formatBookingGender,
+    formatIdentityType: formatBookingIdentityType,
+    openTicket: openBookingDetailsModal,
+    getBranches: () => branchesCache,
+    getAllowedBranchIds: getCurrentAdminBranchIds,
   };
-
-  try {
-    const response = await authedApi.getBookings(params);
-    renderBookingSummary(response.summary || {});
-    renderBookings(response.data || []);
-    renderPager(
-      document.getElementById('bookingsPager'),
-      response.pagination,
-      (page) => {
-        bookingState.page = page;
-        loadBookings();
-      }
-    );
-  } catch (error) {
-    if (!handleAuthError(error)) {
-      tbody.innerHTML = `<tr><td colspan="11" class="empty-row">${escapeHtml(error.message)}</td></tr>`;
-    }
-  }
 }
 
-function renderBookingSummary(summary) {
-  setText('summaryTotal', summary.total || 0);
-  setText('summaryPending', summary.pending || 0);
-  setText('summaryConfirmed', summary.confirmed || 0);
-  setText('summaryCompleted', summary.completed || 0);
-  setText('summaryCancelled', summary.cancelled || 0);
-}
+async function loadBookings() {
+  const inbox = window.KPBookingsInbox;
+  if (!inbox || !authedApi) return;
 
-function renderBookings(bookings) {
-  const tbody = document.getElementById('bookingsTableBody');
-  if (!tbody) return;
-
-  if (!bookings.length) {
-    tbody.innerHTML = '<tr><td colspan="11" class="empty-row">No bookings found.</td></tr>';
-    return;
-  }
-
-  tbody.innerHTML = bookings.map((booking) => {
-      const whatsappLink = buildWhatsappLink(booking);
-
-    return `
-      <tr data-id="${booking.id}">
-        <td>
-  <button
-    class="booking-ref booking-details-trigger"
-    type="button"
-    data-action="view-booking-details"
-    data-id="${booking.id}"
-    title="View booking details"
-    aria-label="View booking details for ${escapeAttribute(
-      formatBookingRef(booking.id)
-    )}"
-  >
-    ${escapeHtml(
-      formatBookingRef(booking.id)
-    )}
-  </button>
-</td>
-        <td>
-          <strong>${escapeHtml(booking.patient_name)}</strong>
-        </td>
-        <td>${escapeHtml(booking.phone)}</td>
-        <td>${escapeHtml(booking.branch_name || '—')}</td>
-        <td>${escapeHtml(booking.doctor_name || '—')}</td>
-        <td>${escapeHtml(booking.service_title || '—')}</td>
-        <td>${formatDate(booking.preferred_date)}</td>
-        <td>${escapeHtml(booking.preferred_time || '—')}</td>
-        <td class="reason-col">
-  <div class="reason-preview">
-    <span class="reason-text">
-      ${escapeHtml(booking.reason || '—')}
-    </span>
-
-    ${
-      booking.reason
-        ? `
-          <button
-            class="reason-view-btn"
-            type="button"
-            data-action="view-booking-reason"
-            data-id="${booking.id}"
-            title="Read full reason"
-            aria-label="Read full booking reason"
-            hidden
-          >
-            Read
-          </button>
-        `
-        : ''
-    }
-  </div>
-</td>
-        <td>
-          <select class="status-select status-${escapeAttribute(booking.status)}" data-id="${booking.id}">
-            ${statusOption('pending', booking.status, 'Pending')}
-            ${statusOption('confirmed', booking.status, 'Confirmed')}
-            ${statusOption('completed', booking.status, 'Completed')}
-            ${statusOption('cancelled', booking.status, 'Cancelled')}
-          </select>
-        </td>
-        <td>
-          <div class="booking-actions">
-            ${
-  whatsappLink
-    ? `
-      <a
-        class="booking-whatsapp-btn"
-        href="${escapeAttribute(whatsappLink)}"
-        target="_blank"
-        rel="noopener noreferrer"
-        title="WhatsApp patient"
-        aria-label="Open WhatsApp chat with patient"
-      >
-        <svg
-          viewBox="0 0 32 32"
-          aria-hidden="true"
-          focusable="false"
-        >
-          <path
-            d="M16.02 3C8.85 3 3.02 8.83 3.02 16c0 2.29.6 4.53 1.73 6.5L3 29l6.67-1.7A12.9 12.9 0 0 0 16.02 29c7.17 0 13-5.83 13-13s-5.83-13-13-13Zm0 23.7c-2.02 0-3.99-.57-5.69-1.66l-.41-.26-3.95 1.01 1.05-3.84-.28-.43A10.67 10.67 0 0 1 5.32 16c0-5.9 4.8-10.7 10.7-10.7s10.7 4.8 10.7 10.7-4.8 10.7-10.7 10.7Zm5.87-8.01c-.32-.16-1.89-.93-2.18-1.04-.29-.11-.5-.16-.71.16-.21.32-.82 1.04-1.01 1.25-.19.21-.37.24-.69.08-.32-.16-1.35-.5-2.57-1.59-.95-.85-1.59-1.89-1.78-2.21-.19-.32-.02-.49.14-.65.15-.15.32-.37.48-.56.16-.19.21-.32.32-.53.11-.21.05-.4-.03-.56-.08-.16-.71-1.71-.97-2.34-.26-.61-.52-.53-.71-.54h-.61c-.21 0-.56.08-.85.4-.29.32-1.12 1.09-1.12 2.66s1.15 3.09 1.31 3.3c.16.21 2.26 3.45 5.47 4.84.76.33 1.36.53 1.82.68.77.24 1.46.21 2.01.13.61-.09 1.89-.77 2.16-1.52.27-.75.27-1.39.19-1.52-.08-.13-.29-.21-.61-.37Z"
-          />
-        </svg>
-      </a>
-    `
-    : `
-      <span
-        class="booking-whatsapp-btn is-disabled"
-        title="Invalid phone number"
-        aria-label="WhatsApp unavailable"
-      >
-        <svg
-          viewBox="0 0 32 32"
-          aria-hidden="true"
-          focusable="false"
-        >
-          <path
-            d="M16.02 3C8.85 3 3.02 8.83 3.02 16c0 2.29.6 4.53 1.73 6.5L3 29l6.67-1.7A12.9 12.9 0 0 0 16.02 29c7.17 0 13-5.83 13-13s-5.83-13-13-13Zm0 23.7c-2.02 0-3.99-.57-5.69-1.66l-.41-.26-3.95 1.01 1.05-3.84-.28-.43A10.67 10.67 0 0 1 5.32 16c0-5.9 4.8-10.7 10.7-10.7s10.7 4.8 10.7 10.7-4.8 10.7-10.7 10.7Z"
-          />
-        </svg>
-      </span>
-    `
-}
-            ${
-  hasManagementAccess()
-    ? `
-      <button
-        class="btn-small danger"
-        type="button"
-        data-action="delete-booking"
-        data-id="${booking.id}"
-      >
-        Delete
-      </button>
-    `
-    : ''
-}
-          </div>
-        </td>
-      </tr>
-    `;
-  }).join('');
-
-  requestAnimationFrame(() => {
-  updateReasonReadButtons(tbody);
-});
-
-tbody
-  .querySelectorAll(
-    '[data-action="view-booking-details"]'
-  )
-  .forEach((button) => {
-    button.addEventListener(
-      'click',
-      () => {
-        const booking =
-          bookings.find(
-            (item) =>
-              String(item.id) ===
-              String(
-                button.dataset.id
-              )
-          );
-
-        if (!booking) {
-          return;
-        }
-
-        openBookingDetailsModal(
-          booking
-        );
-      }
-    );
-  });
-
-  tbody
-  .querySelectorAll(
-    '[data-action="view-booking-reason"]'
-  )
-  .forEach((button) => {
-    button.addEventListener(
-      'click',
-      () => {
-        const booking =
-          bookings.find(
-            (item) =>
-              String(item.id) ===
-              String(button.dataset.id)
-          );
-
-        if (!booking) {
-          return;
-        }
-
-        openBookingDetailsModal(booking);
-      }
-    );
-  });
-
-  tbody
-  .querySelectorAll(
-    '.status-select'
-  )
-  .forEach((select) => {
-    select.addEventListener(
-      'change',
-      async () => {
-        const previous =
-          select.dataset.previous ||
-          '';
-
-        const nextStatus =
-          select.value;
-
-        const booking =
-          bookings.find(
-            (item) =>
-              String(item.id) ===
-              String(
-                select.dataset.id
-              )
-          );
-
-        const reference =
-          formatBookingRef(
-            select.dataset.id
-          );
-
-        select.disabled = true;
-
-        try {
-          await authedApi
-            .updateBookingStatus(
-              select.dataset.id,
-              nextStatus
-            );
-
-          select.dataset.previous =
-            nextStatus;
-
-          select.className =
-            `status-select status-${nextStatus}`;
-
-          await loadBookings();
-
-          showKpToast({
-            title:
-              'Booking status updated',
-
-            message:
-              `${reference} is now ${formatBookingStatusLabel(
-                nextStatus
-              )}.`,
-
-            duration: 4500,
-          });
-        } catch (error) {
-          if (previous) {
-            select.value =
-              previous;
-
-            select.className =
-              `status-select status-${previous}`;
-          }
-
-          if (
-            !handleAuthError(error)
-          ) {
-            showKpToast({
-              title:
-                'Unable to update booking',
-
-              message:
-                error.message ||
-                'Please try again.',
-
-              duration: 7000,
-            });
-          }
-        } finally {
-          select.disabled = false;
-        }
-      }
-    );
-
-    select.dataset.previous =
-      select.value;
-  });
-
-  tbody
-  .querySelectorAll(
-    '[data-action="delete-booking"]'
-  )
-  .forEach((button) => {
-    button.addEventListener(
-      'click',
-      async () => {
-        const booking =
-          bookings.find(
-            (item) =>
-              String(item.id) ===
-              String(
-                button.dataset.id
-              )
-          );
-
-        const reference =
-          formatBookingRef(
-            button.dataset.id
-          );
-
-        const patientName =
-          booking?.patient_name ||
-          'this patient';
-
-        const confirmed =
-          await confirmDelete({
-            title:
-              `Delete ${reference}?`,
-
-            message:
-              `The booking for ${patientName} will be permanently removed. This action cannot be undone.`,
-          });
-
-        if (!confirmed) {
-          return;
-        }
-
-        button.disabled = true;
-
-        try {
-          await authedApi
-            .deleteBooking(
-              button.dataset.id
-            );
-
-          await loadBookings();
-
-          showKpToast({
-            title:
-              'Booking deleted',
-
-            message:
-              `${reference} has been permanently removed.`,
-
-            duration: 5000,
-          });
-        } catch (error) {
-          if (
-            !handleAuthError(error)
-          ) {
-            showKpToast({
-              title:
-                'Unable to delete booking',
-
-              message:
-                error.message ||
-                'Please try again.',
-
-              duration: 7000,
-            });
-          }
-        } finally {
-          button.disabled = false;
-        }
-      }
-    );
-  });
-}
-
-function updateReasonReadButtons(
-  container = document
-) {
-  container
-    .querySelectorAll(
-      '.reason-preview'
-    )
-    .forEach((preview) => {
-      const text =
-        preview.querySelector(
-          '.reason-text'
-        );
-
-      const button =
-        preview.querySelector(
-          '.reason-view-btn'
-        );
-
-      if (!text || !button) {
-        return;
-      }
-
-      /*
-        Reset dahulu supaya ukuran dibuat
-        menggunakan ruang penuh kolum Reason.
-      */
-      preview.classList.remove(
-        'has-read-button'
-      );
-
-      button.hidden = true;
-
-      const isOverflowing =
-        text.scrollWidth >
-        text.clientWidth + 1;
-
-      if (isOverflowing) {
-        preview.classList.add(
-          'has-read-button'
-        );
-
-        button.hidden = false;
-      }
-    });
+  if (!inbox.isReady()) inbox.init(bookingsInboxDeps());
+  await inbox.load();
 }
 
 function openBookingDetailsModal(
