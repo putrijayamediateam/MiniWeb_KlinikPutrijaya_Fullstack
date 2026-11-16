@@ -100,6 +100,13 @@ every 30 seconds after login and plays a Web Audio chime for bookings newer than
 the last one seen. Each open dashboard adds about 30 requests per 15 minutes
 against the general API rate limit (500 per IP per 15 minutes).
 
+The Bookings tab is rendered by `frontend/js/admin-bookings-inbox.js`
+(loaded before `admin.js`, exposes `window.KPBookingsInbox`). Its day calendar
+combines the public `GET /api/bookings/availability` with the branch-scoped
+`GET /api/bookings?branch=&date=` list. Booking slot rules (30-minute slots,
+per-branch hours, 90-day window, race-safe insert with a branch row lock) live
+in `backend/services/bookingSlots.js` and `backend/routes/bookings.js`.
+
 The staff login offers username/password and Google Identity Services. Both
 Google signup and login post the browser-issued credential to `/api/auth/google`
 for server-side verification. Successful login still enters the existing admin

@@ -15,6 +15,7 @@
 <link rel="stylesheet" href="./css/admin-upgrades.css?v=20260814-3">
 <link rel="stylesheet" href="./css/admin-branch-access.css?v=20261112-1">
 <link rel="stylesheet" href="./css/admin-booking-alerts.css?v=20261112-1">
+<link rel="stylesheet" href="./css/admin-bookings-inbox.css?v=20261117-1">
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body class="admin-page">
@@ -722,7 +723,15 @@
 
   <p id="bookingBranchScopeNote" class="booking-branch-scope-note" hidden></p>
 
-  <!-- FILTER BAR -->
+  <!-- INBOX VIEW TABS + FILTERS -->
+  <div class="inbox-tabs" role="tablist" aria-label="Booking views">
+    <button type="button" role="tab" data-inbox-view="pending" aria-selected="true">
+      Pending <span class="inbox-tab-count" id="bookingInboxPendingCount">0</span>
+    </button>
+    <button type="button" role="tab" data-inbox-view="today" aria-selected="false">Today</button>
+    <button type="button" role="tab" data-inbox-view="all" aria-selected="false">All bookings</button>
+  </div>
+
   <div class="booking-toolbar">
     <div class="booking-search-wrap">
       <input
@@ -733,49 +742,57 @@
     </div>
 
     <select id="bookingBranchFilter" aria-label="Filter bookings by branch">
-  <option value="">All branches</option>
-</select>
+      <option value="">All branches</option>
+    </select>
 
-<select id="bookingStatusFilter" aria-label="Filter bookings by status">
-  <option value="">All statuses</option>
-  <option value="pending">Pending</option>
-  <option value="confirmed">Confirmed</option>
-  <option value="completed">Completed</option>
-  <option value="cancelled">Cancelled</option>
-</select>
+    <select id="bookingStatusFilter" aria-label="Filter bookings by status" hidden>
+      <option value="">All statuses</option>
+      <option value="pending">Pending</option>
+      <option value="confirmed">Confirmed</option>
+      <option value="completed">Completed</option>
+      <option value="cancelled">Cancelled</option>
+    </select>
   </div>
 
-  <div class="table-wrap">
-    <table class="bookings-table">
-      <thead>
-        <tr>
-          <th>Ref</th>
-          <th>Patient</th>
-          <th>Phone</th>
-          <th>Branch</th>
-          <th>Doctor</th>
-          <th>Service</th>
-          <th>Date</th>
-          <th>Time</th>
-          <th class="reason-col">Reason</th>
-          <th>Status</th>
-          <th>Action</th>
-        </tr>
-      </thead>
+  <!-- INBOX: LIST + DETAIL -->
+  <div class="booking-inbox">
+    <div class="inbox-list-pane">
+      <ul class="inbox-list" id="bookingInboxList" aria-label="Bookings">
+        <li class="inbox-empty">Loading bookings…</li>
+      </ul>
+      <div class="inbox-pager" id="bookingInboxPager" aria-label="Booking pagination"></div>
+    </div>
 
-      <tbody id="bookingsTableBody">
-        <tr>
-          <td colspan="11" class="loading-row">Loading…</td>
-        </tr>
-      </tbody>
-    </table>
+    <article class="inbox-detail" id="bookingInboxDetail" aria-live="polite"></article>
   </div>
 
-  <div
-    class="booking-table-footer"
-    id="bookingsPager"
-    aria-label="Booking pagination"
-  ></div>
+  <!-- DAY CALENDAR -->
+  <section class="booking-calendar" aria-labelledby="bookingCalendarTitle">
+    <div class="booking-calendar-head">
+      <div>
+        <h3 id="bookingCalendarTitle">Day calendar</h3>
+        <p><span id="bookingCalendarLabel">Today</span> · <span id="bookingCalendarCount">—</span></p>
+      </div>
+
+      <div class="booking-calendar-controls">
+        <select id="bookingCalendarBranch" aria-label="Calendar branch"></select>
+        <button type="button" class="btn-small" id="bookingCalendarPrev" aria-label="Previous day">‹</button>
+        <button type="button" class="btn-small" id="bookingCalendarToday">Today</button>
+        <button type="button" class="btn-small" id="bookingCalendarNext" aria-label="Next day">›</button>
+        <input type="date" id="bookingCalendarDate" aria-label="Calendar date">
+      </div>
+    </div>
+
+    <div class="booking-calendar-grid" id="bookingCalendarGrid"></div>
+
+    <div class="booking-calendar-legend" aria-hidden="true">
+      <span><i class="is-free"></i>Free</span>
+      <span><i class="is-pending"></i>Pending</span>
+      <span><i class="is-confirmed"></i>Confirmed</span>
+      <span><i class="is-completed"></i>Completed</span>
+      <span><i class="is-past"></i>Passed</span>
+    </div>
+  </section>
 </section>
 
       <!-- FEEDBACK TAB -->
@@ -1501,7 +1518,7 @@
 </div>
 
 <script
-  src="js/api.js?v=20261112-1"
+  src="js/api.js?v=20261117-1"
   defer
 ></script>
 
@@ -1526,7 +1543,12 @@
 ></script>
 
 <script
-  src="admin.js?v=20261112-2"
+  src="js/admin-bookings-inbox.js?v=20261117-1"
+  defer
+></script>
+
+<script
+  src="admin.js?v=20261117-1"
   defer
 ></script>
 </body>

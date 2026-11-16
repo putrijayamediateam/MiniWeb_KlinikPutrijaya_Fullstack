@@ -1,0 +1,581 @@
+/* Bookings tab: inbox list + detail panel + day calendar.
+   Loaded after admin.css; uses its colour tokens. */
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* ---------- view tabs ---------- */
+
+.inbox-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 18px 0 12px;
+}
+
+.inbox-tabs button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 16px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink-soft);
+  font: 600 0.84rem 'Inter', sans-serif;
+  cursor: pointer;
+}
+
+.inbox-tabs button[aria-selected="true"] {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: #fff;
+}
+
+.inbox-tab-count {
+  min-width: 22px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--primary);
+  color: #fff;
+  font-size: 0.72rem;
+  text-align: center;
+}
+
+#tab-bookings .booking-toolbar:has(#bookingStatusFilter[hidden]) {
+  grid-template-columns: 1fr 220px;
+}
+
+/* ---------- split view ---------- */
+
+.booking-inbox {
+  display: grid;
+  grid-template-columns: minmax(280px, 380px) minmax(0, 1fr);
+  min-height: 520px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.inbox-list-pane {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  border-right: 1px solid var(--line);
+}
+
+.inbox-list {
+  flex: 1;
+  max-height: 620px;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.inbox-empty {
+  padding: 28px 20px;
+  color: var(--muted);
+  font-size: 0.88rem;
+  text-align: center;
+}
+
+.inbox-item {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  padding: 14px 18px;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  border-left: 3px solid transparent;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.inbox-item:hover {
+  background: var(--bg);
+}
+
+.inbox-item[aria-current="true"] {
+  border-left-color: var(--primary);
+  background: var(--pink-tint);
+}
+
+.inbox-dot {
+  flex: 0 0 auto;
+  width: 9px;
+  height: 9px;
+  margin-top: 6px;
+  border-radius: 50%;
+  background: var(--muted);
+}
+
+.inbox-item-body {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  flex: 1;
+}
+
+.inbox-item-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.inbox-item-name,
+.inbox-item-service,
+.inbox-item-meta {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.inbox-item-name {
+  font-size: 0.92rem;
+}
+
+.inbox-item-received {
+  flex: 0 0 auto;
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+
+.inbox-item-service {
+  color: var(--ink-soft);
+  font-size: 0.84rem;
+}
+
+.inbox-item-meta {
+  color: var(--muted);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.72rem;
+}
+
+.inbox-pager {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 18px;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.inbox-page-buttons {
+  display: flex;
+  gap: 6px;
+}
+
+.inbox-page-btn {
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.inbox-page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ---------- status colours (shared) ---------- */
+
+.inbox-dot.is-pending,
+.calendar-slot.is-pending,
+.booking-calendar-legend .is-pending { --status: #D97706; }
+.inbox-dot.is-confirmed,
+.calendar-slot.is-confirmed,
+.booking-calendar-legend .is-confirmed { --status: #2563EB; }
+.inbox-dot.is-completed,
+.calendar-slot.is-completed,
+.booking-calendar-legend .is-completed { --status: #15803D; }
+.inbox-dot.is-cancelled { --status: #9CA3AF; }
+
+.inbox-dot[class*="is-"] {
+  background: var(--status);
+}
+
+.inbox-status {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: #F3F4F6;
+  color: #4B5563;
+  font: 600 0.72rem 'Inter', sans-serif;
+  letter-spacing: 0.02em;
+}
+
+.inbox-status.is-pending { background: #FEF3C7; color: #92400E; }
+.inbox-status.is-confirmed { background: #DBEAFE; color: #1E40AF; }
+.inbox-status.is-completed { background: #DCFCE7; color: #166534; }
+
+/* ---------- detail ---------- */
+
+.inbox-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  min-width: 0;
+  padding: 26px 28px;
+}
+
+.inbox-detail-empty {
+  margin: auto;
+  color: var(--muted);
+  text-align: center;
+}
+
+.inbox-detail-empty h3 {
+  margin: 0 0 6px;
+  color: var(--ink);
+  font-size: 1.05rem;
+}
+
+.inbox-detail-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.inbox-detail-title h3 {
+  margin: 10px 0 4px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 1.4rem;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.inbox-detail-title p {
+  margin: 0;
+  color: var(--muted);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.76rem;
+}
+
+.inbox-detail-primary,
+.inbox-detail-secondary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.inbox-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0 18px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font: 600 0.84rem 'Inter', sans-serif;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.inbox-btn.is-dark {
+  background: var(--ink);
+  color: #fff;
+}
+
+.inbox-btn.is-dark:hover {
+  background: var(--primary-deep);
+}
+
+.inbox-btn.is-outline {
+  border-color: var(--line);
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.inbox-btn.is-outline:hover {
+  border-color: var(--primary);
+  color: var(--primary-deep);
+}
+
+.inbox-btn.is-small {
+  min-height: 34px;
+  padding: 0 14px;
+}
+
+.inbox-btn.is-text-danger {
+  min-height: 34px;
+  padding: 0 10px;
+  background: transparent;
+  color: #B91C1C;
+}
+
+.inbox-btn.is-text-danger:hover {
+  background: #FEF2F2;
+}
+
+.inbox-detail-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--line);
+}
+
+.inbox-detail-summary > div {
+  display: grid;
+  gap: 4px;
+  padding: 14px 16px;
+  background: var(--bg);
+}
+
+.inbox-summary-label,
+.inbox-field dt {
+  color: var(--muted);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.inbox-summary-value {
+  font-weight: 600;
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
+}
+
+.inbox-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px 24px;
+  margin: 0;
+}
+
+.inbox-field.is-wide {
+  grid-column: 1 / -1;
+}
+
+.inbox-field dd {
+  margin: 4px 0 0;
+  color: var(--ink);
+  font-size: 0.92rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  white-space: pre-line;
+}
+
+.inbox-detail-foot {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: auto;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+}
+
+.inbox-status-select select {
+  height: 34px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink);
+  font: 500 0.82rem 'Inter', sans-serif;
+}
+
+/* ---------- day calendar ---------- */
+
+.booking-calendar {
+  margin-top: 18px;
+  padding: 18px 20px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.booking-calendar-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.booking-calendar-head h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.booking-calendar-head p {
+  margin: 2px 0 0;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.booking-calendar-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.booking-calendar-controls select,
+.booking-calendar-controls input {
+  height: 34px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink);
+  font: 500 0.82rem 'Inter', sans-serif;
+}
+
+.booking-calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+  gap: 6px;
+}
+
+.calendar-slot {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  padding: 7px 9px;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--status, var(--line));
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+}
+
+.calendar-slot-time {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--muted);
+}
+
+.calendar-slot-name {
+  overflow: hidden;
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.calendar-slot.is-free .calendar-slot-name {
+  color: #15803D;
+  font-weight: 500;
+}
+
+.calendar-slot.is-past {
+  background: var(--bg);
+  opacity: 0.55;
+}
+
+.calendar-slot.is-booked {
+  background: var(--pink-tint);
+  cursor: pointer;
+}
+
+.calendar-slot.is-booked:hover {
+  border-color: var(--primary);
+}
+
+.booking-calendar-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 12px;
+  color: var(--muted);
+  font-size: 0.74rem;
+}
+
+.booking-calendar-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.booking-calendar-legend i {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  background: var(--status, var(--line));
+}
+
+.booking-calendar-legend .is-free { --status: #86EFAC; }
+.booking-calendar-legend .is-past { --status: #E5E7EB; }
+
+/* ---------- mobile ---------- */
+
+@media (max-width: 899px) {
+  .booking-inbox {
+    grid-template-columns: 1fr;
+    min-height: 0;
+  }
+
+  .inbox-list-pane {
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .inbox-list {
+    max-height: 420px;
+  }
+
+  .inbox-detail {
+    padding: 20px 18px;
+    scroll-margin-top: 80px;
+  }
+}
+
+@media (max-width: 640px) {
+  #tab-bookings .booking-toolbar:has(#bookingStatusFilter[hidden]) {
+    grid-template-columns: 1fr;
+  }
+
+  .inbox-detail-summary,
+  .inbox-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .booking-calendar {
+    padding: 16px 14px;
+  }
+
+  .booking-calendar-controls {
+    width: 100%;
+  }
+
+  .booking-calendar-controls select {
+    flex: 1 1 100%;
+  }
+
+  .booking-calendar-controls input {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  .booking-calendar-grid {
+    grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
+  }
+}

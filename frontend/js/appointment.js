@@ -274,6 +274,13 @@ identityTypeSelect.addEventListener(
     }
   );
 
+  const dateInput = form.preferred_date;
+  const timeSelect = form.preferred_time;
+  const refreshSlots = () =>
+    refreshTimeSlots(branchSelect, dateInput, timeSelect);
+
+  initTimeSlots(branchSelect, serviceSelect, dateInput, refreshSlots);
+
   form.addEventListener(
     'submit',
     async (event) => {
@@ -452,6 +459,7 @@ updateIdentityField(
 );
 
 resetDoctorSelect();
+refreshSlots();
       } catch (error) {
         setFormMessage(
           messageBox,
@@ -459,6 +467,9 @@ resetDoctorSelect();
             'Unable to send appointment request.',
           'error'
         );
+
+        // The chosen slot may have just been taken by someone else.
+        refreshSlots();
       } finally {
         submitButton.disabled = false;
         submitButton.textContent =
@@ -466,6 +477,95 @@ resetDoctorSelect();
       }
     }
   );
+}
+
+// ------------------------------------------------------------
+// Time slots: 30-minute slots from the server. Booked and past
+// slots are shown but cannot be chosen; the server re-checks on
+// submit so two patients cannot take the same slot.
+// ------------------------------------------------------------
+
+const BOOKING_WINDOW_DAYS = 90;
+
+function clinicToday() {
+  // en-CA formats dates as YYYY-MM-DD.
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Kuala_Lumpur',
+  }).format(new Date());
+}
+
+function addDaysToDate(date, days) {
+  const value = new Date(`${date}T00:00:00Z`);
+  value.setUTCDate(value.getUTCDate() + days);
+  return value.toISOString().slice(0, 10);
+}
+
+function formatSlotLabel(time) {
+  const [hours, minutes] = time.split(':').map(Number);
+  const hour12 = ((hours + 11) % 12) + 1;
+  return `${hour12}:${String(minutes).padStart(2, '0')} ${hours >= 12 ? 'PM' : 'AM'}`;
+}
+
+function initTimeSlots(branchSelect, serviceSelect, dateInput, refreshSlots) {
+  const today = clinicToday();
+  dateInput.min = today;
+  dateInput.max = addDaysToDate(today, BOOKING_WINDOW_DAYS);
+
+  branchSelect.addEventListener('change', refreshSlots);
+  dateInput.addEventListener('change', refreshSlots);
+  // The service picker can switch the branch without a change event.
+  serviceSelect.addEventListener('change', refreshSlots);
+
+  refreshSlots();
+}
+
+async function refreshTimeSlots(branchSelect, dateInput, timeSelect) {
+  const branchId = branchSelect.value;
+  const date = dateInput.value;
+  const previous = timeSelect.value;
+  const requestKey = `${branchId}|${date}`;
+
+  timeSelect.dataset.request = requestKey;
+  timeSelect.disabled = true;
+
+  if (!branchId || !date) {
+    timeSelect.replaceChildren(new Option('Choose branch and date first', ''));
+    return;
+  }
+
+  timeSelect.replaceChildren(new Option('Loading available times…', ''));
+
+  try {
+    const { slots = [] } = await KPApi.getBookingAvailability(branchId, date);
+
+    // Ignore a slow response for an older branch/date choice.
+    if (timeSelect.dataset.request !== requestKey) return;
+
+    const freeCount = slots.filter((slot) => slot.available).length;
+    const options = [
+      new Option(freeCount ? 'Select a time' : 'No times left on this date', ''),
+    ];
+
+    slots.forEach((slot) => {
+      const label = slot.available
+        ? formatSlotLabel(slot.time)
+        : `${formatSlotLabel(slot.time)} — not available`;
+      const option = new Option(label, slot.time);
+      option.disabled = !slot.available;
+      options.push(option);
+    });
+
+    timeSelect.replaceChildren(...options);
+
+    if (slots.some((slot) => slot.time === previous && slot.available)) {
+      timeSelect.value = previous;
+    }
+
+    timeSelect.disabled = freeCount === 0;
+  } catch (error) {
+    if (timeSelect.dataset.request !== requestKey) return;
+    timeSelect.replaceChildren(new Option('Could not load times. Please try again.', ''));
+  }
 }
 
 function updateIdentityField(

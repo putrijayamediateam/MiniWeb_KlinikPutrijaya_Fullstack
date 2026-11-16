@@ -11,6 +11,15 @@ const {
 const {
   getBookingBranchScope,
 } = require('../services/adminBranchAccess');
+const {
+  SLOT_MINUTES,
+  getTakenTimes,
+  isBookableDate,
+  isPastSlot,
+  normalizeDate,
+  normalizeTime,
+  slotTimesForBranch,
+} = require('../services/bookingSlots');
 
 const {
   requireActiveAdmin,
@@ -86,6 +95,13 @@ function buildAdminFilters(query, branchScope) {
     }
   }
 
+  const date = normalizeDate(query.date);
+
+  if (date) {
+    conditions.push('bk.preferred_date = ?');
+    params.push(date);
+  }
+
   if (query.q) {
     const q = `%${String(query.q).trim()}%`;
 
@@ -123,6 +139,58 @@ params.push(
     params,
   };
 }
+
+/* =========================================================
+   PUBLIC: Slot availability for a branch and date
+   Returns times only, never booking or patient details.
+   ========================================================= */
+
+router.get('/availability', async (req, res) => {
+  try {
+    const branchId = Number(req.query.branch_id);
+    const date = normalizeDate(req.query.date);
+
+    if (!Number.isInteger(branchId) || branchId <= 0 || !date) {
+      return res.status(400).json({
+        message: 'A valid branch and date are required.',
+      });
+    }
+
+    const [branchRows] = await db.query(
+      'SELECT id, name, slug FROM branches WHERE id = ? LIMIT 1',
+      [branchId]
+    );
+
+    if (!branchRows.length) {
+      return res.status(404).json({
+        message: 'Branch not found.',
+      });
+    }
+
+    const bookable = isBookableDate(date);
+    const taken = bookable
+      ? await getTakenTimes(db, branchId, date)
+      : new Set();
+
+    const slots = slotTimesForBranch(branchRows[0]).map((time) => ({
+      time,
+      available: bookable && !taken.has(time) && !isPastSlot(date, time),
+    }));
+
+    return res.json({
+      branch_id: branchId,
+      date,
+      slot_minutes: SLOT_MINUTES,
+      slots,
+    });
+  } catch (error) {
+    console.error('Booking availability error:', error);
+
+    return res.status(500).json({
+      message: 'Unable to load available times.',
+    });
+  }
+});
 
 /* =========================================================
    PUBLIC: Create booking
@@ -226,7 +294,65 @@ if (
   });
 }
 
-    const [result] = await db.query(
+    const slotDate = normalizeDate(preferredDate);
+    const slotTime = normalizeTime(preferredTime);
+
+    if (!slotDate || !isBookableDate(slotDate)) {
+      return res.status(400).json({
+        message:
+          'Please choose a date from today up to 90 days ahead.',
+      });
+    }
+
+    if (!slotTime) {
+      return res.status(400).json({
+        message: 'Please choose an appointment time.',
+      });
+    }
+
+    // One booking per branch, date and 30-minute slot. Locking the
+    // branch row makes concurrent bookings for a branch run one at a
+    // time, so two patients cannot take the same slot.
+    const connection = await db.getConnection();
+    let insertId;
+
+    try {
+      await connection.beginTransaction();
+
+      const [branchRows] = await connection.query(
+        'SELECT id, name, slug FROM branches WHERE id = ? FOR UPDATE',
+        [branchId]
+      );
+
+      if (!branchRows.length) {
+        await connection.rollback();
+        return res.status(400).json({
+          message: 'Please choose a valid branch.',
+        });
+      }
+
+      if (
+        !slotTimesForBranch(branchRows[0]).includes(slotTime) ||
+        isPastSlot(slotDate, slotTime)
+      ) {
+        await connection.rollback();
+        return res.status(400).json({
+          message:
+            'Please choose one of the available appointment times.',
+        });
+      }
+
+      const taken = await getTakenTimes(connection, branchId, slotDate);
+
+      if (taken.has(slotTime)) {
+        await connection.rollback();
+        return res.status(409).json({
+          message:
+            'Sorry, that time has just been booked. Please choose another time.',
+        });
+      }
+
+    const [result] = await connection.query(
   `INSERT INTO bookings (
     branch_id,
     doctor_id,
@@ -256,14 +382,23 @@ if (
     legacyIcNumber,
     identityType,
     identityNumber,
-    preferredDate,
-    preferredTime,
+    slotDate,
+    slotTime,
     reason,
   ]
 );
 
+      insertId = result.insertId;
+      await connection.commit();
+    } catch (transactionError) {
+      await connection.rollback();
+      throw transactionError;
+    } finally {
+      connection.release();
+    }
+
     const bookingReference =
-      `KP-APT-${String(result.insertId).padStart(5, '0')}`;
+      `KP-APT-${String(insertId).padStart(5, '0')}`;
 
     try {
       const [displayRows] = await db.query(
@@ -280,7 +415,7 @@ if (
           ON s.id = bk.service_id
         WHERE bk.id = ?
         LIMIT 1`,
-        [result.insertId]
+        [insertId]
       );
 
       const displayBooking =
@@ -294,8 +429,8 @@ if (
             displayBooking.service_title,
           doctorName:
             displayBooking.doctor_name,
-          preferredDate,
-          preferredTime,
+          preferredDate: slotDate,
+          preferredTime: slotTime,
           status: 'pending',
         });
 
@@ -335,7 +470,7 @@ if (
 
     return res.status(201).json({
       message: 'Appointment request sent successfully.',
-      id: result.insertId,
+      id: insertId,
       reference: bookingReference,
     });
   } catch (error) {
