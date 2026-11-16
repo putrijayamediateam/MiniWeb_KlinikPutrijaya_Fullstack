@@ -194,6 +194,17 @@ Security Pass must still audit whether these controls are correctly configured a
 - Responsive fixes should go in the relevant existing media query where practical.
 - Do not use `overflow-x: hidden` as a band-aid for unidentified layout problems.
 
+### Images
+
+- Public pages use WebP copies sized to about twice their largest displayed
+  width (for example `images/sgbesi-interior.webp`). The original PNG/JPEG files
+  stay in place because structured data, social previews and older links point
+  at them.
+- Below-the-fold images use `loading="lazy" decoding="async"`; images visible on
+  the first screen do not.
+- Hidden `<img>` tags are still downloaded, so do not leave decorative images
+  in markup that CSS hides.
+
 ### JavaScript
 
 - Inspect current file before giving a full replacement.
