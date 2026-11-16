@@ -31,11 +31,11 @@
   <link rel="canonical" href="https://klinikputrijaya.com/">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter+Tight:wght@400;500&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/global.css?v=20260823-1">
-  <link rel="stylesheet" href="css/home.css?v=20261116-1">
+  <link rel="stylesheet" href="css/home.css?v=20261117-1">
   <script src="js/main.js?v=20261116-1" defer></script>
-  <script src="js/home.js?v=20261029-1" defer></script>
+  <script src="js/home.js?v=20261117-1" defer></script>
 
   <script type="application/ld+json">
 {
@@ -73,71 +73,45 @@
 </script>
 </head>
 <body data-page="home">
+  <a class="home-announce" href="#packages">
+    <span class="home-announce-dot" aria-hidden="true"></span>
+    Beyond Physical Health — check-ups from RM99, until 31 December 2026
+    <span class="home-announce-link">View packages</span>
+  </a>
+
   <div id="site-header"></div>
 
-  <main>
-    <section class="hero" id="top" aria-labelledby="homeHeroTitle">
-      <img class="hero-img" src="images/cheras-front-6.webp" fetchpriority="high" alt="Klinik Putrijaya Cheras exterior">
-      <div class="hero-overlay"></div>
-      <div class="hero-content">
-        <div class="wrap">
-          <div class="eyebrow">Est. 2020 · Cheras · Sungai Besi · Puchong</div>
-          <h1 id="homeHeroTitle">
-  Klinik Putrijaya — Klinik Keluarga untuk Komuniti
-</h1>
-<p class="hero-tagline">
-  Your Wellness, Our Priority.
-</p>
-          <p>
-  Klinik keluarga di Cheras, Sungai Besi dan Puchong
-  untuk rawatan am, penjagaan ibu dan anak, scan
-  kehamilan, vaksin dan pemeriksaan kesihatan.
-</p>
-          <div class="hero-actions">
-            <a class="btn-primary" href="appointment.html">Book an appointment</a>
-            <a class="btn-secondary" href="services.html">View our services</a>
+  <main class="home-main">
+    <!-- HERO: branded duotone photo -->
+    <section class="home-hero" id="top" aria-labelledby="homeHeroTitle">
+      <div class="home-hero-card">
+        <img class="home-hero-img" src="images/sgbesi-interior.webp" fetchpriority="high" alt="Reception at Klinik Putrijaya Sungai Besi">
+        <div class="home-hero-tint" aria-hidden="true"></div>
+        <div class="home-hero-glow" aria-hidden="true"></div>
+
+        <div class="home-hero-content">
+          <p class="home-hero-eyebrow">Klinik keluarga · Cheras · Sungai Besi · Puchong · sejak 2020</p>
+          <h1 id="homeHeroTitle">Penjagaan keluarga yang teliti, dekat dengan rumah.</h1>
+          <div class="home-hero-actions">
+            <a class="home-btn home-btn-light" href="appointment.html">Buat temujanji</a>
+            <a class="home-hero-link" href="#packages">Lihat pakej dari RM99</a>
           </div>
+
+          <!-- Filled from /api/service-categories by home.js; stays hidden if it cannot load. -->
+          <nav class="home-care-chips" aria-label="Rawatan" data-home-care-chips hidden></nav>
         </div>
       </div>
     </section>
 
-    <nav class="quick-actions" aria-label="Quick actions">
-      <div class="wrap">
-        <a class="quick-card" href="doctors.html">
-          <span class="quick-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>
-          </span>
-          <b>Find a doctor</b>
-          <span class="quick-sub">Meet our resident doctors</span>
-        </a>
-
-        <a class="quick-card is-featured" href="appointment.html">
-          <span class="quick-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18M12 14v3l2 1"/></svg>
-          </span>
-          <b>Book appointment</b>
-          <span class="quick-sub">Choose your branch and time</span>
-        </a>
-
-        <a class="quick-card" href="promo.html">
-          <span class="quick-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1M9 10h6M9 14h6M9 18h3"/></svg>
-          </span>
-          <b>Health packages</b>
-          <span class="quick-sub">Check-ups from RM99</span>
-        </a>
-      </div>
-    </nav>
-
-    <section class="stat-bar" id="statistics" aria-label="Klinik Putrijaya statistics">
-      <div class="wrap">
-        <div class="stat"><b class="counter" data-target="3">0</b><span>Branches</span></div>
-        <div class="stat"><b class="counter" data-target="5">0</b><span>Resident Doctors</span></div>
-        <div class="stat"><b class="counter" data-target="26" data-suffix="+">0</b><span>Panel Partners</span></div>
-        <div class="stat"><b class="counter" data-target="2020">0</b><span>Founded</span></div>
-      </div>
+    <!-- STATEMENT -->
+    <section class="home-statement" aria-label="About Klinik Putrijaya">
+      <p>
+        Sejak 2020, Klinik Putrijaya menjaga keluarga di Cheras, Sungai Besi dan Puchong.
+        <span>Dari demam harian hingga scan kehamilan dan pemeriksaan menyeluruh — rawatan yang teliti, dengan panel yang anda gunakan.</span>
+      </p>
     </section>
 
+    <!-- PANELS (unchanged) -->
     <section class="panel-band" id="panels">
       <div class="wrap">
         <div class="section-head center">
@@ -183,81 +157,149 @@
       </div>
     </section>
 
-    <!-- ============================================================
-     FEATURED PROMOTION: HEALTH CHECK-UP (links to /promo)
-     ============================================================ -->
-<section
-  id="health-checkup-promo"
-  class="featured-programme home-campaign"
-  aria-labelledby="homePromoTitle"
->
-  <!-- LEFT CONTENT -->
-  <div class="campaign-content">
-    <div class="programme-badge">
-      Promotion · 1 Nov – 31 Dec 2026
-    </div>
-
-    <h3 id="homePromoTitle">Beyond Physical Health</h3>
-
-    <p class="tagline">
-      Pakej Pemeriksaan Kesihatan Fizikal &amp; Mental
-    </p>
-
-    <p class="programme-desc">
-      Check your body and your mind in one visit. Every package includes a
-      doctor's consultation, free DASS-21 mental health screening and an
-      InBody body composition scan.
-    </p>
-
-    <div class="campaign-flow">
-      <article class="flow-card">
-        <div class="flow-price">RM99</div>
-        <h4>Basic</h4>
-        <p>Physical exam, blood pressure, BMI, FBC and fasting blood sugar.</p>
-      </article>
-
-      <article class="flow-card">
-        <div class="flow-price">RM159</div>
-        <h4>Silver</h4>
-        <p>Everything in Basic, plus cholesterol, kidney and liver tests.</p>
-      </article>
-
-      <article class="flow-card">
-        <div class="flow-price">RM239</div>
-        <h4>Premium</h4>
-        <p>Full physical exam, HbA1c, urine test and ECG (Premium only).</p>
-      </article>
-    </div>
-
-    <div class="campaign-actions">
-      <a class="programme-btn" href="promo.html#plans">
-        See packages
-      </a>
-
-      <a class="programme-btn" href="promo.html#branches">
-        Book at your nearest branch
-      </a>
-    </div>
-  </div>
-
-  <!-- RIGHT POSTER -->
-  <div class="campaign-side">
-    <a class="poster-slider" href="promo.html" aria-label="Open the Beyond Physical Health promotion page">
-      <div class="poster-track">
-        <img
-          src="images/promo/beyond-physical-health-wellness-campaign.webp"
-          alt="Beyond Physical Health promotion poster: Basic RM99, Silver RM159, Premium RM239"
-          loading="lazy"
-        >
+    <!-- SERVICES: categories from the database -->
+    <section class="home-services" id="services" aria-labelledby="homeServicesTitle">
+      <div class="home-wrap home-split">
+        <div class="home-split-intro">
+          <p class="home-kicker">Rawatan</p>
+          <h2 id="homeServicesTitle">Satu klinik untuk seluruh keluarga.</h2>
+          <p>Dari vaksin pertama bayi anda hingga pemeriksaan berkala ibu bapa anda.</p>
+          <a class="home-text-link" href="services.html">Lihat semua rawatan</a>
+        </div>
+        <div class="home-service-list" data-home-service-list>
+          <a class="home-service-row" href="services.html">
+            <span class="home-service-text">
+              <span class="home-service-name">Semua rawatan</span>
+              <span class="home-service-desc">Lihat senarai penuh rawatan kami</span>
+            </span>
+            <span class="home-arrow" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+          </a>
+        </div>
       </div>
-    </a>
+    </section>
 
-    <div class="mini-highlight">
-      <b>Free DASS-21 + InBody</b>
-      <span>In every package · Cheras · Sungai Besi · Puchong</span>
-    </div>
-  </div>
-</section>
+    <!-- HOW A VISIT WORKS -->
+    <section class="home-steps" aria-labelledby="homeStepsTitle">
+      <div class="home-wrap home-steps-card">
+        <div class="home-steps-text" data-home-steps>
+          <h2 class="visually-hidden" id="homeStepsTitle">Cara membuat temujanji</h2>
+          <div class="home-steps-tabs" role="tablist" aria-label="Cara membuat temujanji">
+            <button type="button" role="tab" id="homeStepTab1" aria-controls="homeStepPanel1" aria-selected="true">01 Rawatan</button>
+            <button type="button" role="tab" id="homeStepTab2" aria-controls="homeStepPanel2" aria-selected="false" tabindex="-1">02 Cawangan</button>
+            <button type="button" role="tab" id="homeStepTab3" aria-controls="homeStepPanel3" aria-selected="false" tabindex="-1">03 Pengesahan</button>
+            <button type="button" role="tab" id="homeStepTab4" aria-controls="homeStepPanel4" aria-selected="false" tabindex="-1">04 Lawatan</button>
+          </div>
+          <div class="home-step-panel" role="tabpanel" id="homeStepPanel1" aria-labelledby="homeStepTab1">
+            <h3>Pilih rawatan yang anda perlukan</h3>
+            <p>Rawatan am, ibu dan anak, scan kehamilan, vaksin atau pakej pemeriksaan kesihatan.</p>
+          </div>
+          <div class="home-step-panel" role="tabpanel" id="homeStepPanel2" aria-labelledby="homeStepTab2" hidden>
+            <h3>Cheras, Sungai Besi atau Puchong</h3>
+            <p>Pilih cawangan yang paling dekat dengan anda dan masa yang sesuai untuk keluarga anda.</p>
+          </div>
+          <div class="home-step-panel" role="tabpanel" id="homeStepPanel3" aria-labelledby="homeStepTab3" hidden>
+            <h3>Cawangan sahkan temujanji anda</h3>
+            <p>Pihak cawangan akan menghubungi anda untuk mengesahkan temujanji sebelum lawatan.</p>
+          </div>
+          <div class="home-step-panel" role="tabpanel" id="homeStepPanel4" aria-labelledby="homeStepTab4" hidden>
+            <h3>Jumpa doktor keluarga anda</h3>
+            <p>Berjumpa doktor residen kami, menggunakan panel atau insurans anda jika berkenaan.</p>
+          </div>
+          <a class="home-btn home-btn-dark" href="appointment.html">Buat temujanji</a>
+        </div>
+        <img class="home-steps-img" src="images/puchong-interior.webp" loading="lazy" decoding="async" alt="Klinik Putrijaya Puchong">
+      </div>
+    </section>
+
+    <!-- PACKAGES: Beyond Physical Health campaign (ends 31 Dec 2026) -->
+    <section class="home-packages" id="packages" aria-labelledby="homePackagesTitle">
+      <div class="home-wrap home-packages-grid">
+        <a class="home-packages-visual" href="promo.html" aria-label="Open the Beyond Physical Health promotion page">
+          <img src="images/promo/beyond-physical-health-wellness-campaign.webp" loading="lazy" decoding="async" alt="Beyond Physical Health promotion poster: Basic RM99, Silver RM159, Premium RM239">
+        </a>
+        <div class="home-packages-body">
+          <p class="home-kicker">Pakej pemeriksaan kesihatan · hingga 31 Disember 2026</p>
+          <h2 id="homePackagesTitle">Beyond Physical Health</h2>
+          <p class="home-packages-lead">Periksa badan dan minda dalam satu lawatan. Setiap pakej termasuk:</p>
+          <ul class="home-checklist">
+            <li>Konsultasi doktor</li>
+            <li>Saringan kesihatan mental DASS-21</li>
+            <li>Imbasan komposisi badan InBody</li>
+            <li>Di ketiga-tiga cawangan</li>
+          </ul>
+          <fieldset class="home-plans">
+            <legend class="visually-hidden">Pilih pakej</legend>
+            <label class="home-plan">
+              <input type="radio" name="homePlan" value="basic">
+              <span class="home-plan-text"><span class="home-plan-name">Basic</span><span class="home-plan-desc">Pemeriksaan fizikal, tekanan darah, BMI, FBC dan gula darah puasa</span></span>
+              <span class="home-plan-price">RM99</span>
+            </label>
+            <label class="home-plan">
+              <input type="radio" name="homePlan" value="silver" checked>
+              <span class="home-plan-text"><span class="home-plan-name">Silver <span class="home-plan-tag">Popular</span></span><span class="home-plan-desc">Basic, serta ujian kolesterol, buah pinggang dan hati</span></span>
+              <span class="home-plan-price">RM159</span>
+            </label>
+            <label class="home-plan">
+              <input type="radio" name="homePlan" value="premium">
+              <span class="home-plan-text"><span class="home-plan-name">Premium</span><span class="home-plan-desc">Pemeriksaan penuh, HbA1c, ujian air kencing dan ECG</span></span>
+              <span class="home-plan-price">RM239</span>
+            </label>
+          </fieldset>
+          <a class="home-btn home-btn-dark home-btn-block" href="promo.html#branches">Tempah pakej ini</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- BRANCHES -->
+    <section class="home-branches" id="branches" aria-labelledby="homeBranchesTitle">
+      <div class="home-wrap">
+        <h2 id="homeBranchesTitle">Tiga cawangan, satu standard penjagaan.</h2>
+        <div class="home-branch-grid">
+          <article class="home-branch">
+            <h3><a href="cheras.html">Cheras</a></h3>
+            <a class="home-branch-phone" href="tel:+60183144588">018-314 4588</a>
+            <p>No. 19 &amp; 21, Jalan Dwitasik 1, Dataran Dwitasik, 56000 Cheras, Kuala Lumpur</p>
+            <p>8:00 pagi – 11:00 malam setiap hari</p>
+            <div class="home-branch-links">
+              <a href="https://wa.link/ohje1h" target="_blank" rel="noopener">WhatsApp</a>
+              <a href="https://maps.app.goo.gl/1LhfV3y9dDtctLdt5" target="_blank" rel="noopener">Directions</a>
+            </div>
+          </article>
+          <article class="home-branch">
+            <h3><a href="sungai-besi.html">Sungai Besi</a></h3>
+            <a class="home-branch-phone" href="tel:+60193470448">019-347 0448</a>
+            <p>No. 71, Jalan Tasik Utama 6, 57000 Sungai Besi, Kuala Lumpur</p>
+            <p>8:00 pagi – 10:00 malam setiap hari</p>
+            <div class="home-branch-links">
+              <a href="https://wa.link/edexo9" target="_blank" rel="noopener">WhatsApp</a>
+              <a href="https://maps.app.goo.gl/6ST8vbCXo6UQ3c8T9" target="_blank" rel="noopener">Directions</a>
+            </div>
+          </article>
+          <article class="home-branch">
+            <h3><a href="puchong.html">Puchong</a></h3>
+            <a class="home-branch-phone" href="tel:+60193870448">019-387 0448</a>
+            <p>No. 13, Jalan PU 13/2, Taman Puchong Utama, 47140 Puchong, Selangor</p>
+            <p>8:00 pagi – 10:00 malam setiap hari</p>
+            <div class="home-branch-links">
+              <a href="https://wa.link/c6jnt3" target="_blank" rel="noopener">WhatsApp</a>
+              <a href="https://maps.app.goo.gl/3PjF38cQ6Noh9Snv6" target="_blank" rel="noopener">Directions</a>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- CLOSING -->
+    <section class="home-closing" aria-labelledby="homeClosingTitle">
+      <div class="home-closing-card">
+        <h2 id="homeClosingTitle">Your Wellness, Our Priority.</h2>
+        <div class="home-closing-actions">
+          <a class="home-btn home-btn-light" href="appointment.html">Buat temujanji</a>
+          <button class="home-btn home-btn-outline branch-modal-trigger" type="button">WhatsApp kami</button>
+        </div>
+      </div>
+    </section>
+  </main>
 
   <div id="site-footer"></div>
 </body>
