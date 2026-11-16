@@ -1,22 +1,16 @@
 /* Bookings tab: inbox list + detail panel + day calendar.
    Loaded after admin.css; uses its colour tokens. */
 
-.visually-hidden {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
-  white-space: nowrap;
-}
-
 /* ---------- view tabs ---------- */
 
 .inbox-tabs {
-  display: flex;
+  display: inline-flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 4px;
   margin: 18px 0 12px;
+  padding: 4px;
+  border-radius: 999px;
+  background: var(--surface);
 }
 
 .inbox-tabs button {
@@ -24,17 +18,16 @@
   align-items: center;
   gap: 8px;
   height: 36px;
-  padding: 0 16px;
-  border: 1px solid var(--line);
+  padding: 0 18px;
+  border: 0;
   border-radius: 999px;
-  background: var(--surface);
+  background: transparent;
   color: var(--ink-soft);
-  font: 600 0.84rem 'Inter', sans-serif;
+  font: 500 0.86rem 'Inter', sans-serif;
   cursor: pointer;
 }
 
 .inbox-tabs button[aria-selected="true"] {
-  border-color: var(--ink);
   background: var(--ink);
   color: #fff;
 }
@@ -43,9 +36,10 @@
   min-width: 22px;
   padding: 1px 7px;
   border-radius: 999px;
-  background: var(--primary);
-  color: #fff;
+  background: #ff5fa8;
+  color: var(--ink);
   font-size: 0.72rem;
+  font-weight: 600;
   text-align: center;
 }
 
@@ -57,26 +51,28 @@
 
 .booking-inbox {
   display: grid;
-  grid-template-columns: minmax(280px, 380px) minmax(0, 1fr);
+  grid-template-columns: minmax(280px, 400px) minmax(0, 1fr);
+  gap: 16px;
   min-height: 520px;
-  overflow: hidden;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: var(--surface);
 }
 
 .inbox-list-pane {
   display: flex;
   flex-direction: column;
   min-width: 0;
-  border-right: 1px solid var(--line);
+  overflow: hidden;
+  border-radius: 20px;
+  background: var(--surface);
 }
 
 .inbox-list {
+  display: flex;
   flex: 1;
-  max-height: 620px;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 640px;
   margin: 0;
-  padding: 0;
+  padding: 8px;
   overflow-y: auto;
   list-style: none;
 }
@@ -92,10 +88,9 @@
   display: flex;
   gap: 12px;
   width: 100%;
-  padding: 14px 18px;
+  padding: 14px 12px;
   border: 0;
-  border-bottom: 1px solid var(--line);
-  border-left: 3px solid transparent;
+  border-radius: 14px;
   background: transparent;
   color: var(--ink);
   font: inherit;
@@ -108,15 +103,14 @@
 }
 
 .inbox-item[aria-current="true"] {
-  border-left-color: var(--primary);
-  background: var(--pink-tint);
+  background: #f6efe9;
 }
 
 .inbox-dot {
   flex: 0 0 auto;
-  width: 9px;
-  height: 9px;
-  margin-top: 6px;
+  width: 8px;
+  height: 8px;
+  margin-top: 7px;
   border-radius: 50%;
   background: var(--muted);
 }
@@ -143,7 +137,8 @@
 }
 
 .inbox-item-name {
-  font-size: 0.92rem;
+  font-size: 0.95rem;
+  font-weight: 500;
 }
 
 .inbox-item-received {
@@ -159,8 +154,7 @@
 
 .inbox-item-meta {
   color: var(--muted);
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 0.72rem;
+  font-size: 0.76rem;
 }
 
 .inbox-pager {
@@ -180,10 +174,10 @@
 }
 
 .inbox-page-btn {
-  width: 30px;
-  height: 30px;
+  width: 32px;
+  height: 32px;
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: 999px;
   background: var(--surface);
   color: var(--ink);
   cursor: pointer;
@@ -198,7 +192,7 @@
 
 .inbox-dot.is-pending,
 .calendar-slot.is-pending,
-.booking-calendar-legend .is-pending { --status: #D97706; }
+.booking-calendar-legend .is-pending { --status: #C8166A; }
 .inbox-dot.is-confirmed,
 .calendar-slot.is-confirmed,
 .booking-calendar-legend .is-confirmed { --status: #2563EB; }
@@ -213,7 +207,7 @@
 
 .inbox-status {
   display: inline-block;
-  padding: 3px 10px;
+  padding: 4px 10px;
   border-radius: 999px;
   background: #F3F4F6;
   color: #4B5563;
@@ -221,7 +215,7 @@
   letter-spacing: 0.02em;
 }
 
-.inbox-status.is-pending { background: #FEF3C7; color: #92400E; }
+.inbox-status.is-pending { background: #FDE4EF; color: #8A1048; }
 .inbox-status.is-confirmed { background: #DBEAFE; color: #1E40AF; }
 .inbox-status.is-completed { background: #DCFCE7; color: #166534; }
 
@@ -230,9 +224,11 @@
 .inbox-detail {
   display: flex;
   flex-direction: column;
-  gap: 22px;
+  gap: 26px;
   min-width: 0;
-  padding: 26px 28px;
+  padding: clamp(20px, 3vw, 36px);
+  border-radius: 20px;
+  background: var(--surface);
 }
 
 .inbox-detail-empty {
@@ -255,19 +251,19 @@
   gap: 16px;
 }
 
-.inbox-detail-title h3 {
-  margin: 10px 0 4px;
-  font-family: 'Poppins', sans-serif;
-  font-size: 1.4rem;
-  font-weight: 700;
+body.admin-page .inbox-detail-title h3 {
+  margin: 10px 0 6px;
+  font-size: clamp(28px, 3vw, 40px);
+  font-weight: 400 !important;
+  letter-spacing: -0.03em !important;
+  line-height: 1.05;
   overflow-wrap: anywhere;
 }
 
 .inbox-detail-title p {
   margin: 0;
   color: var(--muted);
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 0.76rem;
+  font-size: 0.86rem;
 }
 
 .inbox-detail-primary,
@@ -282,11 +278,11 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 40px;
-  padding: 0 18px;
+  min-height: 44px;
+  padding: 0 20px;
   border: 1px solid transparent;
   border-radius: 999px;
-  font: 600 0.84rem 'Inter', sans-serif;
+  font: 500 0.88rem 'Inter', sans-serif;
   text-decoration: none;
   cursor: pointer;
 }
@@ -297,72 +293,68 @@
 }
 
 .inbox-btn.is-dark:hover {
-  background: var(--primary-deep);
+  background: #3a2430;
 }
 
 .inbox-btn.is-outline {
-  border-color: var(--line);
+  border-color: #e4ddd7;
   background: var(--surface);
   color: var(--ink);
 }
 
 .inbox-btn.is-outline:hover {
-  border-color: var(--primary);
-  color: var(--primary-deep);
+  border-color: var(--ink);
+  color: var(--ink);
 }
 
 .inbox-btn.is-small {
-  min-height: 34px;
-  padding: 0 14px;
+  min-height: 38px;
+  padding: 0 16px;
 }
 
 .inbox-btn.is-text-danger {
   min-height: 34px;
   padding: 0 10px;
   background: transparent;
-  color: #B91C1C;
+  color: var(--primary-deep);
 }
 
 .inbox-btn.is-text-danger:hover {
-  background: #FEF2F2;
+  background: #fdf0f5;
 }
 
 .inbox-detail-summary {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1px;
-  overflow: hidden;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  background: var(--line);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px 48px;
+  padding: 22px;
+  border-radius: 16px;
+  background: var(--bg);
 }
 
 .inbox-detail-summary > div {
   display: grid;
   gap: 4px;
-  padding: 14px 16px;
-  background: var(--bg);
+  min-width: 0;
 }
 
 .inbox-summary-label,
 .inbox-field dt {
   color: var(--muted);
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 0.68rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-size: 0.76rem;
 }
 
 .inbox-summary-value {
-  font-weight: 600;
-  font-size: 0.9rem;
+  font-family: 'Inter Tight', Inter, sans-serif;
+  font-size: clamp(20px, 2vw, 26px);
+  letter-spacing: -0.02em;
   overflow-wrap: anywhere;
 }
 
 .inbox-fields {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px 24px;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px 32px;
   margin: 0;
 }
 
@@ -373,7 +365,7 @@
 .inbox-field dd {
   margin: 4px 0 0;
   color: var(--ink);
-  font-size: 0.92rem;
+  font-size: 0.95rem;
   line-height: 1.5;
   overflow-wrap: anywhere;
   white-space: pre-line;
@@ -385,14 +377,14 @@
   justify-content: space-between;
   gap: 12px;
   margin-top: auto;
-  padding-top: 18px;
-  border-top: 1px solid var(--line);
+  padding-top: 20px;
+  border-top: 1px solid #f0ebe6;
 }
 
 .inbox-status-select select {
-  height: 34px;
-  padding: 0 12px;
-  border: 1px solid var(--line);
+  height: 38px;
+  padding: 0 14px;
+  border: 1px solid #e4ddd7;
   border-radius: 999px;
   background: var(--surface);
   color: var(--ink);
@@ -402,10 +394,9 @@
 /* ---------- day calendar ---------- */
 
 .booking-calendar {
-  margin-top: 18px;
-  padding: 18px 20px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
+  margin-top: 16px;
+  padding: 20px 22px;
+  border-radius: 20px;
   background: var(--surface);
 }
 
@@ -420,7 +411,7 @@
 
 .booking-calendar-head h3 {
   margin: 0;
-  font-size: 1rem;
+  font-size: 1.2rem;
 }
 
 .booking-calendar-head p {
@@ -438,9 +429,9 @@
 
 .booking-calendar-controls select,
 .booking-calendar-controls input {
-  height: 34px;
+  height: 36px;
   padding: 0 12px;
-  border: 1px solid var(--line);
+  border: 1px solid #e4ddd7;
   border-radius: 999px;
   background: var(--surface);
   color: var(--ink);
@@ -460,7 +451,7 @@
   padding: 7px 9px;
   border: 1px solid var(--line);
   border-left: 3px solid var(--status, var(--line));
-  border-radius: 8px;
+  border-radius: 10px;
   background: var(--surface);
   color: var(--ink);
   font: inherit;
@@ -468,8 +459,7 @@
 }
 
 .calendar-slot-time {
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 0.7rem;
+  font-size: 0.72rem;
   color: var(--muted);
 }
 
@@ -492,12 +482,12 @@
 }
 
 .calendar-slot.is-booked {
-  background: var(--pink-tint);
+  background: #f6efe9;
   cursor: pointer;
 }
 
 .calendar-slot.is-booked:hover {
-  border-color: var(--primary);
+  border-color: var(--ink);
 }
 
 .booking-calendar-legend {
@@ -533,11 +523,6 @@
     min-height: 0;
   }
 
-  .inbox-list-pane {
-    border-right: 0;
-    border-bottom: 1px solid var(--line);
-  }
-
   .inbox-list {
     max-height: 420px;
   }
@@ -553,7 +538,12 @@
     grid-template-columns: 1fr;
   }
 
-  .inbox-detail-summary,
+  .inbox-detail-summary {
+    flex-direction: column;
+    gap: 14px;
+    padding: 18px;
+  }
+
   .inbox-fields {
     grid-template-columns: 1fr;
   }

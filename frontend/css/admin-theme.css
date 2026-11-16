@@ -1,0 +1,477 @@
+/* =========================================================
+   STAFF DASHBOARD — STYLE 2 THEME
+   Warm off-white canvas, white rounded panels, black pill
+   buttons, Inter Tight headings. Loaded last on admin.html so
+   it can restyle rules spread across admin.css and
+   admin-upgrades.css (some of which use !important) without
+   touching layout or behaviour. Login styles live in
+   admin-login.css; the Bookings inbox in admin-bookings-inbox.css.
+   ========================================================= */
+
+:root {
+  --bg: #f6f4f1;
+  --surface: #ffffff;
+  --ink: #161214;
+  --ink-soft: #4d4448;
+  --muted: #8a8186;
+  --primary: #c8166a;
+  --primary-deep: #a3124f;
+  --pink-tint: #f6efe9;
+  --line: #ebe6e1;
+  --radius: 20px;
+
+  --s2-border: #e4ddd7;
+  --s2-mid: #6b6368;
+  --s2-row-line: #f0ebe6;
+  --s2-badge: #ff5fa8;
+  --s2-avatar: #2b0d1c;
+}
+
+body.admin-page {
+  background: var(--bg);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+body.admin-page h1,
+body.admin-page h2,
+body.admin-page h3,
+html body.admin-page .modal-content h2,
+html body.admin-page .modal-content h3,
+html body.admin-page .admin-modal h2,
+html body.admin-page .admin-modal h3 {
+  color: var(--ink);
+  font-family: "Inter Tight", Inter, sans-serif !important;
+  font-weight: 500 !important;
+  letter-spacing: -0.02em !important;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* ---------- top bar: logo · section pills · user ---------- */
+
+body.admin-page .admin-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+}
+
+body.admin-page .admin-header-inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 20px;
+  max-width: none;
+  margin: 0;
+  padding: 12px clamp(16px, 2.4vw, 32px);
+}
+
+body.admin-page .admin-logo {
+  width: auto;
+  height: 26px;
+}
+
+/* One row of pills; if they do not fit they scroll inside the bar. */
+body.admin-page .admin-tabs {
+  display: flex;
+  flex: 1 1 0;
+  flex-wrap: nowrap;
+  gap: 2px;
+  max-width: none;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+}
+
+body.admin-page .admin-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+body.admin-page .tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+  min-height: 38px;
+  padding: 0 11px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink-soft);
+  font-family: Inter, sans-serif;
+  font-size: 13.5px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+body.admin-page .tab-btn:hover {
+  background: var(--bg);
+  color: var(--ink);
+}
+
+body.admin-page .tab-btn.active {
+  background: var(--ink);
+  color: #fff;
+}
+
+body.admin-page .tab-btn:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+.tab-count {
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--s2-badge);
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+body.admin-page .admin-header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: auto;
+}
+
+.admin-user-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.admin-user-avatar {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  background: var(--s2-avatar);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.admin-user-avatar:empty {
+  display: none;
+}
+
+body.admin-page .admin-username {
+  overflow: hidden;
+  max-width: 180px;
+  color: var(--ink);
+  font-family: Inter, sans-serif;
+  font-size: 14px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body.admin-page .admin-action-buttons {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  width: auto;
+  margin: 0;
+}
+
+body.admin-page .admin-action-buttons .logout-btn,
+body.admin-page #logoutBtn,
+body.admin-page .admin-approvals-btn {
+  width: auto;
+  min-height: 36px;
+  margin: 0;
+  padding: 0 14px;
+  border: 1px solid var(--s2-border);
+  border-radius: 999px;
+  background: var(--surface);
+  box-shadow: none;
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 500 !important;
+  transform: none;
+}
+
+body.admin-page .admin-action-buttons .logout-btn:hover {
+  border-color: var(--ink);
+  background: var(--surface);
+  color: var(--ink);
+  transform: none;
+}
+
+/* ---------- page canvas + panel heads ---------- */
+
+body.admin-page .admin-main {
+  max-width: 1500px;
+  padding: clamp(14px, 2vw, 24px);
+}
+
+@media (min-width: 641px) {
+  body.admin-page .panel-head {
+    align-items: flex-end;
+  }
+}
+
+body.admin-page .panel-head h2 {
+  font-size: clamp(26px, 2.6vw, 32px);
+  font-weight: 400 !important;
+  letter-spacing: -0.03em !important;
+  line-height: 1.1;
+}
+
+body.admin-page .panel-subtitle {
+  margin-top: 6px;
+  color: var(--s2-mid);
+  font-size: 14px;
+}
+
+/* ---------- buttons ---------- */
+
+html body.admin-page .btn-primary {
+  min-height: 42px;
+  padding: 0 20px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--ink);
+  box-shadow: none;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500 !important;
+}
+
+html body.admin-page .btn-primary:hover {
+  background: #3a2430;
+}
+
+html body.admin-page .btn-small,
+html body.admin-page .btn-ghost {
+  min-height: 34px;
+  padding: 0 14px;
+  border: 1px solid var(--s2-border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 500 !important;
+}
+
+html body.admin-page .btn-small:hover,
+html body.admin-page .btn-ghost:hover {
+  border-color: var(--ink);
+  color: var(--ink);
+}
+
+html body.admin-page .btn-small.danger,
+html body.admin-page .btn-danger {
+  color: var(--primary-deep);
+}
+
+html body.admin-page .btn-small.danger:hover {
+  border-color: var(--primary-deep);
+  background: #fdf0f5;
+  color: var(--primary-deep);
+}
+
+/* ---------- toolbars: search + filters ---------- */
+
+body.admin-page .booking-search-wrap input,
+body.admin-page .booking-toolbar select,
+body.admin-page .admin-upgrade-toolbar input,
+body.admin-page .admin-upgrade-toolbar select,
+body.admin-page .taxonomy-toolbar input,
+body.admin-page .taxonomy-toolbar select,
+body.admin-page .performance-toolbar input,
+body.admin-page .performance-toolbar select,
+body.admin-page .panel-head select {
+  min-height: 42px;
+  border: 1px solid var(--s2-border);
+  border-radius: 12px;
+  background-color: var(--surface);
+  color: var(--ink);
+}
+
+body.admin-page .booking-search-wrap input:focus,
+body.admin-page .booking-toolbar select:focus,
+body.admin-page .admin-upgrade-toolbar input:focus,
+body.admin-page .admin-upgrade-toolbar select:focus,
+body.admin-page .taxonomy-toolbar input:focus,
+body.admin-page .taxonomy-toolbar select:focus,
+body.admin-page .panel-head select:focus {
+  border-color: var(--ink);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(22, 18, 20, 0.08);
+}
+
+/* ---------- white panels: tables, cards ---------- */
+
+body.admin-page .table-wrap {
+  border: 0;
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+body.admin-page th {
+  border-bottom: 1px solid var(--line);
+  background: #fbfaf8;
+  color: var(--muted);
+  font-family: Inter, sans-serif !important;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+body.admin-page td {
+  border-bottom-color: var(--s2-row-line);
+}
+
+body.admin-page tbody tr:hover td {
+  background: #fcfbf9;
+}
+
+body.admin-page .performance-card,
+body.admin-page .taxonomy-admin-card,
+body.admin-page .gallery-manager-card {
+  border: 0;
+  border-radius: var(--radius);
+  box-shadow: none;
+}
+
+/* Summary cards: plain white tiles, no colour bars. */
+body.admin-page #bookingSummaryCards .performance-summary-card,
+body.admin-page #adminUserSummary .performance-summary-card,
+body.admin-page .performance-summary-card {
+  border: 0 !important;
+  border-radius: 18px !important;
+  background: var(--surface) !important;
+  box-shadow: none !important;
+}
+
+body.admin-page #bookingSummaryCards .performance-summary-card::before,
+body.admin-page #adminUserSummary .performance-summary-card::before {
+  display: none;
+}
+
+body.admin-page #bookingSummaryCards .performance-summary-card > span,
+body.admin-page #adminUserSummary .performance-summary-card > span,
+body.admin-page .performance-summary-card > span {
+  color: var(--muted);
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+body.admin-page #bookingSummaryCards .performance-summary-card > strong,
+body.admin-page #adminUserSummary .performance-summary-card > strong,
+body.admin-page .performance-summary-card > strong {
+  color: var(--ink);
+  font-family: "Inter Tight", Inter, sans-serif !important;
+  font-weight: 400 !important;
+  letter-spacing: -0.03em;
+}
+
+body.admin-page .performance-summary-card.highlight > strong {
+  color: var(--primary-deep);
+}
+
+html body.admin-page .pager-actions .pager-page-button.is-current,
+html body.admin-page .pager-actions .pager-page-button.is-current:hover {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: #fff;
+}
+
+/* ---------- modals + toast ---------- */
+
+body.admin-page .modal-card,
+body.admin-page .modal-content,
+body.admin-page .kp-action-modal__dialog {
+  border: 0;
+  border-radius: 24px;
+}
+
+html body.admin-page .kp-action-modal__btn--primary {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: #fff;
+}
+
+/* ---------- narrower screens ---------- */
+
+@media (max-width: 1480px) {
+  body.admin-page .admin-username {
+    display: none;
+  }
+}
+
+/* Pills move to their own full-width row under the logo. */
+@media (max-width: 1440px) {
+  body.admin-page .admin-tabs {
+    order: 3;
+    flex: 1 1 100%;
+    margin: 0 calc(-1 * clamp(16px, 2.4vw, 32px));
+    padding: 0 clamp(16px, 2.4vw, 32px) 2px;
+  }
+}
+
+@media (max-width: 640px) {
+  body.admin-page .admin-header-inner {
+    display: flex;
+    gap: 10px 12px;
+    padding: 10px 16px;
+  }
+
+  body.admin-page .admin-logo {
+    height: 24px;
+  }
+
+  body.admin-page .admin-header-right {
+    display: flex;
+    gap: 8px;
+  }
+
+  body.admin-page .admin-action-buttons {
+    display: flex;
+    width: auto;
+    margin: 0;
+  }
+
+  body.admin-page .admin-action-buttons .logout-btn,
+  body.admin-page #logoutBtn,
+  body.admin-page .admin-approvals-btn {
+    width: auto;
+    min-height: 32px;
+    padding: 0 12px;
+    font-size: 12px;
+  }
+
+  body.admin-page .admin-tabs {
+    margin: 0 -16px;
+    padding: 0 16px 2px;
+  }
+
+  body.admin-page .tab-btn {
+    min-height: 34px;
+    padding: 0 12px;
+    font-size: 13px;
+  }
+}

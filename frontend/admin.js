@@ -786,6 +786,12 @@ async function enterDashboard(
         displayName;
     }
 
+    const avatarTarget = document.getElementById('adminUserAvatar');
+
+    if (avatarTarget) {
+      avatarTarget.textContent = String(displayName || '?').trim().charAt(0).toUpperCase();
+    }
+
     applyRoleAccess();
   } catch (error) {
     console.error(
@@ -1103,6 +1109,11 @@ function switchTab(tab) {
         button.dataset.tab === tab
       );
     });
+
+  // The section pills scroll sideways on narrow screens; keep the active one visible.
+  document
+    .querySelector(`.tab-btn[data-tab="${tab}"]`)
+    ?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
 
   document
     .querySelectorAll('.tab-panel')

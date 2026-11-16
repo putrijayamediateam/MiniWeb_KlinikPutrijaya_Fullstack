@@ -184,6 +184,12 @@
     const pendingCount = byId('bookingInboxPendingCount');
     if (pendingCount) pendingCount.textContent = String(summary.pending ?? 0);
 
+    const tabCount = byId('bookingTabCount');
+    if (tabCount) {
+      tabCount.textContent = String(summary.pending || 0);
+      tabCount.hidden = !summary.pending;
+    }
+
     [
       ['summaryTotal', summary.total],
       ['summaryPending', summary.pending],
