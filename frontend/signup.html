@@ -5,61 +5,77 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex, nofollow, noarchive">
   <title>Create Account | Klinik Putrijaya Admin</title>
-  <link rel="stylesheet" href="css/admin-auth.css">
-  <link rel="stylesheet" href="css/signup.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Inter+Tight:wght@400;500&display=swap">
+  <link rel="stylesheet" href="css/admin-auth.css?v=20261118-1">
+  <link rel="stylesheet" href="css/signup.css?v=20261118-1">
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <script src="js/signup.js?v=20260817-1" defer></script>
 </head>
 <body>
   <main class="auth-page">
-    <section class="auth-card">
-      <a class="auth-brand" href="index.html" aria-label="Klinik Putrijaya Home">
+    <section class="auth-hero">
+      <img src="images/cheras-front-6.webp" alt="" class="auth-hero-photo" width="1200" height="900">
+      <a class="auth-hero-brand" href="index.html" aria-label="Klinik Putrijaya website">
         <img src="images/logoklinik.png" alt="Klinik Putrijaya">
       </a>
+      <div class="auth-hero-copy">
+        <p class="auth-hero-title">Staff portal</p>
+        <p>Bookings, services, promotions and community updates for Cheras, Sungai Besi and Puchong.</p>
+      </div>
+    </section>
 
-      <p class="auth-kicker">Admin Portal</p>
-      <h1>Create an account</h1>
-      <p class="auth-intro">Use your work email and create a secure password.</p>
+    <section class="auth-card">
+      <div class="auth-inner">
+        <a class="auth-brand" href="index.html" aria-label="Klinik Putrijaya Home">
+          <img src="images/logoklinik.png" alt="Klinik Putrijaya">
+        </a>
 
-      <p class="auth-note">
-        You will receive an email to proceed with signing up.
-      </p>
+        <p class="auth-kicker">Admin Portal</p>
+        <h1>Create an account</h1>
+        <p class="auth-intro">Use your work email and create a secure password.</p>
 
-      <form id="signupForm">
-        <label for="signupEmail">Email address</label>
-        <input
-          id="signupEmail"
-          name="email"
-          type="email"
-          autocomplete="email"
-          placeholder="name@example.com"
-          required
-        >
+        <p class="auth-note">
+          You will receive an email to proceed with signing up.
+        </p>
 
-        <label for="signupPassword">Create new password</label>
-        <input
-          id="signupPassword"
-          name="password"
-          type="password"
-          autocomplete="new-password"
-          placeholder="At least 10 characters"
-          minlength="10"
-          maxlength="128"
-          required
-        >
-        <p class="password-help">Use at least 10 characters, including one letter and one number.</p>
+        <form id="signupForm">
+          <label for="signupEmail">Email address</label>
+          <input
+            id="signupEmail"
+            name="email"
+            type="email"
+            autocomplete="email"
+            placeholder="name@example.com"
+            required
+          >
 
-        <button id="signupBtn" type="submit">Create account</button>
-        <div id="signupMessage" class="auth-message" aria-live="polite"></div>
-      </form>
+          <label for="signupPassword">Create new password</label>
+          <input
+            id="signupPassword"
+            name="password"
+            type="password"
+            autocomplete="new-password"
+            placeholder="At least 10 characters"
+            minlength="10"
+            maxlength="128"
+            required
+          >
+          <p class="password-help">Use at least 10 characters, including one letter and one number.</p>
 
-      <div class="auth-divider"><span>or</span></div>
+          <button id="signupBtn" type="submit">Create account</button>
+          <div id="signupMessage" class="auth-message" aria-live="polite"></div>
+        </form>
 
-      <div id="googleButton" class="google-button-shell" aria-label="Continue with Google"></div>
+        <div class="auth-divider"><span>or</span></div>
 
-      <p class="auth-switch">
-        Already have an account? <a href="admin.html">Log In</a>
-      </p>
+        <div id="googleButton" class="google-button-shell" aria-label="Continue with Google"></div>
+
+        <p class="auth-switch">
+          Already have an account? <a href="admin.html">Log In</a>
+        </p>
+      </div>
     </section>
   </main>
 </body>

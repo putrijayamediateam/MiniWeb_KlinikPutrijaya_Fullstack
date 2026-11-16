@@ -216,6 +216,10 @@ dashboard skin lives in `frontend/css/admin-theme.css`, loaded last on
 `admin-upgrades.css`; put new dashboard look-and-feel rules there. The section
 tabs are pills inside the top bar and move to their own scrollable row at
 1440px and below.
+The other staff pages share the look: signup, forgot-password, reset-password
+and verify-account use the same photo panel + card layout
+(`frontend/css/admin-auth.css`, `frontend/css/signup.css`), and Admin Approvals
+has the dashboard-style top bar and white panels (`frontend/css/admin-approvals.css`).
 
 ## Git / secret hygiene
 

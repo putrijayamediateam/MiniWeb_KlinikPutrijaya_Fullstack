@@ -5,21 +5,27 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex, nofollow, noarchive">
   <title>Admin Approvals | Klinik Putrijaya</title>
-  <link rel="stylesheet" href="css/admin-approvals.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Inter+Tight:wght@400;500&display=swap">
+  <link rel="stylesheet" href="css/admin-approvals.css?v=20261118-1">
 </head>
 <body>
+  <header class="approval-topbar">
+    <a href="admin.html" class="approval-logo" aria-label="Back to staff dashboard">
+      <img src="images/logoklinik.png" alt="Klinik Putrijaya">
+    </a>
+    <div class="header-actions">
+      <a href="admin.html" class="secondary-button">Back to dashboard</a>
+      <button id="refreshBtn" type="button" class="primary-button">Refresh</button>
+    </div>
+  </header>
+
   <main class="approval-shell">
-    <header class="approval-header">
-      <div>
-        <p class="eyebrow">Klinik Putrijaya</p>
-        <h1>Admin Account Approvals</h1>
-        <p>Only the active superadmin may approve or reject new management accounts.</p>
-      </div>
-      <div class="header-actions">
-        <a href="admin.html" class="secondary-button">Back to dashboard</a>
-        <button id="refreshBtn" type="button" class="primary-button">Refresh</button>
-      </div>
-    </header>
+    <div class="approval-header">
+      <h1>Admin account approvals</h1>
+      <p>Only the active superadmin may approve or reject new management accounts.</p>
+    </div>
 
     <section id="accessCard" class="status-card">Checking superadmin access…</section>
 

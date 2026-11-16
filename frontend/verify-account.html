@@ -5,25 +5,41 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex, nofollow, noarchive">
   <title>Verify Account | Klinik Putrijaya Admin</title>
-  <link rel="stylesheet" href="css/admin-auth.css">
-  <link rel="stylesheet" href="css/signup.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Inter+Tight:wght@400;500&display=swap">
+  <link rel="stylesheet" href="css/admin-auth.css?v=20261118-1">
+  <link rel="stylesheet" href="css/signup.css?v=20261118-1">
   <script src="js/verify-account.js" defer></script>
 </head>
 <body>
   <main class="auth-page">
-    <section class="auth-card">
-      <a class="auth-brand" href="index.html">
+    <section class="auth-hero">
+      <img src="images/cheras-front-6.webp" alt="" class="auth-hero-photo" width="1200" height="900">
+      <a class="auth-hero-brand" href="index.html" aria-label="Klinik Putrijaya website">
         <img src="images/logoklinik.png" alt="Klinik Putrijaya">
       </a>
+      <div class="auth-hero-copy">
+        <p class="auth-hero-title">Staff portal</p>
+        <p>Bookings, services, promotions and community updates for Cheras, Sungai Besi and Puchong.</p>
+      </div>
+    </section>
 
-      <p class="auth-kicker">Account verification</p>
-      <h1 id="verifyTitle">Verifying your account</h1>
-      <p id="verifyIntro" class="auth-intro">Please wait while we confirm your email address.</p>
-      <div id="verifyMessage" class="auth-message" aria-live="polite"></div>
+    <section class="auth-card">
+      <div class="auth-inner">
+        <a class="auth-brand" href="index.html">
+          <img src="images/logoklinik.png" alt="Klinik Putrijaya">
+        </a>
 
-      <p class="auth-switch">
-        <a href="admin.html">Go to Log In</a>
-      </p>
+        <p class="auth-kicker">Account verification</p>
+        <h1 id="verifyTitle">Verifying your account</h1>
+        <p id="verifyIntro" class="auth-intro">Please wait while we confirm your email address.</p>
+        <div id="verifyMessage" class="auth-message" aria-live="polite"></div>
+
+        <p class="auth-switch">
+          <a href="admin.html">Go to Log In</a>
+        </p>
+      </div>
     </section>
   </main>
 </body>
