@@ -12,7 +12,7 @@
 .hero-img {
   width: 100%;
   height: 56vh;
-  min-height: 380px;
+  min-height: 520px;
   object-fit: cover;
   filter: saturate(1.05);
 }
