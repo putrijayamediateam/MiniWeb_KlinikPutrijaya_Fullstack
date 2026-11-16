@@ -1,18 +1,20 @@
+/* Extras for signup.html and verify-account.html (Style 2).
+   Also loaded by admin.html for the Google button and divider. */
+
 .auth-note {
-  margin: -10px 0 18px;
+  margin: -8px 0 18px;
   padding: 12px 14px;
-  border: 1px solid rgba(224, 13, 146, 0.12);
   border-radius: 12px;
-  background: #fff8fb;
-  color: #745b68;
-  font-size: 0.88rem;
+  background: #f6f4f1;
+  color: #6b6368;
+  font-size: 14px;
   line-height: 1.55;
 }
 
 .password-help {
-  margin: -2px 0 0;
-  color: #927985;
-  font-size: 0.8rem;
+  margin: 0;
+  color: #8a8186;
+  font-size: 13px;
   line-height: 1.45;
 }
 
@@ -21,79 +23,23 @@
   align-items: center;
   gap: 12px;
   margin: 20px 0;
-  color: #9a8490;
-  font-size: 0.78rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+  color: #8a8186;
+  font-size: 13px;
 }
 
 .auth-divider::before,
 .auth-divider::after {
   content: "";
-  height: 1px;
   flex: 1;
-  background: rgba(147, 20, 81, 0.13);
+  height: 1px;
+  background: #ebe6e1;
 }
 
 .google-button-shell {
+  display: flex;
+  justify-content: center;
+  width: 100%;
   min-height: 44px;
-  display: flex;
-  justify-content: center;
-}
-
-.google-unavailable {
-  width: 100%;
-  padding: 12px 14px;
-  border: 1px dashed rgba(147, 20, 81, 0.25);
-  border-radius: 12px;
-  color: #927985;
-  font-size: 0.85rem;
-  text-align: center;
-}
-
-.auth-switch {
-  margin: 22px 0 0;
-  padding-top: 18px;
-  border-top: 1px solid rgba(147, 20, 81, 0.1);
-  color: #745b68;
-  font-size: 0.9rem;
-  text-align: center;
-}
-
-.auth-switch a {
-  color: #931451;
-  font-weight: 800;
-  text-decoration: none;
-}
-
-.auth-switch a:hover {
-  color: #e00d92;
-  text-decoration: underline;
-}
-
-.auth-card button.secondary-link-button {
-  margin-top: 0;
-  background: transparent;
-  color: #931451;
-  box-shadow: none;
-}
-
-.google-button-shell {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  padding: 3px;
-  border-radius: 999px;
-  background:
-    linear-gradient(
-      135deg,
-      rgba(255, 255, 255, 0.95),
-      rgba(255, 239, 247, 0.95)
-    );
-  box-shadow:
-    0 8px 22px
-    rgba(224, 13, 146, 0.08);
 }
 
 .google-button-shell > div {
@@ -103,4 +49,41 @@
 
 .google-button-shell iframe {
   border-radius: 999px !important;
+}
+
+.google-unavailable {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px dashed #e4ddd7;
+  border-radius: 12px;
+  color: #8a8186;
+  font-size: 14px;
+  text-align: center;
+}
+
+.auth-switch {
+  margin: 22px 0 0;
+  color: #6b6368;
+  font-size: 14px;
+  text-align: center;
+}
+
+.auth-switch a {
+  color: #161214;
+  font-weight: 500;
+}
+
+.auth-switch a:hover {
+  color: #a3124f;
+}
+
+.auth-card button.secondary-link-button {
+  margin-top: 0;
+  background: transparent;
+  color: #161214;
+  box-shadow: none;
+}
+
+.auth-card button.secondary-link-button:hover {
+  background: #f6f4f1;
 }
