@@ -208,6 +208,15 @@ controls showing each slot as free, booked or passed. Code:
 `frontend/js/admin-bookings-inbox.js` and `frontend/css/admin-bookings-inbox.css`;
 `admin.js` only passes in shared helpers via `bookingsInboxDeps()`.
 
+Staff dashboard look ("Style 2"): warm off-white canvas, white rounded panels,
+black pill buttons, Inter Tight headings. The login is two panels (branded
+duotone clinic photo + white form card) in `frontend/css/admin-login.css`. The
+dashboard skin lives in `frontend/css/admin-theme.css`, loaded last on
+`admin.html` so it can restyle rules spread across `admin.css` and
+`admin-upgrades.css`; put new dashboard look-and-feel rules there. The section
+tabs are pills inside the top bar and move to their own scrollable row at
+1440px and below.
+
 ## Git / secret hygiene
 
 The repository `.gitignore` currently excludes:

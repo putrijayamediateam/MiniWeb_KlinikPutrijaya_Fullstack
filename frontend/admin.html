@@ -8,121 +8,111 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet"
-  href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
-<link rel="stylesheet" href="./css/admin.css?v=20260810-5">
+  href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600&family=Inter+Tight:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="./css/admin.css?v=20261118-1">
 <link rel="stylesheet" href="css/signup.css">
-<link rel="stylesheet" href="css/admin-login.css">
-<link rel="stylesheet" href="./css/admin-upgrades.css?v=20260814-3">
+<link rel="stylesheet" href="css/admin-login.css?v=20261118-1">
+<link rel="stylesheet" href="./css/admin-upgrades.css?v=20261118-1">
 <link rel="stylesheet" href="./css/admin-branch-access.css?v=20261112-1">
 <link rel="stylesheet" href="./css/admin-booking-alerts.css?v=20261112-1">
-<link rel="stylesheet" href="./css/admin-bookings-inbox.css?v=20261117-1">
+<link rel="stylesheet" href="./css/admin-bookings-inbox.css?v=20261118-1">
+<link rel="stylesheet" href="./css/admin-theme.css?v=20261118-1">
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body class="admin-page">
 
   <!-- LOGIN SCREEN -->
   <div id="loginScreen" class="login-screen admin-login-screen">
-    <section
-  class="login-card admin-login-card"
-  aria-labelledby="loginTitle"
->
-  <a
-    href="index.html"
-    class="back-link admin-login-back"
-  >
-    &larr; Back to website
-  </a>
-
-  <a
-    class="admin-login-brand"
-    href="index.html"
-    aria-label="Klinik Putrijaya Home"
-  >
-        <img
-          src="images/logoklinik.png"
-          alt="Klinik Putrijaya"
-          class="login-logo"
-        >
+    <section class="admin-login-hero">
+      <img
+        src="images/cheras-front-6.webp"
+        alt=""
+        class="admin-login-hero-photo"
+        width="1200"
+        height="900"
+      >
+      <a class="admin-login-hero-brand" href="index.html" aria-label="Klinik Putrijaya website">
+        <img src="images/logoklinik.png" alt="Klinik Putrijaya">
       </a>
+      <div class="admin-login-hero-copy">
+        <p class="admin-login-hero-title">Staff portal</p>
+        <p>Bookings, services, promotions and community updates for Cheras, Sungai Besi and Puchong.</p>
+      </div>
+    </section>
 
-      <p class="admin-login-kicker">Admin Portal</p>
+    <section class="login-card admin-login-card" aria-labelledby="loginTitle">
+      <div class="admin-login-inner">
+        <a href="index.html" class="back-link admin-login-back">&larr; Back to website</a>
 
-      <h1 id="loginTitle">Staff Login</h1>
+        <h1 id="loginTitle">Welcome back</h1>
+        <p class="login-sub admin-login-intro">Log in with your staff account.</p>
 
-      <p class="login-sub admin-login-intro">
-        Sign in to manage bookings, doctors, services, promotions and community activities.
-      </p>
+        <form id="loginForm" class="admin-login-form" novalidate>
+          <div class="admin-login-field">
+            <label for="loginUsername">Username or email</label>
+            <input
+              type="text"
+              id="loginUsername"
+              name="username"
+              autocomplete="username"
+              required
+            >
+          </div>
 
-      <form id="loginForm" class="admin-login-form" novalidate>
-        <div class="admin-login-field">
-          <label for="loginUsername">Username or email</label>
-          <input
-            type="text"
-            id="loginUsername"
-            name="username"
-            autocomplete="username"
-            placeholder="Enter your username or email"
-            required
+          <div class="admin-login-field">
+            <div class="admin-login-label-row">
+              <label for="loginPassword">Password</label>
+              <a href="forgot-password.html" class="forgot-password-link">Forgot password?</a>
+            </div>
+
+            <div class="admin-password-wrap">
+              <input
+                type="password"
+                id="loginPassword"
+                name="password"
+                autocomplete="current-password"
+                required
+              >
+
+              <button
+                type="button"
+                class="admin-password-toggle"
+                id="toggleLoginPassword"
+                aria-label="Show password"
+                aria-pressed="false"
+              >
+                Show
+              </button>
+            </div>
+          </div>
+
+          <div
+            class="form-message admin-login-message"
+            id="loginMessage"
+            aria-live="polite"
+          ></div>
+
+          <button
+            type="submit"
+            class="btn-primary admin-login-button"
+            id="loginBtn"
           >
-        </div>
+            Log in
+          </button>
+        </form>
 
-        <div class="admin-login-field">
-  <label for="loginPassword">Password</label>
-
-  <div class="admin-password-wrap">
-    <input
-      type="password"
-      id="loginPassword"
-      name="password"
-      autocomplete="current-password"
-      placeholder="Enter your password"
-      required
-    >
-
-    <button
-      type="button"
-      class="admin-password-toggle"
-      id="toggleLoginPassword"
-      aria-label="Show password"
-      aria-pressed="false"
-    >
-      Show
-    </button>
-  </div>
-</div>
-
-        <div class="admin-login-options">
-          <a href="forgot-password.html" class="forgot-password-link">
-            Forgot password?
-          </a>
-        </div>
+        <div class="auth-divider"><span>or</span></div>
 
         <div
-          class="form-message admin-login-message"
-          id="loginMessage"
-          aria-live="polite"
+          id="adminGoogleButton"
+          class="google-button-shell"
+          aria-label="Continue with Google"
         ></div>
 
-        <button
-          type="submit"
-          class="btn-primary admin-login-button"
-          id="loginBtn"
-        >
-          Log in
-        </button>
-      </form>
-
-      <div class="auth-divider"><span>or</span></div>
-
-      <div
-        id="adminGoogleButton"
-        class="google-button-shell"
-        aria-label="Continue with Google"
-      ></div>
-
-      <p class="auth-switch admin-login-signup-link">
-        New user? <a href="signup.html">Create an account</a>
-      </p>
+        <p class="auth-switch admin-login-signup-link">
+          New staff? <a href="signup.html">Request access</a>
+        </p>
+      </div>
     </section>
   </div>
 
@@ -131,9 +121,27 @@
     <header class="admin-header">
       <div class="admin-header-inner">
         <img src="images/logoklinik.png" alt="Klinik Putrijaya" class="admin-logo">
-        <span class="admin-title">Staff Dashboard</span>
+        <span class="admin-title visually-hidden">Staff Dashboard</span>
+
+        <nav class="admin-tabs" aria-label="Dashboard sections">
+          <button class="tab-btn active" data-tab="bookings" type="button">
+            Bookings <span class="tab-count" id="bookingTabCount" hidden></span>
+          </button>
+          <button class="tab-btn" data-tab="performance" type="button">Performance</button>
+          <button class="tab-btn" data-tab="feedback" type="button">Feedback</button>
+          <button class="tab-btn" data-tab="doctors" type="button">Doctors</button>
+          <button class="tab-btn" data-tab="services" type="button">Services</button>
+          <button class="tab-btn" data-tab="service-setup" id="serviceSetupTabBtn" type="button">Service Setup</button>
+          <button class="tab-btn" data-tab="promotions" type="button">Promotions</button>
+          <button class="tab-btn" data-tab="activities" type="button">Activities &amp; CSR</button>
+          <button class="tab-btn hidden" data-tab="users" id="userManagementTabBtn" type="button">User Management</button>
+        </nav>
+
         <div class="admin-header-right">
-          <span id="adminUsername" class="admin-username"></span>
+          <span class="admin-user-chip">
+            <span class="admin-user-avatar" id="adminUserAvatar" aria-hidden="true"></span>
+            <span id="adminUsername" class="admin-username"></span>
+          </span>
 
           <div class="admin-action-buttons">
             <a
@@ -155,47 +163,6 @@
         </div>
       </div>
     </header>
-
-    <nav class="admin-tabs">
-      <button class="tab-btn active" data-tab="bookings">Bookings</button>
-      <button
-  class="tab-btn"
-  data-tab="performance"
->
-  Performance
-</button>
-      <button class="tab-btn" data-tab="feedback">Feedback</button>
-      <button class="tab-btn" data-tab="doctors">Doctors</button>
-      <button class="tab-btn" data-tab="services">
-  Services
-</button>
-
-<button
-  class="tab-btn"
-  data-tab="service-setup"
-  id="serviceSetupTabBtn"
-  type="button"
->
-  Service Setup
-</button>
-
-<button class="tab-btn" data-tab="promotions">
-  Promotions
-</button>
-
-<button class="tab-btn" data-tab="activities">
-  Activities &amp; CSR
-</button>
-
-<button
-  class="tab-btn hidden"
-  data-tab="users"
-  id="userManagementTabBtn"
-  type="button"
->
-  User Management
-</button>
-    </nav>
 
     <main class="admin-main">
 
@@ -1543,12 +1510,12 @@
 ></script>
 
 <script
-  src="js/admin-bookings-inbox.js?v=20261117-1"
+  src="js/admin-bookings-inbox.js?v=20261118-1"
   defer
 ></script>
 
 <script
-  src="admin.js?v=20261117-1"
+  src="admin.js?v=20261118-1"
   defer
 ></script>
 </body>
