@@ -26,7 +26,7 @@
           aria-label="Klinik Putrijaya home"
         >
           <img
-            src="images/logoklinik.png"
+            src="images/logoklinik.webp"
             alt="Klinik Putrijaya logo"
           >
         </a>
@@ -303,7 +303,7 @@ function escapeSharedAttribute(value) {
         <div class="wrap">
           <div class="footer-grid">
             <div>
-              <img class="footer-logo" src="images/logoklinik.png" alt="Klinik Putrijaya">
+              <img class="footer-logo" src="images/logoklinik.webp" alt="Klinik Putrijaya">
               <p class="footer-summary">Your Wellness, Our Priority. A trusted family clinic group in Cheras, Sungai Besi and Puchong.</p>
             </div>
             <div>
