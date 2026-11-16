@@ -263,7 +263,17 @@
   color: var(--home-soft);
 }
 
-/* PANELS (unchanged look) */
+/* PANELS (unchanged look; the original heading font is pinned here
+   because the site-wide headings now use Inter Tight) */
+.panel-band .section-head h2 {
+  margin-top: 8px;
+  font-family: "Poppins", sans-serif;
+  font-size: clamp(1.6rem, 3vw, 2.15rem);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: normal;
+}
+
 .panel-band {
   padding: 72px 0;
   overflow: hidden;

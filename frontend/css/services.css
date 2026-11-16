@@ -4,19 +4,8 @@
    ============================================================ */
 
 .services-v2-section {
-  padding: 76px 0 96px;
-  background:
-    radial-gradient(
-      circle at 10% 5%,
-      rgba(255, 173, 212, 0.2),
-      transparent 24%
-    ),
-    linear-gradient(
-      180deg,
-      #fff 0%,
-      #fff9fc 45%,
-      #fff 100%
-    );
+  padding: 88px 0 104px;
+  background: var(--bg);
 }
 
 .services-v2-heading {
@@ -34,9 +23,9 @@
 .services-v2-heading h2 {
   margin-top: 8px;
   color: var(--ink, #24141c);
-  font-family: "Poppins", sans-serif;
+  font-family: var(--display-font);
   font-size: clamp(2rem, 4vw, 3rem);
-  font-weight: 700;
+  font-weight: 500;
   line-height: 1.14;
   letter-spacing: -1px;
 }
@@ -63,7 +52,7 @@
 
 .services-v2-heading-note strong {
   color: var(--primary, #e31c79);
-  font-family: "Poppins", sans-serif;
+  font-family: var(--display-font);
   font-size: 2rem;
   line-height: 1;
 }
@@ -183,9 +172,9 @@
 }
 
 .service-category-card-copy strong {
-  font-family: "Poppins", sans-serif;
+  font-family: var(--display-font);
   font-size: 1.25rem;
-  font-weight: 700;
+  font-weight: 500;
   line-height: 1.28;
   letter-spacing: -0.35px;
 }
@@ -247,9 +236,9 @@
 .service-browser-copy h2 {
   margin-top: 8px;
   color: var(--ink, #24141c);
-  font-family: "Poppins", sans-serif;
+  font-family: var(--display-font);
   font-size: clamp(1.7rem, 3.5vw, 2.5rem);
-  font-weight: 700;
+  font-weight: 500;
   line-height: 1.2;
   letter-spacing: -0.7px;
 }
@@ -403,9 +392,9 @@
 .service-results-header h3 {
   margin-top: 6px;
   color: var(--ink, #24141c);
-  font-family: "Poppins", sans-serif;
+  font-family: var(--display-font);
   font-size: 1.55rem;
-  font-weight: 700;
+  font-weight: 500;
 }
 
 .service-result-count {
@@ -493,9 +482,9 @@
 
 .service-v2-placeholder-mark {
   color: rgba(224, 13, 146, 0.2);
-  font-family: "Poppins", sans-serif;
+  font-family: var(--display-font);
   font-size: 4.1rem;
-  font-weight: 800;
+  font-weight: 500;
   letter-spacing: -4px;
 }
 
@@ -559,9 +548,9 @@
 .service-v2-card h3 {
   margin: 0 0 11px;
   color: var(--ink, #24141c);
-  font-family: "Poppins", sans-serif;
+  font-family: var(--display-font);
   font-size: 1.32rem;
-  font-weight: 700;
+  font-weight: 500;
   line-height: 1.28;
   letter-spacing: -0.35px;
 }
@@ -681,7 +670,7 @@
   display: block;
   margin-bottom: 8px;
   color: var(--ink, #24141c);
-  font-family: "Poppins", sans-serif;
+  font-family: var(--display-font);
   font-size: 1.08rem;
 }
 

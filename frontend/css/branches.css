@@ -1,5 +1,5 @@
 .branches-section {
-  background: var(--pink-tint);
+  background: var(--bg);
 }
 
 .branch-grid {
@@ -132,7 +132,7 @@
 }
 
 .branch-services-section {
-  background: var(--pink-tint);
+  background: #fff;
 }
 
 .branch-service-grid {
@@ -213,8 +213,8 @@
 
 .branch-faq-list summary {
   color: var(--ink);
-  font-family: "Poppins", sans-serif;
-  font-weight: 700;
+  font-family: var(--display-font);
+  font-weight: 500;
   cursor: pointer;
 }
 
