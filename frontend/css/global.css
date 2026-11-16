@@ -1,16 +1,17 @@
 :root {
-  --bg: #fffbfc;
+  --bg: #f6f4f1;
   --surface: #ffffff;
-  --ink: #24141c;
-  --ink-soft: #5c4a52;
+  --ink: #1d1418;
+  --ink-soft: #5f565b;
   --primary: #e31c79;
   --primary-deep: #931451;
-  --accent: #2a2a2a;
+  --accent: #161214;
   --pink-tint: #fef0f6;
-  --muted: #8a7580;
-  --line: #f3dce7;
-  --radius: 16px;
+  --muted: #8a8186;
+  --line: #e4ddd7;
+  --radius: 20px;
   --header-height: 68px;
+  --display-font: "Inter Tight", "Inter", sans-serif;
 }
 
 * {
@@ -45,9 +46,16 @@ h3,
 h4,
 h5 {
   color: var(--ink);
-  font-family: "Poppins", sans-serif;
-  font-weight: 700;
-  line-height: 1.2;
+  font-family: var(--display-font);
+  font-weight: 500;
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+}
+
+h1,
+h2 {
+  font-weight: 400;
+  letter-spacing: -0.03em;
 }
 
 a {
@@ -82,7 +90,7 @@ main {
 }
 
 section {
-  padding: 84px 0;
+  padding: 104px 0;
 }
 
 section[id],
@@ -107,8 +115,9 @@ section[id],
 
 .section-head h1,
 .section-head h2 {
-  margin-top: 8px;
-  font-size: clamp(1.6rem, 3vw, 2.15rem);
+  margin-top: 10px;
+  font-size: clamp(2rem, 3.6vw, 3rem);
+  line-height: 1.05;
 }
 
 .section-head p {
@@ -141,10 +150,12 @@ section[id],
 }
 
 .btn-primary {
-  padding: 13px 24px;
-  background: var(--primary);
+  min-height: 50px;
+  padding: 0 26px;
+  background: var(--accent);
   color: #fff;
   font-size: 0.95rem;
+  font-weight: 500;
 }
 
 .btn-primary:hover,
@@ -153,21 +164,25 @@ section[id],
 }
 
 .btn-secondary {
-  padding: 12px 22px;
+  min-height: 50px;
+  padding: 0 24px;
   border: 1px solid var(--line);
   background: #fff;
   color: var(--ink);
+  font-weight: 500;
   cursor: pointer;
 }
 
 .btn-secondary:hover,
 .btn-secondary:focus-visible {
-  border-color: rgba(227, 28, 121, 0.35);
-  color: var(--primary-deep);
+  border-color: var(--ink);
+  color: var(--ink);
 }
 
 .btn-ghost {
-  padding: 13px 24px;
+  min-height: 50px;
+  padding: 0 24px;
+  font-weight: 500;
   border: 1.5px solid #fff;
   color: #fff;
   font-size: 0.95rem;
@@ -585,32 +600,26 @@ section[id],
 
 /* ============================================================
    INNER-PAGE HERO
-   Same gradient as Little Shield Community
+   Rounded card with the same maroon/pink duotone photo as the
+   homepage hero (luminosity blend over maroon, pink screen, fade).
    ============================================================ */
 
 .page-hero {
   position: relative;
   isolation: isolate;
-  min-height: 330px;
+  min-height: 440px;
   display: flex;
   align-items: flex-end;
   overflow: hidden;
+  margin: 14px clamp(8px, 1vw, 14px) 0;
   padding: 0;
+  border-radius: 24px;
   color: #fff;
-
-  background:
-    radial-gradient(
-      circle at 90% 10%,
-      rgba(255, 255, 255, 0.26),
-      transparent 28%
-    ),
-    linear-gradient(
-      135deg,
-      var(--primary) 0%,
-      var(--primary-deep) 100%
-    );
-
-  box-shadow: 0 24px 70px rgba(147, 20, 81, 0.18);
+  background-color: #4a0c29;
+  background-image: url("../images/cheras-front-6.webp");
+  background-position: center;
+  background-size: cover;
+  background-blend-mode: luminosity;
 }
 
 /* Hide existing hero images */
@@ -619,72 +628,61 @@ section[id],
   display: none;
 }
 
-/* Decorative circle like Little Shield */
-.page-hero::before {
-  content: "";
-  position: absolute;
-  right: -120px;
-  bottom: -170px;
-  z-index: 0;
-  width: 360px;
-  height: 360px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.12);
-  pointer-events: none;
-}
-
-/* Additional soft highlight */
+.page-hero::before,
 .page-hero::after {
   content: "";
   position: absolute;
-  top: -160px;
-  left: -130px;
+  inset: 0;
   z-index: 0;
-  width: 340px;
-  height: 340px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.07);
   pointer-events: none;
+}
+
+.page-hero::before {
+  background: #ff6aa9;
+  mix-blend-mode: screen;
+  opacity: 0.16;
+}
+
+.page-hero::after {
+  background: linear-gradient(180deg, rgba(30, 6, 18, 0.35) 0%, rgba(30, 6, 18, 0.35) 30%, rgba(30, 6, 18, 0.78) 100%);
 }
 
 .page-hero-content {
   position: relative;
   z-index: 2;
   width: 100%;
-  padding: 78px 0 48px;
+  padding: 96px 0 48px;
   color: #fff;
 }
 
 .page-hero .eyebrow {
-  color: #ffe1ef;
+  color: #ffd9ea;
 }
 
 .page-hero h1 {
-  max-width: 18ch;
-  margin-top: 10px;
+  max-width: 16ch;
+  margin-top: 12px;
   color: #fff;
-  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-size: clamp(2.4rem, 5.6vw, 4.5rem);
+  line-height: 1;
+  letter-spacing: -0.04em;
 }
 
 .page-hero p {
-  max-width: 62ch;
-  margin-top: 12px;
-  color: rgba(255, 255, 255, 0.9);
+  max-width: 58ch;
+  margin-top: 16px;
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 1.05rem;
 }
 
 /* Mobile */
 @media (max-width: 768px) {
   .page-hero {
-    min-height: 280px;
+    min-height: 360px;
   }
 
   .page-hero-content {
-    padding: 64px 0 38px;
-  }
-
-  .page-hero::before {
-    right: -150px;
-    bottom: -190px;
+    padding: 72px 0 36px;
   }
 }
 

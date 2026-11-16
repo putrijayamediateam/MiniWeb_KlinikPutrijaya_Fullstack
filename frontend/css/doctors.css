@@ -1,5 +1,5 @@
 .doctors-section {
-  background: linear-gradient(180deg, #fff, #fff8fb);
+  background: var(--bg);
 }
 
 .doctor-search-bar {

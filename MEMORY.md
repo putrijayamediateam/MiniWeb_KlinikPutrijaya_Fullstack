@@ -194,6 +194,16 @@ Security Pass must still audit whether these controls are correctly configured a
 - Responsive fixes should go in the relevant existing media query where practical.
 - Do not use `overflow-x: hidden` as a band-aid for unidentified layout problems.
 
+### Site style
+
+- Public pages share the premium style set in `css/global.css`: warm off-white
+  `--bg`, neutral `--line`, Inter Tight headings through `--display-font`,
+  black pill primary buttons with pink kept as the accent, and a rounded
+  maroon/pink duotone `.page-hero` card on every inner page.
+- Page stylesheets should use these tokens instead of their own pink section
+  backgrounds or hardcoded heading fonts.
+- The homepage panel band intentionally keeps the original Poppins heading.
+
 ### Images
 
 - Public pages use WebP copies sized to about twice their largest displayed
