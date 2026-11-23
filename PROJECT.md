@@ -224,6 +224,8 @@ has the dashboard-style top bar and white panels (`frontend/css/admin-approvals.
 WhatsApp from the Bookings inbox: the green WhatsApp icon opens wa.me with a
 message that follows the booking status (pending = confirm attendance,
 confirmed = reminder, completed = thank you, cancelled = offer a new slot).
+A pending or confirmed booking whose date has passed gets the "dah lepas, nak
+aturkan semula?" message instead, never a confirm or reminder for a past day.
 It uses Puan/Encik by gender, the patient's first name (before bin/binti/a/p),
 the day as people say it ("hari ni", "esok", "hari Jumaat ni") and no booking
 reference. Branch names that already start with "Klinik Putrijaya" are not

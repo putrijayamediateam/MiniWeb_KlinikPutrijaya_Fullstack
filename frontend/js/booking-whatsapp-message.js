@@ -62,6 +62,7 @@
     const diff = daysBetween(now, date);
     if (diff === 0) return 'hari ni';
     if (diff === 1) return 'esok';
+    if (diff === -1) return 'semalam';
     if (diff > 1 && diff < 7) return `hari ${DAYS[date.getUTCDay()]} ni, ${date.getUTCDate()} ${MONTHS[date.getUTCMonth()]}`;
     return label;
   }
@@ -94,11 +95,23 @@
     const you = title ? title.toLowerCase() : 'tuan/puan';
     const clinic = clinicName(booking.branch_name);
     const day = spokenDay(booking.preferred_date, today);
-    // "esok" / "hari ni" read on their own; a full date needs "pada".
-    const onDay = !day || /^(hari |esok)/.test(day) ? day : `pada ${day}`;
+    // "esok" / "hari ni" / "semalam" read on their own; a full date needs "pada".
+    const onDay = !day || /^(hari |esok|semalam)/.test(day) ? day : `pada ${day}`;
     const time = spokenTime(booking.preferred_time);
     const when = [onDay, time && `pukul ${time}`].filter(Boolean).join(', ');
     const greeting = who ? `Assalamualaikum ${who}` : 'Assalamualaikum';
+    const appointment = dateParts(booking.preferred_date);
+    const now = dateParts(today);
+    const isPast = Boolean(appointment && now && appointment < now);
+
+    // A pending or confirmed booking whose day has gone: offer a new slot
+    // instead of asking them to come or reminding them of a past date.
+    if (isPast && (booking.status === 'pending' || booking.status === 'confirmed')) {
+      return (
+        `${greeting}, saya dari ${clinic}. Temujanji ${you} ${when} dah lepas. ` +
+        `Kalau ${you} masih nak datang, bagitahu je masa yang sesuai, nanti kami aturkan semula ya.`
+      );
+    }
 
     switch (booking.status) {
       case 'confirmed':
