@@ -155,7 +155,7 @@ Never commit the real environment file, credentials, private keys, database dump
 npm run check --prefix backend
 ```
 
-The command checks JavaScript syntax, JSON, local HTML references, required guidance files, tracked credential filenames, the Node runtime, and Git whitespace. GitHub Actions runs the same command on pull requests and pushes to `main`.
+The command checks JavaScript syntax, JSON, local HTML references, required guidance files, tracked credential filenames, the Node runtime, Git whitespace, and the exact wording of the patient WhatsApp messages built by `frontend/js/booking-whatsapp-message.js` (change the expected text in `scripts/check-project.js` when the wording is changed on purpose). GitHub Actions runs the same command on pull requests and pushes to `main`.
 
 Automated unit, integration, migration, and browser tests are still roadmap work. A passing baseline check does not by itself prove the release is safe.
 

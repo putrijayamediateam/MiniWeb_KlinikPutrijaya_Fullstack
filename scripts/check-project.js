@@ -407,6 +407,56 @@ function checkGitWhitespace() {
   }
 }
 
+// Patient-facing WhatsApp wording from the admin Bookings inbox.
+function checkWhatsAppMessages() {
+  const { buildMessage } = require(path.join(frontendRoot, 'js', 'booking-whatsapp-message.js'));
+  const today = '2026-11-23'; // a Monday
+  const base = {
+    patient_name: 'NADZIRAH BINTI YAHYA',
+    gender: 'female',
+    branch_name: 'Klinik Putrijaya Cheras',
+    preferred_time: '18:30:00',
+  };
+  const cases = [
+    [{ status: 'pending', preferred_date: '2026-11-24' },
+      'Assalamualaikum Puan Nadzirah, saya dari Klinik Putrijaya Cheras. Puan ada buat temujanji dengan kami esok, pukul 6.30 petang kan? Saya nak confirmkan, puan boleh datang ya?'],
+    [{ status: 'pending', preferred_date: '2026-12-11' },
+      'Assalamualaikum Puan Nadzirah, saya dari Klinik Putrijaya Cheras. Puan ada buat temujanji dengan kami pada Jumaat, 11 Disember, pukul 6.30 petang kan? Saya nak confirmkan, puan boleh datang ya?'],
+    [{ status: 'confirmed', preferred_date: '2026-11-23' },
+      'Hi Puan Nadzirah, Klinik Putrijaya Cheras ni. Nak ingatkan, puan ada temujanji hari ni, pukul 6.30 petang ya. Kalau ada apa-apa perubahan, WhatsApp je kami. Jumpa nanti 😊'],
+    [{ status: 'confirmed', preferred_date: '2026-11-27' },
+      'Hi Puan Nadzirah, Klinik Putrijaya Cheras ni. Nak ingatkan, puan ada temujanji hari Jumaat ni, 27 November, pukul 6.30 petang ya. Kalau ada apa-apa perubahan, WhatsApp je kami. Jumpa nanti 😊'],
+    [{ status: 'confirmed', preferred_date: '2026-11-22' },
+      'Assalamualaikum Puan Nadzirah, saya dari Klinik Putrijaya Cheras. Temujanji puan semalam, pukul 6.30 petang dah lepas. Kalau puan masih nak datang, bagitahu je masa yang sesuai, nanti kami aturkan semula ya.'],
+    [{ status: 'pending', preferred_date: '2026-11-16' },
+      'Assalamualaikum Puan Nadzirah, saya dari Klinik Putrijaya Cheras. Temujanji puan pada Isnin, 16 November, pukul 6.30 petang dah lepas. Kalau puan masih nak datang, bagitahu je masa yang sesuai, nanti kami aturkan semula ya.'],
+    [{ status: 'completed', preferred_date: '2026-11-23' },
+      'Assalamualaikum Puan Nadzirah, terima kasih sebab datang ke Klinik Putrijaya Cheras tadi. Semoga cepat sembuh ya. Kalau ada apa-apa soalan lepas rawatan, WhatsApp je kami.'],
+    [{ status: 'cancelled', preferred_date: '2026-11-16' },
+      'Assalamualaikum Puan Nadzirah, saya dari Klinik Putrijaya Cheras. Temujanji puan pada Isnin, 16 November, pukul 6.30 petang dah dibatalkan. Kalau puan nak buat temujanji baru, bagitahu je masa yang sesuai, nanti kami aturkan ya.'],
+    [{ status: 'pending', preferred_date: '2026-11-24', patient_name: 'Muhammad Amirul bin Abdullah', gender: 'male', branch_name: 'Sungai Besi', preferred_time: '09:00' },
+      'Assalamualaikum Encik Muhammad Amirul, saya dari Klinik Putrijaya Sungai Besi. Encik ada buat temujanji dengan kami esok, pukul 9 pagi kan? Saya nak confirmkan, encik boleh datang ya?'],
+    [{ status: 'pending', preferred_date: '2026-11-25', patient_name: 'Kavitha a/p Raman', branch_name: 'Puchong', preferred_time: '20:00' },
+      'Assalamualaikum Puan Kavitha, saya dari Klinik Putrijaya Puchong. Puan ada buat temujanji dengan kami hari Rabu ni, 25 November, pukul 8 malam kan? Saya nak confirmkan, puan boleh datang ya?'],
+    [{ status: 'confirmed', preferred_date: '2026-11-23', patient_name: 'Lim Wei Ming', gender: '', branch_name: 'Puchong', preferred_time: '12:30' },
+      'Hi Lim Wei Ming, Klinik Putrijaya Puchong ni. Nak ingatkan, tuan/puan ada temujanji hari ni, pukul 12.30 tengah hari ya. Kalau ada apa-apa perubahan, WhatsApp je kami. Jumpa nanti 😊'],
+  ];
+
+  for (const [overrides, expected] of cases) {
+    const booking = { ...base, ...overrides };
+    const actual = buildMessage(booking, today);
+
+    if (actual !== expected) {
+      failures.push(
+        `WhatsApp message for ${booking.status} on ${booking.preferred_date} changed:\n` +
+        `  expected: ${expected}\n  actual:   ${actual}`
+      );
+    }
+  }
+
+  console.log(`WhatsApp messages: ${cases.length} checked`);
+}
+
 console.log(`Checking repository: ${repoRoot}`);
 
 checkRequiredFiles();
@@ -415,6 +465,7 @@ checkJavaScript();
 checkJson();
 checkHtmlReferences();
 checkKpContentOsPublicPages();
+checkWhatsAppMessages();
 checkTrackedSecrets();
 checkGitWhitespace();
 
