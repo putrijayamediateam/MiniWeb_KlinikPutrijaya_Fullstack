@@ -213,6 +213,14 @@ and verify-account use the same photo panel + card layout
 (`frontend/css/admin-auth.css`, `frontend/css/signup.css`), and Admin Approvals
 has the dashboard-style top bar and white panels (`frontend/css/admin-approvals.css`).
 
+WhatsApp from the Bookings inbox: the green WhatsApp icon opens wa.me with a
+message that follows the booking status (pending = confirm attendance,
+confirmed = reminder, completed = thank you, cancelled = offer a new slot).
+It uses Puan/Encik by gender, the patient's first name (before bin/binti/a/p),
+the day as people say it ("hari ni", "esok", "hari Jumaat ni") and no booking
+reference. Branch names that already start with "Klinik Putrijaya" are not
+doubled. Wording lives in `frontend/js/booking-whatsapp-message.js`.
+
 Security Pass must still audit whether these controls are correctly configured and complete.
 
 ## Important coding conventions
