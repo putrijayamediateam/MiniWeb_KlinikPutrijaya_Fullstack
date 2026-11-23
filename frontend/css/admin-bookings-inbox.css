@@ -307,6 +307,30 @@ body.admin-page .inbox-detail-title h3 {
   color: var(--ink);
 }
 
+/* WhatsApp: round green icon button next to the main action. */
+.inbox-whatsapp {
+  display: inline-grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  background: #25D366;
+  color: #fff;
+  text-decoration: none;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.inbox-whatsapp:hover {
+  background: #1ebe5b;
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+.inbox-whatsapp:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
 .inbox-btn.is-small {
   min-height: 38px;
   padding: 0 16px;

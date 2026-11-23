@@ -31,7 +31,9 @@ integration. These pages are linked directly from the shared site footer.
   forgot/reset password, account verification and Admin Approvals share it.
 - **Bookings inbox:** Pending / Today / All tabs, search and branch/status
   filters, a list beside a detail panel with Confirm, Mark completed, Cancel,
-  WhatsApp patient, ticket download and (managers) Delete.
+  a WhatsApp icon, ticket download and (managers) Delete. The WhatsApp message
+  is written in friendly Malay and changes with the booking status (confirm,
+  reminder, thank you, or rebook).
 - **Day calendar** under the inbox: pick a branch and day to see every slot as
   free, booked (coloured by status) or passed; click a booking to open it.
 - **New-booking sound alerts:** the open dashboard checks every 30 seconds and
