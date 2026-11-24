@@ -84,6 +84,20 @@
     return `${minutes === '00' ? hour12 : `${hour12}.${minutes}`} ${period}`;
   }
 
+  // Phone as typed by the patient -> digits for wa.me (country code, no "+").
+  // "+65 9123 4567" / "0065..." keep their own country code; Malaysian
+  // numbers ("012-345 6789", "6012...", "12-345 6789") become 60...
+  function whatsappNumber(phone) {
+    const raw = String(phone || '').trim();
+    let digits = raw.replace(/\D/g, '');
+    if (!digits) return '';
+    if (raw.startsWith('+')) return digits;
+    if (digits.startsWith('00')) return digits.slice(2);
+    if (digits.startsWith('60')) return digits;
+    if (digits.startsWith('0')) return `6${digits}`;
+    return `60${digits}`;
+  }
+
   /**
    * @param {object} booking  patient_name, gender, branch_name, status,
    *                          preferred_date (YYYY-MM-DD), preferred_time (HH:MM)
@@ -144,7 +158,7 @@
     }
   }
 
-  const api = { buildMessage, callingName, clinicName, spokenDay, spokenTime };
+  const api = { buildMessage, whatsappNumber, callingName, clinicName, spokenDay, spokenTime };
 
   root.KPBookingWhatsApp = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;

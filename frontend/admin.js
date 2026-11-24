@@ -12962,31 +12962,6 @@ function slugify(value) {
     .replace(/^-+|-+$/g, '');
 }
 
-function buildWhatsappLink(booking) {
-  const phone = normalizeMalaysiaPhone(booking.phone);
-  if (!phone) return '';
-
-  const message = [
-    `Assalamualaikum / Hi ${booking.patient_name}, kami dari Klinik Putrijaya.`,
-    '',
-    `Reference: ${formatBookingRef(booking.id)}`,
-    `Branch: ${booking.branch_name || '-'}`,
-    `Date: ${formatDate(booking.preferred_date)}`,
-    `Time: ${booking.preferred_time || '-'}`,
-    '',
-    'Boleh kami bantu confirmkan slot anda?',
-  ].join('\n');
-
-  return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
-}
-
-function normalizeMalaysiaPhone(phone) {
-  let digits = String(phone || '').replace(/\D/g, '');
-  if (digits.startsWith('0')) digits = `6${digits}`;
-  if (digits.startsWith('1')) digits = `60${digits}`;
-  return digits.startsWith('60') ? digits : '';
-}
-
 function statusOption(value, selected, label) {
   return `<option value="${value}" ${value === selected ? 'selected' : ''}>${label}</option>`;
 }

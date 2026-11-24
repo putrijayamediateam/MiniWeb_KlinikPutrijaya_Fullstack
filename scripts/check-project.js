@@ -456,7 +456,28 @@ function checkWhatsAppMessages() {
     }
   }
 
-  console.log(`WhatsApp messages: ${cases.length} checked`);
+  const { whatsappNumber } = require(path.join(frontendRoot, 'js', 'booking-whatsapp-message.js'));
+  const numbers = [
+    ['012-345 6789', '60123456789'],
+    ['+6012-345 6789', '60123456789'],
+    ['6012 345 6789', '60123456789'],
+    ['12-345 6789', '60123456789'],
+    ['03-9876 5432', '60398765432'],
+    ['+65 9123 4567', '6591234567'],
+    ['0065 9123 4567', '6591234567'],
+    ['+44 7911 123456', '447911123456'],
+    ['', ''],
+  ];
+
+  for (const [phone, expected] of numbers) {
+    const actual = whatsappNumber(phone);
+
+    if (actual !== expected) {
+      failures.push(`WhatsApp number for "${phone}" should be "${expected}", got "${actual}"`);
+    }
+  }
+
+  console.log(`WhatsApp messages: ${cases.length} checked, numbers: ${numbers.length} checked`);
 }
 
 console.log(`Checking repository: ${repoRoot}`);
