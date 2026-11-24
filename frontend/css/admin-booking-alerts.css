@@ -18,3 +18,85 @@
   color: var(--muted);
   font-size: 13px;
 }
+
+/* Banner under the top bar while new bookings are waiting (any tab). */
+/* Lives inside the sticky top bar, so it stays visible while scrolling. */
+.booking-alert-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
+  padding: 12px clamp(16px, 2.4vw, 32px);
+  background: #fde4ef;
+  border-top: 1px solid #f7c6dc;
+  color: #5a0f32;
+  animation: kpAlertPulse 1.6s ease-in-out infinite;
+}
+
+.booking-alert-banner[hidden] {
+  display: none;
+}
+
+.booking-alert-banner-text {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.booking-alert-banner-text strong {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.booking-alert-banner-text strong::before {
+  content: "🔔 ";
+}
+
+.booking-alert-banner-text span {
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.booking-alert-banner-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.booking-alert-banner-btn {
+  min-height: 36px;
+  padding: 0 16px;
+  border: 1px solid #e9a6c5;
+  border-radius: 999px;
+  background: #fff;
+  color: #5a0f32;
+  font: 500 13px Inter, sans-serif;
+  cursor: pointer;
+}
+
+.booking-alert-banner-btn:hover {
+  border-color: #5a0f32;
+}
+
+.booking-alert-banner-btn.is-primary {
+  border-color: #161214;
+  background: #161214;
+  color: #fff;
+}
+
+.booking-alert-banner-btn:focus-visible {
+  outline: 2px solid #161214;
+  outline-offset: 2px;
+}
+
+@keyframes kpAlertPulse {
+  0%, 100% { background: #fde4ef; }
+  50% { background: #fbcfe1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .booking-alert-banner {
+    animation: none;
+  }
+}

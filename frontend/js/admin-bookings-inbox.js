@@ -593,9 +593,16 @@
     });
   }
 
+  // Used by new-booking alerts: open the Pending view.
+  function showView(view) {
+    state.view = view;
+    if (deps) load();
+  }
+
   window.KPBookingsInbox = {
     init,
     load,
+    showView,
     refreshCalendar,
     populateCalendarBranches,
     isReady: () => Boolean(deps),

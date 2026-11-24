@@ -1,21 +1,40 @@
-// New-booking alerts for the admin dashboard: polls for bookings newer than the
-// last one seen, plays a chime and badges the tab title. Bookings come from the
-// normal authenticated API, so branch-limited accounts only hear their branches.
+// New-booking alerts for the admin dashboard. Polls for bookings newer than
+// the last one seen, then keeps nagging until a staff member acknowledges:
+// - a chime that repeats on every check (30 s) while bookings are waiting,
+// - a banner at the top of the dashboard with "View" and "OK, seen it",
+// - a flashing tab title and a red dot on the tab icon,
+// - a desktop pop-up (browser notification) when the page is not in front.
+// A waiting booking also stops nagging once its status is no longer pending,
+// so a colleague handling it on another PC quietens everyone.
+// Bookings come from the normal authenticated API, so branch-limited
+// accounts are only alerted about their branches.
 
 (function () {
   'use strict';
 
   const POLL_INTERVAL_MS = 30000;
+  const FLASH_INTERVAL_MS = 1000;
   const SOUND_KEY = 'kp_booking_alert_sound';
 
   let timer = null;
+  let flashTimer = null;
+  let flashOn = false;
   let fetchLatest = null;
   let onNewBookings = null;
+  let onOpen = null;
+  let describe = (booking) => `Booking #${booking.id}`;
   let lastSeenId = null;
   let checking = false;
-  let unreadCount = 0;
   let audioContext = null;
   let baseTitle = document.title;
+
+  // Bookings not yet acknowledged, newest first.
+  let waiting = [];
+  let popups = [];
+
+  const faviconLink = document.getElementById('adminFavicon');
+  const faviconHref = faviconLink ? faviconLink.href : '';
+  let faviconBadge = '';
 
   function readSoundSetting() {
     try {
@@ -26,6 +45,8 @@
   }
 
   let soundOn = readSoundSetting();
+
+  /* ---------- sound ---------- */
 
   function getAudioContext() {
     const AudioContextClass = window.AudioContext || window.webkitAudioContext;
@@ -42,7 +63,7 @@
     const context = getAudioContext();
 
     if (context && context.state === 'suspended') {
-      return context.resume().catch(() => {});
+      return context.resume().then(renderBanner).catch(() => {});
     }
 
     return Promise.resolve();
@@ -89,15 +110,187 @@
     return true;
   }
 
-  function updateTitle() {
-    document.title = unreadCount ? `(${unreadCount}) ${baseTitle}` : baseTitle;
+  /* ---------- desktop pop-ups ---------- */
+
+  function popupState() {
+    if (!('Notification' in window)) return 'unsupported';
+    return Notification.permission; // 'default' | 'granted' | 'denied'
   }
 
-  function clearUnread() {
-    if (!unreadCount) return;
+  // Must be called from a click: browsers ignore permission requests otherwise.
+  function requestPopups() {
+    if (popupState() !== 'default') return Promise.resolve(popupState());
+    return Notification.requestPermission().catch(() => popupState());
+  }
 
-    unreadCount = 0;
-    updateTitle();
+  function showPopup(title, body, tag) {
+    if (popupState() !== 'granted') return;
+
+    try {
+      const popup = new Notification(title, {
+        body,
+        tag,
+        icon: faviconHref || undefined,
+        requireInteraction: true,
+      });
+
+      popup.onclick = () => {
+        window.focus();
+        openWaiting();
+      };
+
+      popups.push(popup);
+    } catch (error) {
+      // Some browsers only allow pop-ups from a service worker; the banner,
+      // title and chime still work.
+    }
+  }
+
+  function testPopup() {
+    showPopup('Pop-up alerts are on', 'New appointment requests will appear here.', 'kp-booking-test');
+  }
+
+  function closePopups() {
+    popups.forEach((popup) => popup.close());
+    popups = [];
+  }
+
+  /* ---------- tab title + icon ---------- */
+
+  function isInFront() {
+    return document.visibilityState === 'visible' && document.hasFocus();
+  }
+
+  function setFaviconBadge(on) {
+    if (!faviconLink || !faviconHref) return;
+
+    if (!on) {
+      faviconLink.href = faviconHref;
+      return;
+    }
+
+    if (faviconBadge) {
+      faviconLink.href = faviconBadge;
+      return;
+    }
+
+    const image = new Image();
+    image.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = 32;
+      canvas.height = 32;
+      const context = canvas.getContext('2d');
+      context.drawImage(image, 0, 0, 32, 32);
+      context.fillStyle = '#e11d48';
+      context.beginPath();
+      context.arc(24, 8, 8, 0, 2 * Math.PI);
+      context.fill();
+      faviconBadge = canvas.toDataURL('image/png');
+      if (waiting.length) faviconLink.href = faviconBadge;
+    };
+    image.src = faviconHref;
+  }
+
+  function renderTitle() {
+    const count = waiting.length;
+
+    if (!count) {
+      document.title = baseTitle;
+      return;
+    }
+
+    document.title = flashOn ? `(${count}) 🔔 New booking!` : `(${count}) ${baseTitle}`;
+  }
+
+  function updateFlashing() {
+    const shouldFlash = waiting.length > 0 && !isInFront();
+
+    if (shouldFlash && !flashTimer) {
+      flashTimer = window.setInterval(() => {
+        flashOn = !flashOn;
+        renderTitle();
+      }, FLASH_INTERVAL_MS);
+    } else if (!shouldFlash && flashTimer) {
+      window.clearInterval(flashTimer);
+      flashTimer = null;
+      flashOn = false;
+    }
+
+    renderTitle();
+    setFaviconBadge(waiting.length > 0);
+  }
+
+  /* ---------- banner ---------- */
+
+  function bannerButton(label, className, handler) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = className;
+    button.textContent = label;
+    button.addEventListener('click', handler);
+    return button;
+  }
+
+  function renderBanner() {
+    const banner = document.getElementById('bookingAlertBanner');
+    if (!banner) return;
+
+    if (!waiting.length) {
+      banner.hidden = true;
+      banner.replaceChildren();
+      return;
+    }
+
+    const text = document.createElement('div');
+    text.className = 'booking-alert-banner-text';
+
+    const title = document.createElement('strong');
+    title.textContent = waiting.length === 1
+      ? 'New appointment request waiting'
+      : `${waiting.length} new appointment requests waiting`;
+
+    const detail = document.createElement('span');
+    detail.textContent = waiting.length === 1
+      ? describe(waiting[0])
+      : `Latest: ${describe(waiting[0])}`;
+
+    text.append(title, detail);
+
+    const actions = document.createElement('div');
+    actions.className = 'booking-alert-banner-actions';
+
+    if (soundOn && !isAudioReady()) {
+      actions.append(bannerButton('Turn on sound', 'booking-alert-banner-btn', () => {
+        unlockAudio().then(playChime);
+      }));
+    }
+
+    actions.append(
+      bannerButton('View', 'booking-alert-banner-btn is-primary', openWaiting),
+      bannerButton('OK, seen it', 'booking-alert-banner-btn', acknowledge)
+    );
+
+    banner.replaceChildren(text, actions);
+    banner.hidden = false;
+  }
+
+  /* ---------- waiting list ---------- */
+
+  function render() {
+    renderBanner();
+    updateFlashing();
+  }
+
+  function acknowledge() {
+    waiting = [];
+    closePopups();
+    render();
+  }
+
+  function openWaiting() {
+    const ids = waiting.map((booking) => booking.id);
+    acknowledge();
+    if (onOpen) onOpen(ids);
   }
 
   async function check() {
@@ -116,20 +309,32 @@
         return;
       }
 
+      // Someone already confirmed/cancelled it: stop nagging about it.
+      const statusById = new Map(bookings.map((booking) => [Number(booking.id), booking.status]));
+      waiting = waiting.filter((booking) => {
+        const status = statusById.get(Number(booking.id));
+        return status === undefined || status === 'pending';
+      });
+
       const fresh = bookings.filter((booking) => Number(booking.id) > lastSeenId);
 
-      if (!fresh.length) return;
+      if (fresh.length) {
+        lastSeenId = newestId;
+        waiting = [...fresh, ...waiting];
 
-      lastSeenId = newestId;
-
-      if (document.visibilityState !== 'visible' || !document.hasFocus()) {
-        unreadCount += fresh.length;
-        updateTitle();
+        if (!isInFront()) {
+          fresh.forEach((booking) => {
+            showPopup('New appointment request', describe(booking), `kp-booking-${booking.id}`);
+          });
+        }
       }
 
-      const played = soundOn ? playChime() : false;
+      // Chime for new bookings, and again on every check until acknowledged.
+      const played = waiting.length && soundOn ? playChime() : false;
 
-      if (onNewBookings) {
+      render();
+
+      if (fresh.length && onNewBookings) {
         onNewBookings(fresh, { played, soundOn });
       }
     } catch (error) {
@@ -144,7 +349,9 @@
     stop();
 
     fetchLatest = options.fetchLatest;
-    onNewBookings = options.onNewBookings;
+    onNewBookings = options.onNewBookings || null;
+    onOpen = options.onOpen || null;
+    if (options.describe) describe = options.describe;
     lastSeenId = null;
     baseTitle = document.title.replace(/^\(\d+\)\s*/, '');
 
@@ -160,8 +367,9 @@
     timer = null;
     fetchLatest = null;
     onNewBookings = null;
+    onOpen = null;
     lastSeenId = null;
-    clearUnread();
+    acknowledge();
   }
 
   function setSoundOn(value) {
@@ -176,25 +384,31 @@
     if (soundOn) {
       unlockAudio();
     }
+
+    renderBanner();
   }
 
   ['pointerdown', 'keydown'].forEach((eventName) => {
     document.addEventListener(eventName, unlockAudio, { passive: true });
   });
 
-  window.addEventListener('focus', clearUnread);
-  document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible') clearUnread();
-  });
+  window.addEventListener('focus', updateFlashing);
+  window.addEventListener('blur', updateFlashing);
+  document.addEventListener('visibilitychange', updateFlashing);
 
   window.KPBookingAlerts = {
     start,
     stop,
     check,
+    acknowledge,
+    getWaiting: () => waiting.slice(),
     isSoundOn: () => soundOn,
     setSoundOn,
     isAudioReady,
     playChime,
     unlockAudio,
+    popupState,
+    requestPopups,
+    testPopup,
   };
 })();
