@@ -438,6 +438,8 @@ function checkWhatsAppMessages() {
       'Assalamualaikum Encik Muhammad Amirul, saya dari Klinik Putrijaya Sungai Besi. Encik ada buat temujanji dengan kami esok, pukul 9 pagi kan? Saya nak confirmkan, encik boleh datang ya?'],
     [{ status: 'pending', preferred_date: '2026-11-25', patient_name: 'Kavitha a/p Raman', branch_name: 'Puchong', preferred_time: '20:00' },
       'Assalamualaikum Puan Kavitha, saya dari Klinik Putrijaya Puchong. Puan ada buat temujanji dengan kami hari Rabu ni, 25 November, pukul 8 malam kan? Saya nak confirmkan, puan boleh datang ya?'],
+    [{ status: 'pending', preferred_date: '2026-11-24', patient_name: 'AHMAD AL-AMIN BIN ZAKARIA', gender: 'male' },
+      'Assalamualaikum Encik Ahmad Al-Amin, saya dari Klinik Putrijaya Cheras. Encik ada buat temujanji dengan kami esok, pukul 6.30 petang kan? Saya nak confirmkan, encik boleh datang ya?'],
     [{ status: 'confirmed', preferred_date: '2026-11-23', patient_name: 'Lim Wei Ming', gender: '', branch_name: 'Puchong', preferred_time: '12:30' },
       'Hi Lim Wei Ming, Klinik Putrijaya Puchong ni. Nak ingatkan, tuan/puan ada temujanji hari ni, pukul 12.30 tengah hari ya. Kalau ada apa-apa perubahan, WhatsApp je kami. Jumpa nanti 😊'],
   ];

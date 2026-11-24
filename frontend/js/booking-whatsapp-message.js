@@ -17,7 +17,8 @@
   const PATRONYMIC = /^(bin|binti|bt|bte|bnt|b|a\/l|a\/p|al|ap|s\/o|d\/o)\.?$/i;
 
   function titleCase(word) {
-    return word ? word.charAt(0).toUpperCase() + word.slice(1).toLowerCase() : '';
+    // Capitalise after a hyphen too ("AL-AMIN" -> "Al-Amin"); after an apostrophe stays small ("Nur'ain").
+    return String(word || '').toLowerCase().replace(/(^|-)(\p{L})/gu, (match, mark, letter) => mark + letter.toUpperCase());
   }
 
   // "NADZIRAH BINTI YAHYA" -> "Nadzirah"; "Nur Aisyah binti Ali" -> "Nur Aisyah".
