@@ -84,10 +84,8 @@
   }
 
   function whatsappLink(booking) {
-    let digits = String(booking.phone || '').replace(/\D/g, '');
+    const digits = window.KPBookingWhatsApp.whatsappNumber(booking.phone);
     if (!digits) return '';
-    if (digits.startsWith('0')) digits = `6${digits}`;
-    else if (!digits.startsWith('60')) digits = `60${digits}`;
 
     // Wording follows the booking status (js/booking-whatsapp-message.js).
     const message = window.KPBookingWhatsApp.buildMessage(booking, clinicToday());
