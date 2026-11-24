@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow, noarchive">
 <title>Klinik Putrijaya — Staff Admin</title>
+<link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32x32.png" id="adminFavicon">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet"
@@ -14,7 +15,7 @@
 <link rel="stylesheet" href="css/admin-login.css?v=20261118-2">
 <link rel="stylesheet" href="./css/admin-upgrades.css?v=20261118-1">
 <link rel="stylesheet" href="./css/admin-branch-access.css?v=20261112-1">
-<link rel="stylesheet" href="./css/admin-booking-alerts.css?v=20261112-1">
+<link rel="stylesheet" href="./css/admin-booking-alerts.css?v=20261124-1">
 <link rel="stylesheet" href="./css/admin-bookings-inbox.css?v=20261123-1">
 <link rel="stylesheet" href="./css/admin-theme.css?v=20261118-1">
 <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -162,6 +163,7 @@
           </div>
         </div>
       </div>
+      <div class="booking-alert-banner" id="bookingAlertBanner" role="alert" hidden></div>
     </header>
 
     <main class="admin-main">
@@ -683,8 +685,17 @@
       Sound alerts: On
     </button>
 
+    <button
+      type="button"
+      class="btn-small booking-alert-toggle"
+      id="bookingPopupToggle"
+      hidden
+    >
+      Pop-up alerts: Turn on
+    </button>
+
     <span class="booking-alert-hint">
-      New appointments are checked every 30 seconds while this page is open.
+      New appointments are checked every 30 seconds while this page is open. The chime repeats until someone clicks "OK, seen it".
     </span>
   </div>
 
@@ -1495,7 +1506,7 @@
 ></script>
 
 <script
-  src="js/admin-booking-alerts.js?v=20261112-1"
+  src="js/admin-booking-alerts.js?v=20261124-1"
   defer
 ></script>
 
@@ -1515,12 +1526,12 @@
 ></script>
 
 <script
-  src="js/admin-bookings-inbox.js?v=20261124-1"
+  src="js/admin-bookings-inbox.js?v=20261124-2"
   defer
 ></script>
 
 <script
-  src="admin.js?v=20261124-1"
+  src="admin.js?v=20261124-2"
   defer
 ></script>
 </body>

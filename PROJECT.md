@@ -180,14 +180,23 @@ API filters the list, summary counts, status updates and deletes by the
 account's branches, and returns 404 for bookings outside them. The Performance
 tab's aggregate booking counts are not branch-limited.
 
-New-booking sound alerts: while the admin dashboard is open, it checks the
-bookings API every 30 seconds and plays a chime (Web Audio, no sound file) plus
-a toast showing only the booking reference and branch, and refreshes the list
-on the Bookings tab. It uses the normal branch-scoped list, so branch-limited
-staff only hear their branches. Browsers block sound until the user clicks or
-types on the page; the toast then offers "Turn on sound". Staff can mute it
-with the "Sound alerts" toggle (saved per browser). Code:
-`frontend/js/admin-booking-alerts.js`.
+New-booking alerts: while the admin dashboard is open (any tab, even
+minimised), it checks the bookings API every 30 seconds. A new booking then:
+- shows a pulsing banner in the top bar ("New appointment request waiting",
+  reference · branch · date/time only) with "View" and "OK, seen it";
+- plays a chime (Web Audio, no sound file) on every check until someone
+  clicks "OK, seen it" or "View";
+- flashes the tab title ("(n) 🔔 New booking!") and puts a red dot on the tab
+  icon while the page is not in front;
+- shows a desktop pop-up (browser Notification) when the page is not in
+  front, once staff click "Pop-up alerts: Turn on" and allow it.
+A waiting booking stops nagging by itself once its status is no longer
+pending (a colleague handled it). It uses the normal branch-scoped list, so
+branch-limited staff are only alerted about their branches. Browsers block
+sound until the user clicks or types on the page; the banner then offers
+"Turn on sound". Sound can be muted with the "Sound alerts" toggle (saved
+per browser). Alerts live only in that browser tab: two open dashboards on
+one PC both chime. Code: `frontend/js/admin-booking-alerts.js`.
 
 Booking time slots: patients pick a 30-minute slot from a dropdown instead of
 typing a time. Slot hours per branch live in `backend/services/bookingSlots.js`

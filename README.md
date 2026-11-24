@@ -36,8 +36,10 @@ integration. These pages are linked directly from the shared site footer.
   reminder, thank you, or rebook).
 - **Day calendar** under the inbox: pick a branch and day to see every slot as
   free, booked (coloured by status) or passed; click a booking to open it.
-- **New-booking sound alerts:** the open dashboard checks every 30 seconds and
-  plays a chime with a short toast.
+- **New-booking alerts:** the open dashboard checks every 30 seconds. A new
+  booking shows a banner on every tab, repeats a chime until someone clicks
+  "OK, seen it", flashes the browser tab and (once allowed) pops up a desktop
+  notification even when staff are in another window.
 - **Branch-limited accounts:** a superadmin can restrict an admin or manager to
   chosen branches; the API enforces it for listing, status changes and deletes.
 - Doctors, services and taxonomy, promotions, community activities, patient

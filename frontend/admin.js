@@ -226,6 +226,7 @@ document
 
   document.getElementById('exportBookingsBtn')?.addEventListener('click', exportBookingsToCSV);
   document.getElementById('bookingAlertToggle')?.addEventListener('click', toggleBookingAlertSound);
+  document.getElementById('bookingPopupToggle')?.addEventListener('click', toggleBookingPopups);
   document.getElementById('addDoctorBtn')?.addEventListener('click', () => openDoctorModal());
   document
   .getElementById(
@@ -3176,7 +3177,8 @@ XLSX.utils
 // BOOKINGS: server-side pagination, filtering and notifications
 // -----------------------------------------------------------------------------
 
-// New-booking chime and tab badge; polling lives in js/admin-booking-alerts.js.
+// New-booking alerts (repeating chime, banner, flashing tab, desktop pop-up);
+// polling and the alerts themselves live in js/admin-booking-alerts.js.
 function startBookingAlerts() {
   const alerts = window.KPBookingAlerts;
   if (!alerts || !authedApi) return;
@@ -3193,35 +3195,27 @@ function startBookingAlerts() {
         throw error;
       }
     },
+    // Reference, branch and slot only: the screen may be visible at the counter.
+    describe: (booking) => [
+      formatBookingRef(booking.id),
+      booking.branch_name || 'Branch',
+      `${formatDate(booking.preferred_date)} ${String(booking.preferred_time || '').slice(0, 5)}`.trim(),
+    ].join(' · '),
     onNewBookings: handleNewBookings,
+    onOpen: openWaitingBookings,
   });
 }
 
-function handleNewBookings(bookings, { played, soundOn }) {
-  const latest = bookings[0];
-
-  // Reference and branch only: the screen may be visible at the counter.
-  const message = bookings.length > 1
-    ? `${bookings.length} new appointment requests.`
-    : `${formatBookingRef(latest.id)} · ${latest.branch_name || 'Branch'}`;
-
-  const soundBlocked = soundOn && !played;
-
-  showKpToast({
-    title: 'New appointment request',
-    message: soundBlocked
-      ? `${message} Click "Turn on sound" so you can hear the next one.`
-      : message,
-    actionText: soundBlocked ? 'Turn on sound' : '',
-    onAction: soundBlocked
-      ? () => window.KPBookingAlerts.unlockAudio().then(() => window.KPBookingAlerts.playChime())
-      : null,
-    duration: 12000,
-  });
-
+function handleNewBookings() {
   if (document.getElementById('tab-bookings')?.classList.contains('active')) {
     loadBookings();
   }
+}
+
+// "View" on the banner or a click on the desktop pop-up.
+function openWaitingBookings() {
+  window.KPBookingsInbox?.showView('pending');
+  switchTab('bookings');
 }
 
 function renderBookingAlertToggle() {
@@ -3232,6 +3226,34 @@ function renderBookingAlertToggle() {
   const on = alerts.isSoundOn();
   button.textContent = on ? 'Sound alerts: On' : 'Sound alerts: Off';
   button.setAttribute('aria-pressed', String(on));
+
+  const popupButton = document.getElementById('bookingPopupToggle');
+  if (!popupButton) return;
+
+  const state = alerts.popupState();
+  const labels = {
+    default: 'Pop-up alerts: Turn on',
+    granted: 'Pop-up alerts: On',
+    denied: 'Pop-up alerts: Blocked',
+  };
+
+  popupButton.hidden = state === 'unsupported';
+  popupButton.textContent = labels[state] || '';
+  popupButton.setAttribute('aria-pressed', String(state === 'granted'));
+  popupButton.title = state === 'denied'
+    ? 'Pop-ups are blocked for this site. Allow notifications in the browser settings (padlock icon next to the address).'
+    : 'Show a desktop pop-up when a new appointment arrives, even when you are in another window.';
+}
+
+async function toggleBookingPopups() {
+  const alerts = window.KPBookingAlerts;
+  if (!alerts) return;
+
+  await alerts.requestPopups();
+  renderBookingAlertToggle();
+
+  // A sample pop-up so staff can see where it appears.
+  if (alerts.popupState() === 'granted') alerts.testPopup();
 }
 
 function toggleBookingAlertSound() {
